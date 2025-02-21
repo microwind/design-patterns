@@ -2,7 +2,7 @@
 package main
 
 import (
-  "go-order-system/internal/application"
+  "go-order-system/internal/application/services"
   "go-order-system/internal/infrastructure/repository"
   "go-order-system/internal/interfaces/handlers"
   "go-order-system/internal/middleware"
@@ -45,7 +45,7 @@ func main() {
   orderRepo := repository.NewOrderRepositoryImpl()
 
   // 创建订单应用服务
-  orderService := application.NewOrderService(orderRepo)
+  orderService := services.NewOrderService(orderRepo)
 
   // 创建 HTTP 处理器
   orderHandler := handlers.NewOrderHandler(orderService)

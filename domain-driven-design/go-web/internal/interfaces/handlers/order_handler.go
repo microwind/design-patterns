@@ -3,7 +3,7 @@ package handlers
 
 import (
   "encoding/json"
-  "go-order-system/internal/application"
+  "go-order-system/internal/application/services"
   "math/rand"
   "net/http"
   "strconv"
@@ -11,11 +11,11 @@ import (
 
 // 订单 HTTP 处理器
 type OrderHandler struct {
-  Service *application.OrderService
+  Service *services.OrderService
 }
 
 // 构造函数
-func NewOrderHandler(service *application.OrderService) *OrderHandler {
+func NewOrderHandler(service *services.OrderService) *OrderHandler {
   return &OrderHandler{Service: service}
 }
 

@@ -1,6 +1,6 @@
 ## Go语言`DDD`目录结构
 ```bash
-go-order-system/
+go-web/
 │── cmd/
 │   └── main.go               # 应用入口
 │── internal/
@@ -9,7 +9,8 @@ go-order-system/
 │   │   │   ├── order.go      # 订单实体（聚合根），包含核心业务逻辑
 │   │   │   └── order_repository.go # 订单仓储接口，定义对订单数据的操作
 │   ├── application/          # 应用层（协调领域逻辑，处理业务用例）
-│   │   ├── order_service.go  # 订单应用服务，调用领域层业务逻辑
+│   │   ├── services/         # 服务层，业务逻辑目录
+│   │   │   └── order_service.go # 订单应用服务，调用领域层业务逻辑
 │   ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   ├── repository/       # 仓储实现
 │   │   │   ├── repository.go # 通用仓库接口（通用 CRUD 操作）
