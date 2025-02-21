@@ -65,6 +65,7 @@ Apple clang version 16.0.0 (clang-1600.0.26.6)
 Target: arm64-apple-darwin24.3.0
 Thread model: posix
 InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+jarry@MacBook-Pro c % make clean
 jarry@MacBook-Pro c % make                           
 gcc main.o domain/order.o repository/order_repository.o service/order_service.o -o order_system.o
 jarry@MacBook-Pro c % ./order_system.o 

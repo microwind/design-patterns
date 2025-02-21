@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>订单管理系统</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .order-info {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>订单管理系统</h1>
+      系统使用script type="module"，需要通过本地服务器访问页面。
+      <div>
+        <label for="orderId">订单 ID:</label>
+        <input type="number" id="orderId" required />
+      </div>
+      <div>
+        <label for="customerName">客户名称:</label>
+        <input type="text" id="customerName" required />
+      </div>
+      <div>
+        <label for="amount">订单金额:</label>
+        <input type="number" id="amount" step="0.01" required />
+      </div>
+      <button onclick="createOrder()">创建订单</button>
+      <button onclick="cancelOrder()">取消订单</button>
+      <button onclick="queryOrder()">查询订单</button>
+      <button onclick="viewOrderHistory()">查看订单历史</button>
+      <div class="order-info" id="orderInfo"></div>
+    </div>
+
+    <script type="module">
+      import { OrderService } from './service/order_service.js'
+
+      const orderService = new OrderService()
+
+      window.createOrder = function () {
+        const id = parseInt(document.getElementById('orderId').value)
+        const customerName = document.getElementById('customerName').value
+        const amount = parseFloat(document.getElementById('amount').value)
+        orderService.createOrder(id, customerName, amount)
+        displayMessage(`订单 ID ${id} 创建成功`)
+      }
+
+      window.cancelOrder = function () {
+        const id = parseInt(document.getElementById('orderId').value)
+        orderService.cancelOrder(id)
+      }
+
+      window.queryOrder = function () {
+        const id = parseInt(document.getElementById('orderId').value)
+        const order = orderService.queryOrder(id)
+        if (order) {
+          displayMessage(
+            `订单 ID: ${order.id}, 客户名称: ${
+              order.customerName
+            }, 订单金额: ${order.amount.toFixed(2)}, 订单状态: ${order.status}`
+          )
+        } else {
+          displayMessage(`未找到 ID ${id}`)
+        }
+      }
+
+      window.viewOrderHistory = function () {
+        const orders = orderService.viewOrderHistory()
+        if (orders.length === 0) {
+          displayMessage('暂无订单历史记录。')
+        } else {
+          const orderDetails = orders
+            .map(
+              (order) =>
+                `订单 ID: ${order.id}, 客户名称: ${
+                  order.customerName
+                }, 订单金额: ${order.amount.toFixed(2)}, 订单状态: ${
+                  order.status
+                }`
+            )
+            .join('<br>')
+          displayMessage(orderDetails)
+        }
+      }
+
+      function displayMessage(message) {
+        document.getElementById('orderInfo').innerHTML = message
+      }
+    </script>
+  </body>
+</html>
