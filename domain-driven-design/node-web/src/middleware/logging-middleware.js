@@ -1,5 +1,6 @@
-// logging_middleware.js
-function loggingMiddleware(req, res, next) {
+// src/middleware/logging-middleware.js
+
+export default function loggingMiddleware(req, res, next) {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
@@ -7,5 +8,3 @@ function loggingMiddleware(req, res, next) {
   });
   next();
 }
-
-module.exports = { loggingMiddleware };

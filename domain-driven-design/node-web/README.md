@@ -15,15 +15,18 @@ nodejs-web/
 │   │       └── order.js           # 订单实体（聚合根），包含核心业务逻辑
 │   ├── infrastructure/            # 基础设施层（实现领域层定义的接口）
 │   │   └── repository/            # 仓储层，数据存储相关实现
-│   │       └── repository.js      # 通用仓库接口（CRUD 操作封装）
+│   │       └── repository.js      # 通用仓库接口（CRUD 操作封装）【可选】
 │   │       └── order-repository.js # 订单仓储实现，数据库操作
 │   ├── interfaces/                # 接口层（处理外部请求，如 HTTP）
-│   │   └── controllers/           # 控制器层，处理 HTTP 请求
-│   │       └── order-controller.js # 订单相关的 HTTP 控制器
+│   │   │── controllers/           # 控制器层，处理 HTTP 请求
+│   │   │   └── order-controller.js # 订单相关的 HTTP 控制器
+│   │   └── routes/
+│   │   │   ├── router.js          # 基础路由工具设置
+│   │   │   └── order-routes.js    # 订单路由地址配置
 │   ├── middleware/                # 中间件（如日志、鉴权）
-│   │   └── logging.js             # 日志中间件
+│   │   └── logging-middleware.js  # 日志中间件
 │   ├── utils/                     # 工具类（日志、日期处理等）
-│   │   └── log.js                 # 日志工具
+│   │   └── body-parser.js         # 请求Body解析工具
 └── public/                        # 静态资源（前端相关）
     ├── index.html                 # 前端首页
     ├── styles.css                 # 样式文件

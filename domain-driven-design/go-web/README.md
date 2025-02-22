@@ -17,7 +17,11 @@ go-web/
 │   │   │   └── order_repository_impl.go  # 订单仓储实现，具体的订单数据存储
 │   └── interfaces/           # 接口层（处理外部请求，如HTTP接口）
 │   │   ├── handlers/         # HTTP 处理器
-│   │       └── order_handler.go # 订单相关的HTTP处理器
+│   │   │  └── order_handler.go # 订单相关的HTTP处理器
+│   │   └── routes/
+│   │   │   ├── router.go     # 基础路由工具设置
+│   │   │   └── order-routes.go # 订单路由地址配置
+│   │   │   └── order-routes-test.go # 订单路由测试
 │   └── middleware/           # 中间件（例如：鉴权、拦截、认证等）
 │── pkg/                      # 可复用的公共库
 │   └── utils/                # 工具类（例如：日志、日期处理等）
@@ -25,9 +29,16 @@ go-web/
 
 ## 运行
 ```bash
+$ go clean -modcache
+$ go mod tidy
 $ go run cmd/main.go
-# 展示结果 Starting server on :8080 successfully.
+Starting server on :8080 successfully.
 # 通过 http://localhost:8080 访问系统
+
+# 测试用例
+$ cd internal/interfaces/routes
+$ % go test
+# 展示测试结果
 ```
 
 ## Go 语言 DDD（领域驱动设计）特点

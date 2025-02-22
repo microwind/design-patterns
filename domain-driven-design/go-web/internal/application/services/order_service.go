@@ -2,8 +2,8 @@
 package services
 
 import (
-  "fmt"
-  "go-order-system/internal/domain/order"
+	"fmt"
+	"go-web-order/internal/domain/order"
 )
 
 // OrderService 订单应用服务，协调领域逻辑和业务用例

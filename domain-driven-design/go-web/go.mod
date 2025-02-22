@@ -1,4 +1,4 @@
-module go-order-system
+module go-web-order
 
 go 1.19
 

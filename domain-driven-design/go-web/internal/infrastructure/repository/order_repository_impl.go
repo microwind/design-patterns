@@ -2,8 +2,8 @@
 package repository
 
 import (
-  "fmt"
-  "go-order-system/internal/domain/order"
+	"fmt"
+	"go-web-order/internal/domain/order"
 )
 
 // OrderRepositoryImpl 订单仓储实现，具体存储操作
