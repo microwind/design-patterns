@@ -1,5 +1,5 @@
 // src/infrastructure/repository/repository.js
-// 模拟通用接口，JS因为没有接口字段，故此文件为可选
+// 模拟通用接口，JS因为没有接口字段，故此文件无用
 class Repository {
   // 保存实体
   async save(entity) {

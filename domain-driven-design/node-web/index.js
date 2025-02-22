@@ -48,3 +48,17 @@ const server = http.createServer((req, res) => {
 server.listen(port, () => {
   console.log(`Starting server on :${port} successfully.`);
 });
+
+/*
+jarry@Mac node-web % node index.js
+Starting server on :8080 successfully.
+REQUEST: POST /orders took 3ms
+REQUEST: GET /orders/1740220487386921 took 3ms
+REQUEST: PUT /orders/%e8%ae%a2%e5%8d%95%e5%8f%b7 took 5ms
+订单 ID 1740220487386921 的客户名称已更新为: 孙悟空
+订单 ID 1740220487386921 的金额已更新为: 11.22
+REQUEST: PUT /orders/1740220487386921 took 7ms
+REQUEST: GET /orders/1740220487386921 took 3ms
+REQUEST: DELETE /orders/1740220487386921 took 1ms
+REQUEST: GET /orders/1740220487386921 took 8ms
+*/

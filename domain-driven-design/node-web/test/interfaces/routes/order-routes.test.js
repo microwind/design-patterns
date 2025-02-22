@@ -148,4 +148,25 @@ function sendRequest(options, data = null) {
 
 /*
 $ node test/interfaces/routes/order-routes.test.js
+jarry@Mac node-web % node test/interfaces/routes/order-routes.test.js
+测试服务器已启动，端口：8080
+REQUEST: POST /orders took 4ms
+创建订单测试结果：
+状态码: 201
+响应体: {"id":1740224682878163,"customerName":"齐天大圣","amount":99.99,"status":0}
+REQUEST: GET /orders/1740224682878163 took 2ms
+获取订单测试结果：
+状态码: 200
+响应体: {"id":1740224682878163,"customerName":"齐天大圣","amount":99.99,"status":0}
+订单 ID 1740224682878163 的客户名称已更新为: 孙悟空
+订单 ID 1740224682878163 的金额已更新为: 11.22
+REQUEST: PUT /orders/1740224682878163 took 4ms
+更新订单测试结果：
+状态码: 200
+响应体: {"id":1740224682878163,"customerName":"孙悟空","amount":11.22,"status":0}
+REQUEST: DELETE /orders/1740224682878163 took 4ms
+删除订单测试结果：
+状态码: 204
+所有测试通过！
+测试服务器已关闭
 */
