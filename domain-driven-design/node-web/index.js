@@ -30,11 +30,11 @@ const server = http.createServer((req, res) => {
       <pre>
         测试
         <code>
-        创建：curl -X POST "http://localhost:${port}/orders" -H "Content-Type: application/json" -d '{"customerName": "齐天大圣", "amount": 99.99}'
-        查询：curl -X GET "http://localhost:${port}/orders/订单号"
-        更新：curl -X PUT "http://localhost:${port}/orders/订单号" -H "Content-Type: application/json" -d '{"customerName": "孙悟空", "amount": 11.22}'
-        删除：curl -X DELETE "http://localhost:${port}/orders/订单号"
-        查询：curl -X GET "http://localhost:${port}/orders/订单号"
+        创建：curl -X POST "http://localhost:${port}/api/api/orders" -H "Content-Type: application/json" -d '{"customerName": "齐天大圣", "amount": 99.99}'
+        查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
+        更新：curl -X PUT "http://localhost:${port}/api/orders/订单号" -H "Content-Type: application/json" -d '{"customerName": "孙悟空", "amount": 11.22}'
+        删除：curl -X DELETE "http://localhost:${port}/api/orders/订单号"
+        查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
         </code>
       </pre>
     `);
@@ -52,13 +52,13 @@ server.listen(port, () => {
 /*
 jarry@Mac node-web % node index.js
 Starting server on :8080 successfully.
-REQUEST: POST /orders took 3ms
-REQUEST: GET /orders/1740220487386921 took 3ms
-REQUEST: PUT /orders/%e8%ae%a2%e5%8d%95%e5%8f%b7 took 5ms
+REQUEST: POST /api/orders took 3ms
+REQUEST: GET /api/orders/1740220487386921 took 3ms
+REQUEST: PUT /api/orders/%e8%ae%a2%e5%8d%95%e5%8f%b7 took 5ms
 订单 ID 1740220487386921 的客户名称已更新为: 孙悟空
 订单 ID 1740220487386921 的金额已更新为: 11.22
-REQUEST: PUT /orders/1740220487386921 took 7ms
-REQUEST: GET /orders/1740220487386921 took 3ms
-REQUEST: DELETE /orders/1740220487386921 took 1ms
-REQUEST: GET /orders/1740220487386921 took 8ms
+REQUEST: PUT /api/orders/1740220487386921 took 7ms
+REQUEST: GET /api/orders/1740220487386921 took 3ms
+REQUEST: DELETE /api/orders/1740220487386921 took 1ms
+REQUEST: GET /api/orders/1740220487386921 took 8ms
 */

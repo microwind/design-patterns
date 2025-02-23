@@ -1,7 +1,7 @@
 ## Node.js DDD 目录结构说明
 
 ```bash
-nodejs-web/
+node-web/
 ├── index.js                      # 应用入口，启动服务器
 ├── package.json                  # 项目依赖和脚本管理
 ├── src/                           # 主要业务代码

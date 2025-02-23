@@ -1,4 +1,5 @@
 // test/interfaces/routes/order-routes.test.js
+// test/interfaces/routes/order-routes.test.js
 
 import http from 'http';
 import OrderController from '../../../src/interfaces/controllers/order-controller.js';
@@ -6,6 +7,9 @@ import OrderService from '../../../src/application/services/order-service.js';
 import OrderRepository from '../../../src/infrastructure/repository/order-repository.js';
 import loggingMiddleware from '../../../src/middleware/logging-middleware.js';
 import orderRoutes from '../../../src/interfaces/routes/order-routes.js';
+
+// 定义统一的 api 前缀
+const apiPrefix = '/api';
 
 // 初始化依赖
 const orderRepository = new OrderRepository();
@@ -64,7 +68,7 @@ function sendRequest(options, data = null) {
       {
         hostname: 'localhost',
         port: 8080,
-        path: '/orders',
+        path: `${apiPrefix}/orders`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +90,7 @@ function sendRequest(options, data = null) {
     const getOrderResponse = await sendRequest({
       hostname: 'localhost',
       port: 8080,
-      path: `/orders/${orderId}`,
+      path: `${apiPrefix}/orders/${orderId}`,
       method: 'GET',
     });
 
@@ -103,7 +107,7 @@ function sendRequest(options, data = null) {
       {
         hostname: 'localhost',
         port: 8080,
-        path: `/orders/${orderId}`,
+        path: `${apiPrefix}/orders/${orderId}`,
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +128,7 @@ function sendRequest(options, data = null) {
     const deleteOrderResponse = await sendRequest({
       hostname: 'localhost',
       port: 8080,
-      path: `/orders/${orderId}`,
+      path: `${apiPrefix}/orders/${orderId}`,
       method: 'DELETE',
     });
 
@@ -147,24 +151,23 @@ function sendRequest(options, data = null) {
 })();
 
 /*
-$ node test/interfaces/routes/order-routes.test.js
 jarry@Mac node-web % node test/interfaces/routes/order-routes.test.js
 测试服务器已启动，端口：8080
-REQUEST: POST /orders took 4ms
+REQUEST: POST /api/orders took 3ms
 创建订单测试结果：
 状态码: 201
-响应体: {"id":1740224682878163,"customerName":"齐天大圣","amount":99.99,"status":0}
-REQUEST: GET /orders/1740224682878163 took 2ms
+响应体: {"id":1740292885975985,"customerName":"齐天大圣","amount":99.99,"status":0}
+REQUEST: GET /api/orders/1740292885975985 took 2ms
 获取订单测试结果：
 状态码: 200
-响应体: {"id":1740224682878163,"customerName":"齐天大圣","amount":99.99,"status":0}
-订单 ID 1740224682878163 的客户名称已更新为: 孙悟空
-订单 ID 1740224682878163 的金额已更新为: 11.22
-REQUEST: PUT /orders/1740224682878163 took 4ms
+响应体: {"id":1740292885975985,"customerName":"齐天大圣","amount":99.99,"status":0}
+订单 ID 1740292885975985 的客户名称已更新为: 孙悟空
+订单 ID 1740292885975985 的金额已更新为: 11.22
+REQUEST: PUT /api/orders/1740292885975985 took 4ms
 更新订单测试结果：
 状态码: 200
-响应体: {"id":1740224682878163,"customerName":"孙悟空","amount":11.22,"status":0}
-REQUEST: DELETE /orders/1740224682878163 took 4ms
+响应体: {"id":1740292885975985,"customerName":"孙悟空","amount":11.22,"status":0}
+REQUEST: DELETE /api/orders/1740292885975985 took 4ms
 删除订单测试结果：
 状态码: 204
 所有测试通过！

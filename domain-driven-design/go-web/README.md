@@ -23,6 +23,7 @@ go-web/
 │   │   │   └── order-routes.go # 订单路由地址配置
 │   │   │   └── order-routes-test.go # 订单路由测试
 │   └── middleware/           # 中间件（例如：鉴权、拦截、认证等）
+│   │   └── logging.go        # 日志中间件
 │── pkg/                      # 可复用的公共库
 │   └── utils/                # 工具类（例如：日志、日期处理等）
 ```
