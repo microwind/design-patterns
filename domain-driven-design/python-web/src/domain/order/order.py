@@ -51,3 +51,14 @@ class Order:
             return '已取消'
         else:
             return '未知状态'
+
+    def to_dict(self):
+        """
+        将 Order 对象转化为字典形式，以便进行 JSON 序列化
+        """
+        return {
+            'id': self.id,
+            'customer_name': self.customer_name,
+            'amount': self.amount,
+            'status': self.status_to_string()  # 将状态转换为字符串
+        }

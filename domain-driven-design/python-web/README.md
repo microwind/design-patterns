@@ -13,7 +13,7 @@ python-web/
 │   ├── domain/                    # 领域层（核心业务逻辑和接口定义）
 │   │   ├── order/                 # 领域模型（实体、值对象、聚合根）
 │   │   │   └── order.py           # 订单实体（聚合根）
-│   │   │   └── order_repository.py    # 订单仓储接口
+│   │   │   └── order_repository.py  # 订单仓储抽象类，充当接口
 │   ├── infrastructure/            # 基础设施层（实现领域层定义的接口）
 │   │   ├── repositories/          # 仓储实现
 │   │   │   └── order_repository.py # 订单仓储实现
@@ -22,10 +22,11 @@ python-web/
 │   │   │   └── order_controller.py  # 订单相关的 HTTP 控制器
 │   │   ├── routes/                # 路由配置
 │   │   │   └── order_routes.py    # 订单路由配置
+│   │   │   └── router.py          # 通用路由工具
 │   └── middleware/                # 中间件（例如：鉴权、拦截、认证等） 
-│   │   └── logging_middleware.py  # 日志中间件
-│   └── utils/                     # 工具类（日志、日期处理等）
-│       ├── logging.py             # 日志工具
+│   │   └── logging_middleware.py  # 自定义日志中间件
+│   └── utils/                     # 工具类（响应、日期处理等）
+│       ├── response_helper.py     # 辅助实用工具
 ├── tests/                         # 测试代码
 └── scripts/                       # 脚本目录
 ```
@@ -47,6 +48,8 @@ $ pip3 install -r requirements.txt
 $ python src/app.py 
 # 展示结果 Starting server on :8080 successfully.
 # 通过 http://localhost:8080 访问系统
+$ # 执行测试，查看测试结果
+$ python tests/interfaces/routes/order_routes.test.py
 ```
 
 ## Python DDD（领域驱动设计）特点

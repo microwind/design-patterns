@@ -4,7 +4,7 @@ import sys
 import os
 import http.server
 import socketserver
-import socket  # 新增，用于检测端口占用
+import socket  # 用于检测端口占用
 from urllib.parse import urlparse
 
 # 设定目录为包路径
@@ -23,16 +23,16 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]  # 确保日志输出到控制台
 )
 
-# 2. **修复端口占用问题**
+""" 以下修复端口占用问题
 def is_port_in_use(port):
-    """检测端口是否被占用"""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0  # 端口被占用返回 True
 
 if is_port_in_use(PORT):
     logging.error(f"Port {PORT} is already in use. Please stop the existing process or use another port.")
     sys.exit(1)  # 终止程序
-
+"""
+    
 # 初始化依赖
 order_repository = OrderRepository()
 order_service = OrderService(order_repository)
@@ -41,9 +41,12 @@ order_controller = OrderController(order_service)
 # 初始化路由
 router = order_routes(order_controller, logging_middleware)
 
-
 class MainHandler(http.server.SimpleHTTPRequestHandler):
     def handle_request(self):
+        if self.path == '/favicon.ico':
+            self.send_response(204)
+            return
+
         parsed_url = urlparse(self.path)
         method = self.command
         path = parsed_url.path
@@ -71,26 +74,18 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # 处理其他 API 路由
-        route = router.match_route(method, path)
-        logging.debug(f"Route match result: {route}")
-
-        if not route:
-            logging.warning(f"No matching route found for {method} {path}")
-            self.send_error(404, "Not Found")
-            return
-
-        middleware, handler = route
-        logging.debug(f"Middleware: {middleware}, Handler: {handler}")
+        middleware, handler = router.match_route(method, path)
+        logging.debug(f"Route match result: {middleware}, {handler}")
 
         if not handler:
-            logging.error(f"Handler is None for {method} {path}")
-            self.send_error(500, "Handler is None")
+            logging.warning(f"No matching route found for {method} {path}")
+            self.send_error(404, "Not Found")
             return
 
         try:
             if middleware:
                 middleware(self)  # 执行中间件
-            handler(self)  # 执行处理函数
+            handler(self)  # 调用处理函数，传递 request 和 response
         except Exception as e:
             logging.error(f"Error handling request: {e}")
             self.send_error(500, "Internal Server Error")
@@ -119,3 +114,21 @@ def run_server():
 
 if __name__ == "__main__":
     run_server()
+
+"""
+jarry@MacBook-Pro python-web % python src/app.py
+2022-02-22 14:40:07,037 - INFO - Starting server on :8080 successfully.
+# 执行curl例子，可以看到控制台输出
+127.0.0.1 - - [22/Feb/2022 14:40:09] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [22/Feb/2022 14:40:09] "GET /favicon.ico HTTP/1.1" 204 -
+127.0.0.1 - - [22/Feb/2022 14:40:17] "POST /api/orders HTTP/1.1" 201 -
+127.0.0.1 - - [22/Feb/2022 14:40:24] "GET /api/orders/1740379217367713 HTTP/1.1" 200 -
+2022-02-22 14:40:51,308 - INFO - 订单 ID 1740379217367713 的客户名称已更新为: 孙悟空
+2022-02-22 14:40:51,309 - INFO - 订单 ID 1740379217367713 的金额已更新为: 11.22
+127.0.0.1 - - [22/Feb/2022 14:40:51] "PUT /api/orders/1740379217367713 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Feb/2022 14:41:07] "GET /api/orders/1740379217367713 HTTP/1.1" 200 -
+127.0.0.1 - - [22/Feb/2022 14:41:15] "DELETE /api/orders/1740379217367713 HTTP/1.1" 204 -
+127.0.0.1 - - [22/Feb/2022 14:41:15] "DELETE /api/orders/1740379217367713 HTTP/1.1" 404 -
+127.0.0.1 - - [22/Feb/2022 14:41:17] "GET /api/orders/1740379217367713 HTTP/1.1" 404 -
+
+"""

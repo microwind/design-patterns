@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from src.utils.body_parser import parse_body
+from src.utils.response_helper import response_json
 
 
 class OrderController:
@@ -21,16 +22,9 @@ class OrderController:
 
             order = self.order_service.create_order(
                 customer_name, amount_number)
-            response.send_response(201)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(order).encode('utf-8'))
+            response_json(response, 201, order)  # 使用公共响应方法
         except Exception as error:
-            response.send_response(400)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(
-                {'error': str(error)}).encode('utf-8'))
+            response_json(response, 400, {'error': str(error)})  # 错误响应
 
     def get_order(self, request, response):
         try:
@@ -45,16 +39,9 @@ class OrderController:
                 raise ValueError('订单 ID 无效')
 
             order = self.order_service.get_order(order_id)
-            response.send_response(200)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(order).encode('utf-8'))
+            response_json(response, 200, order)
         except Exception as error:
-            response.send_response(404)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(
-                {'error': str(error)}).encode('utf-8'))
+            response_json(response, 404, {'error': str(error)})
 
     def update_order(self, request, response):
         try:
@@ -77,16 +64,9 @@ class OrderController:
 
             order = self.order_service.update_order(
                 order_id, body.get('customerName'), amount_number)
-            response.send_response(200)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(order).encode('utf-8'))
+            response_json(response, 200, order)
         except Exception as error:
-            response.send_response(400)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(
-                {'error': str(error)}).encode('utf-8'))
+            response_json(response, 400, {'error': str(error)})
 
     def delete_order(self, request, response):
         try:
@@ -106,8 +86,4 @@ class OrderController:
             response.end_headers()
             response.end()
         except Exception as error:
-            response.send_response(404)
-            response.send_header('Content-Type', 'application/json')
-            response.end_headers()
-            response.wfile.write(json.dumps(
-                {'error': str(error)}).encode('utf-8'))
+            response_json(response, 404, {'error': str(error)})
