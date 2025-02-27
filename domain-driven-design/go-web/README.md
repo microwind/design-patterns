@@ -4,13 +4,13 @@ go-web/
 │── cmd/
 │   └── main.go               # 应用入口
 │── internal/
+│   ├── application/          # 应用层（协调领域逻辑，处理业务用例）
+│   │   ├── services/         # 服务层，业务逻辑目录
+│   │   │   └── order_service.go # 订单应用服务，调用领域层业务逻辑
 │   ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   ├── order/            # 订单聚合
 │   │   │   ├── order.go      # 订单实体（聚合根），包含核心业务逻辑
 │   │   │   └── order_repository.go # 订单仓储接口，定义对订单数据的操作
-│   ├── application/          # 应用层（协调领域逻辑，处理业务用例）
-│   │   ├── services/         # 服务层，业务逻辑目录
-│   │   │   └── order_service.go # 订单应用服务，调用领域层业务逻辑
 │   ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   ├── repository/       # 仓储实现
 │   │   │   ├── repository.go # 通用仓库接口（通用 CRUD 操作）
@@ -24,6 +24,8 @@ go-web/
 │   │   │   └── order-routes-test.go # 订单路由测试
 │   └── middleware/           # 中间件（例如：鉴权、拦截、认证等）
 │   │   └── logging.go        # 日志中间件
+│   ├── config/               # 服务相关配置
+│   │   └── server_config.go  # 服务器配置（如端口、超时设置等）
 │── pkg/                      # 可复用的公共库
 │   └── utils/                # 工具类（例如：日志、日期处理等）
 ```

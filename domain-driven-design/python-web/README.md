@@ -25,8 +25,10 @@ python-web/
 │   │   │   └── router.py          # 通用路由工具
 │   └── middleware/                # 中间件（例如：鉴权、拦截、认证等） 
 │   │   └── logging_middleware.py  # 自定义日志中间件
+│   ├── config/                    # 配置文件
+│   │   └── server_config.py       # 服务器配置，如端口、环境变量
 │   └── utils/                     # 工具类（响应、日期处理等）
-│       ├── response_helper.py     # 辅助实用工具
+│       └── response_helper.py     # 辅助实用工具
 ├── tests/                         # 测试代码
 └── scripts/                       # 脚本目录
 ```

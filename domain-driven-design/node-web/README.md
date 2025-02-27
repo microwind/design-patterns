@@ -7,16 +7,14 @@ node-web/
 ├── src/                           # 主要业务代码
 │   ├── application/               # 应用层（协调领域逻辑，处理业务用例）
 │   │   └── services/              # 业务服务层，处理业务逻辑
-│   │       └── order-service.js   # 订单服务，调用领域层业务逻辑
-│   ├── config/                    # 配置文件
-│   │   └── server-config.js       # 服务器配置，如端口、环境变量
+│   │   │   └── order-service.js   # 订单服务，调用领域层业务逻辑
 │   ├── domain/                    # 领域层（核心业务逻辑和接口定义）
 │   │   └── order/                 # 订单聚合
-│   │       └── order.js           # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   └── order.js           # 订单实体（聚合根），包含核心业务逻辑
 │   ├── infrastructure/            # 基础设施层（实现领域层定义的接口）
 │   │   └── repository/            # 仓储层，数据存储相关实现
-│   │       └── repository.js      # 通用仓库接口（CRUD 操作封装）【可选】
-│   │       └── order-repository.js # 订单仓储实现，数据库操作
+│   │   │   └── repository.js      # 通用仓库接口（CRUD 操作封装）【可选】
+│   │   │   └── order-repository.js # 订单仓储实现，数据库操作
 │   ├── interfaces/                # 接口层（处理外部请求，如 HTTP）
 │   │   │── controllers/           # 控制器层，处理 HTTP 请求
 │   │   │   └── order-controller.js # 订单相关的 HTTP 控制器
@@ -25,6 +23,8 @@ node-web/
 │   │   │   └── order-routes.js    # 订单路由地址配置
 │   ├── middleware/                # 中间件（如日志、鉴权）
 │   │   └── logging-middleware.js  # 日志中间件
+│   ├── config/                    # 配置文件
+│   │   └── server-config.js       # 服务器配置，如端口、环境变量
 │   ├── utils/                     # 工具类（日志、日期处理等）
 │   │   └── body-parser.js         # 请求Body解析工具
 └── public/                        # 静态资源（前端相关）

@@ -1,16 +1,18 @@
 // 接口层（Interfaces）：订单 HTTP 处理器
+// src/interfaces/handlers/order_handler.go
+
 package handlers
 
 import (
   "encoding/json"
   "fmt"
+  "go-web-order/internal/application/services"
+  "go-web-order/pkg/utils"
   "log"
   "math/rand"
   "net/http"
   "strconv"
   "strings"
-
-  "go-web-order/internal/application/services"
 )
 
 // 订单 HTTP 处理器
@@ -39,7 +41,6 @@ func getOrderIDFromPath(r *http.Request) (int, error) {
 
 // 创建订单
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-  // 设置接收订单的结构体
   var orderRequest struct {
     CustomerName string  `json:"customer_name"`
     TotalAmount  float64 `json:"total_amount"`
@@ -48,20 +49,20 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
   // 解析请求体中的 JSON 数据
   if err := json.NewDecoder(r.Body).Decode(&orderRequest); err != nil {
     log.Printf("解析请求体失败: %v", err)
-    http.Error(w, "无效的请求体", http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, "无效的请求体", "application/json", nil)
     return
   }
 
   // 验证参数
   if orderRequest.CustomerName == "" {
     log.Println("客户名称不能为空")
-    http.Error(w, "客户名称不能为空", http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, "客户名称不能为空", "application/json", nil)
     return
   }
 
   if orderRequest.TotalAmount <= 0 {
     log.Println("订单金额必须大于 0")
-    http.Error(w, "订单金额必须大于 0", http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, "订单金额必须大于 0", "application/json", nil)
     return
   }
 
@@ -70,14 +71,12 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
   newOrder, err := h.Service.CreateOrder(orderID, orderRequest.CustomerName, orderRequest.TotalAmount)
   if err != nil {
     log.Printf("创建订单失败: %v", err)
-    http.Error(w, err.Error(), http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, err.Error(), "application/json", nil)
     return
   }
 
-  // 设置响应头和返回数据
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(http.StatusCreated)
-  json.NewEncoder(w).Encode(newOrder)
+  // 返回成功响应
+  utils.SendResponse(w, http.StatusCreated, newOrder, "application/json", nil)
 }
 
 // 查询订单
@@ -85,19 +84,18 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
   id, err := getOrderIDFromPath(r)
   if err != nil {
     log.Printf("获取订单 ID 失败: %v", err)
-    http.Error(w, err.Error(), http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, err.Error(), "application/json", nil)
     return
   }
 
   order, err := h.Service.GetOrder(id)
   if err != nil {
     log.Printf("查询订单失败: %v", err)
-    http.Error(w, err.Error(), http.StatusNotFound)
+    utils.SendError(w, http.StatusNotFound, err.Error(), "application/json", nil)
     return
   }
 
-  w.Header().Set("Content-Type", "application/json")
-  json.NewEncoder(w).Encode(order)
+  utils.SendResponse(w, http.StatusOK, order, "application/json", nil)
 }
 
 // 更新订单
@@ -105,7 +103,7 @@ func (h *OrderHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
   id, err := getOrderIDFromPath(r)
   if err != nil {
     log.Printf("获取订单 ID 失败: %v", err)
-    http.Error(w, err.Error(), http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, err.Error(), "application/json", nil)
     return
   }
 
@@ -116,19 +114,18 @@ func (h *OrderHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
   if err := json.NewDecoder(r.Body).Decode(&updatedOrder); err != nil {
     log.Printf("解析请求体失败: %v", err)
-    http.Error(w, "无效的请求体", http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, "无效的请求体", "application/json", nil)
     return
   }
 
   order, err := h.Service.UpdateOrder(id, updatedOrder.CustomerName, updatedOrder.TotalAmount)
   if err != nil {
     log.Printf("更新订单失败: %v", err)
-    http.Error(w, err.Error(), http.StatusInternalServerError)
+    utils.SendError(w, http.StatusInternalServerError, err.Error(), "application/json", nil)
     return
   }
 
-  w.Header().Set("Content-Type", "application/json")
-  json.NewEncoder(w).Encode(order)
+  utils.SendResponse(w, http.StatusOK, order, "application/json", nil)
 }
 
 // 删除订单
@@ -136,7 +133,7 @@ func (h *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
   id, err := getOrderIDFromPath(r)
   if err != nil {
     log.Printf("获取订单 ID 失败: %v", err)
-    http.Error(w, err.Error(), http.StatusBadRequest)
+    utils.SendError(w, http.StatusBadRequest, err.Error(), "application/json", nil)
     return
   }
 
@@ -147,9 +144,7 @@ func (h *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
       "message":  fmt.Sprintf("删除订单失败: %v", err),
       "order_id": id,
     }
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusInternalServerError)
-    json.NewEncoder(w).Encode(response)
+    utils.SendResponse(w, http.StatusInternalServerError, response, "application/json", nil)
     return
   }
 
@@ -157,7 +152,5 @@ func (h *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
     "message":  "success",
     "order_id": id,
   }
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(http.StatusOK)
-  json.NewEncoder(w).Encode(response)
+  utils.SendResponse(w, http.StatusOK, response, "application/json", nil)
 }

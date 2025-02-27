@@ -4,13 +4,12 @@ package main
 import (
   "fmt"
   "go-web-order/internal/application/services"
+  "go-web-order/internal/config"
   "go-web-order/internal/infrastructure/repository"
   "go-web-order/internal/interfaces/handlers"
   "go-web-order/internal/interfaces/routes"
   "net/http"
 )
-
-const port = 8080
 
 // defaultPage 处理默认欢迎页面请求
 func defaultPage(w http.ResponseWriter, r *http.Request) {
@@ -18,22 +17,26 @@ func defaultPage(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(http.StatusOK)
 
   htmlResponse := fmt.Sprintf(`
-  <h1>Welcome to DDD example.</h1>
-  <pre>
-    测试
-    <code>
-    创建：curl -X POST "http://localhost:%d/api/orders" -H "Content-Type: application/json" -d '{"customer_name": "齐天大圣", "total_amount": 99.99}'
-    查询：curl -X GET "http://localhost:%d/api/orders/订单号"
-    更新：curl -X PUT "http://localhost:%d/api/orders/订单号" -H "Content-Type: application/json" -d '{"customer_name": "孙悟空", "total_amount": 11.22}'
-    删除：curl -X DELETE "http://localhost:%d/api/orders/订单号"
-    查询：curl -X GET "http://localhost:%d/api/orders/订单号"
-    </code>
-  </pre>
-    `, port, port, port, port, port)
+    <h1>Welcome to DDD example.</h1>
+    <pre>
+      测试
+      <code>
+      创建：curl -X POST "http://localhost:%d/api/orders" -H "Content-Type: application/json" -d '{"customer_name": "齐天大圣", "total_amount": 99.99}'
+      查询：curl -X GET "http://localhost:%d/api/orders/订单号"
+      更新：curl -X PUT "http://localhost:%d/api/orders/订单号" -H "Content-Type: application/json" -d '{"customer_name": "孙悟空", "total_amount": 11.22}'
+      删除：curl -X DELETE "http://localhost:%d/api/orders/订单号"
+      查询：curl -X GET "http://localhost:%d/api/orders/订单号"
+      </code>
+      详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
+    </pre>
+    `, config.NewServerConfig().Port, config.NewServerConfig().Port, config.NewServerConfig().Port, config.NewServerConfig().Port, config.NewServerConfig().Port)
   w.Write([]byte(htmlResponse))
 }
 
 func main() {
+  // 加载服务器配置
+  serverConfig := config.NewServerConfig()
+
   // 创建订单仓储实现
   orderRepo := repository.NewOrderRepositoryImpl()
 
@@ -59,8 +62,8 @@ func main() {
   mux.Handle("/api/", http.StripPrefix("/api", router))
 
   // 启动 HTTP 服务器
-  fmt.Printf("Starting server on :%d successfully.\n", port)
-  if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
+  fmt.Printf("Starting server on :%d successfully.\n", serverConfig.Port)
+  if err := http.ListenAndServe(fmt.Sprintf(":%d", serverConfig.Port), mux); err != nil {
     fmt.Printf("Server failed: %v\n", err)
   }
 }

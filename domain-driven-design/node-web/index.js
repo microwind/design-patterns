@@ -36,6 +36,7 @@ const server = http.createServer((req, res) => {
         删除：curl -X DELETE "http://localhost:${port}/api/orders/订单号"
         查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
         </code>
+        详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
       </pre>
     `);
   } else {

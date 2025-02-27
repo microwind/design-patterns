@@ -68,6 +68,7 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
                 删除：curl -X DELETE "http://localhost:{PORT}/api/orders/订单号"
                 查询：curl -X GET "http://localhost:{PORT}/api/orders/订单号"
                 </code>
+                详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
             </pre>
             """
             self.wfile.write(response.encode('utf-8'))

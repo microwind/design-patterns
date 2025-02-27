@@ -1,6 +1,7 @@
 // 接口层（Interfaces）：订单 HTTP 处理器
 // src/interfaces/controllers/order-controller.js
 import { parseBody } from '../../utils/body-parser.js';
+import { sendResponse, sendError, sendNoContent } from '../../utils/response.js';
 
 export default class OrderController {
   constructor(orderService) {
@@ -20,11 +21,9 @@ export default class OrderController {
       }
 
       const order = await this.orderService.createOrder(customerName, amountNumber);
-      res.writeHead(201, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(order));
+      sendResponse(res, 201, order);
     } catch (error) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
+      sendError(res, 400, error.message);
     }
   }
 
@@ -42,11 +41,9 @@ export default class OrderController {
       }
 
       const order = await this.orderService.getOrder(orderId);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(order));
+      sendResponse(res, 200, order);
     } catch (error) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
+      sendError(res, 404, error.message);
     }
   }
 
@@ -71,15 +68,13 @@ export default class OrderController {
       }
 
       const order = await this.orderService.updateOrder(orderId, body.customerName, amountNumber);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(order));
+      sendResponse(res, 200, order);
     } catch (error) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
+      sendError(res, 400, error.message);
     }
   }
 
- // 删除订单
+  // 删除订单
   async deleteOrder(req, res, query) {
     try {
       const { id } = query;
@@ -93,11 +88,10 @@ export default class OrderController {
       }
 
       await this.orderService.deleteOrder(orderId);
-      res.writeHead(204, { 'Content-Length': '0' });
-      res.end();
+      sendNoContent(res);
     } catch (error) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
+      sendError(res, 404, error.message);
     }
   }
 }
+
