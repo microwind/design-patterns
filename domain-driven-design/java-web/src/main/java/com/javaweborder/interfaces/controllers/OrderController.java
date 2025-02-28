@@ -38,7 +38,7 @@ public class OrderController {
         }
     }
 
-    // 获取订单：对应 GET /orders/:id
+    // 获取订单：对应 GET /orders/{id}
     public void getOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String idParam = extractId(request);
@@ -52,7 +52,7 @@ public class OrderController {
         }
     }
 
-    // 更新订单：对应 PUT /orders/:id
+    // 更新订单：对应 PUT /orders/{id}
     public void updateOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             OrderRequest body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
@@ -70,7 +70,7 @@ public class OrderController {
         }
     }
 
-    // 删除订单：对应 DELETE /orders/:id
+    // 删除订单：对应 DELETE /orders/{id}
     public void deleteOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String idParam = extractId(request);

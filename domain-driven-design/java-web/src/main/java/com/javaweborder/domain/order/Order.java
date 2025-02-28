@@ -4,19 +4,21 @@ package com.javaweborder.domain.order;
 import java.util.ArrayList;
 import java.util.List;
 
-// 订单状态枚举
-enum OrderStatus {
-    CREATED,   // 订单已创建
-    CANCELED;  // 订单已取消
-}
 
 public class Order {
-    
+
     private int id;                          // 订单ID
     private String customerName;             // 客户名称
     private double amount;                   // 订单金额
     private OrderStatus status;              // 订单状态
     private List<OrderItem> items;           // 订单项列表
+
+    // 订单状态枚举
+    public enum OrderStatus {
+        CREATED,   // 订单已创建
+        CANCELED;  // 订单已取消
+    }
+
 
     public Order(int id, String customerName, double amount) {
         this.id = id;
@@ -50,6 +52,16 @@ public class Order {
         } else {
             System.out.println("订单 ID " + id + " 已取消，无法重复取消");
         }
+    }
+
+    // 更新客户信息
+    public void updateCustomerInfo(String customerName) {
+        this.customerName = customerName;
+    }
+
+    // 更新订单金额
+    public void updateAmount(double amount) {
+        this.amount = amount;
     }
 
     // Getters and Setters

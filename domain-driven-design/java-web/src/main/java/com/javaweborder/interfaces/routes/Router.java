@@ -80,6 +80,11 @@ public class Router extends HttpServlet {
         String path = req.getRequestURI().substring(req.getContextPath().length());
         String method = req.getMethod().toUpperCase();
 
+        System.out.println("Request URI: " + req.getRequestURI());
+        System.out.println("Context Path: " + req.getContextPath());
+        System.out.println("Processed Path: " + path);
+        System.out.println("out Received request: " + method + " " + path);
+
         for (Route route : routes) {
             Matcher matcher = route.pattern.matcher(path);
             if (route.method.equals(method) && matcher.matches()) {

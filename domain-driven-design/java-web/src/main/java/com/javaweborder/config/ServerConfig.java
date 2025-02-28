@@ -3,6 +3,7 @@ package com.javaweborder.config;
 import com.javaweborder.infrastructure.configuration.DatabaseConfig;
 import com.javaweborder.infrastructure.configuration.LoggingConfig;
 import com.javaweborder.infrastructure.configuration.JWTConfig;
+import com.javaweborder.utils.LogUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,9 +13,9 @@ public class ServerConfig {
     private int port;
     private String env;
     private String appName;
-    private DatabaseConfig database;
-    private LoggingConfig logging;
-    private JWTConfig jwt;
+    private final DatabaseConfig database;
+    private final LoggingConfig logging;
+    private final JWTConfig jwt;
 
     public ServerConfig() {
         this.database = new DatabaseConfig();
@@ -55,8 +56,8 @@ public class ServerConfig {
             this.jwt.setSecret(properties.getProperty("jwt.secret", "your_jwt_secret"));
             this.jwt.setExpiresIn(properties.getProperty("jwt.expiresIn", "1h"));
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            LogUtils.logError("loadConfig error:", e);
         }
     }
 

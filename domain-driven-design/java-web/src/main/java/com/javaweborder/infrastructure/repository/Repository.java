@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Repository<T> {
-    
-    void save(T entity);              // 保存实体
+
+    boolean save(T entity);              // 保存实体
 
     Optional<T> findById(int id);     // 根据 ID 查找实体
 

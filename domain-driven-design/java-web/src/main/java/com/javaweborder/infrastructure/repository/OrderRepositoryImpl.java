@@ -12,9 +12,14 @@ public class OrderRepositoryImpl implements OrderRepository {
     private final Map<Integer, Order> orders = new ConcurrentHashMap<>(); // 线程安全的 HashMap
 
     @Override
-    public void save(Order order) {
+    public boolean save(Order order) {
+        if (orders.containsKey(order.getId())) {
+            return false; // 如果订单已存在，返回 false
+        }
         orders.put(order.getId(), order);
+        return true;
     }
+
 
     @Override
     public Optional<Order> findById(int id) {

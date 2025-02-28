@@ -15,7 +15,7 @@ public class MessageQueueService {
             queue.put(message);  // 将消息放入队列
             System.out.println("Sent: " + message);
         } catch (InterruptedException e) {
-            LogUtils.printStackTrace();
+            LogUtils.logError("sendMessage error:", e);
         }
     }
 
@@ -28,7 +28,7 @@ public class MessageQueueService {
                     System.out.println("Received: " + message);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LogUtils.logError("receiveMessages error:", e);
             }
         }).start();
     }
