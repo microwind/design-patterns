@@ -6,7 +6,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.connector.Connector;
 import java.io.File;
 
-public class TomcatLauncher {
+public class TomcatServer {
     public static void main(String[] args) {
         try {
             System.out.println("Initializing  server...");

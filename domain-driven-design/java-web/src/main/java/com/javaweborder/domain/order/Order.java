@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Order {
 
-    private int id;                          // 订单ID
+    private long id;                          // 订单ID
     private String customerName;             // 客户名称
     private double amount;                   // 订单金额
     private OrderStatus status;              // 订单状态
@@ -20,7 +20,7 @@ public class Order {
     }
 
 
-    public Order(int id, String customerName, double amount) {
+    public Order(long id, String customerName, double amount) {
         this.id = id;
         this.customerName = customerName;
         this.amount = amount;
@@ -65,11 +65,11 @@ public class Order {
     }
 
     // Getters and Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

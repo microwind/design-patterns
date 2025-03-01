@@ -28,7 +28,7 @@ export default class OrderService {
     }
   }
 
-  // 自动生成订单 ID
+  // 自动生成订单 ID ，实际应用中会采用分布式ID或者采用数据库自增键
   async generateOrderId() {
     // 这里可以根据业务需求生成唯一的 ID。如：使用时间戳 + 随机数
     const timestamp = Date.now();

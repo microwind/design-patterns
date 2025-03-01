@@ -9,7 +9,6 @@ import (
   "go-web-order/internal/application/services"
   "go-web-order/pkg/utils"
   "log"
-  "math/rand"
   "net/http"
   "strconv"
   "strings"
@@ -66,9 +65,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  // 创建订单
-  orderID := rand.Intn(1000000)
-  newOrder, err := h.Service.CreateOrder(orderID, orderRequest.CustomerName, orderRequest.TotalAmount)
+  newOrder, err := h.Service.CreateOrder(orderRequest.CustomerName, orderRequest.TotalAmount)
   if err != nil {
     log.Printf("创建订单失败: %v", err)
     utils.SendError(w, http.StatusBadRequest, err.Error(), "application/json", nil)

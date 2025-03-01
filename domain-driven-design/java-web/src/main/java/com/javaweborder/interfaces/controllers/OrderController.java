@@ -28,36 +28,36 @@ public class OrderController {
 
             // 将订单金额转换为数字，校验是否有效
             double amount = parseAmount(body.getAmount());
-
+            System.out.println(body);
             OrderDTO order = orderService.createOrder(customerName, amount);
             ResponseUtils.sendJsonResponse(response, 201, order, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "服务器内部错误", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：订单已存在", null);
         }
     }
 
-    // 获取订单：对应 GET /orders/{id}
+    // 获取订单：对应 GET /orders/:id
     public void getOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String idParam = extractId(request);
-            int orderId = parseId(idParam);
+            long orderId = parseId(idParam);
             OrderDTO order = orderService.getOrder(orderId);
             ResponseUtils.sendJsonResponse(response, 200, order, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "服务器内部错误", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：订单未找到", null);
         }
     }
 
-    // 更新订单：对应 PUT /orders/{id}
+    // 更新订单：对应 PUT /orders/:id
     public void updateOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             OrderRequest body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
             String idParam = extractId(request);
-            int orderId = parseId(idParam);
+            long orderId = parseId(idParam);
 
             double amount = parseAmount(body.getAmount());
 
@@ -66,15 +66,15 @@ public class OrderController {
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "服务器内部错误", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：订单未找到", null);
         }
     }
 
-    // 删除订单：对应 DELETE /orders/{id}
+    // 删除订单：对应 DELETE /orders/:id
     public void deleteOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String idParam = extractId(request);
-            int orderId = parseId(idParam);
+            long orderId = parseId(idParam);
             orderService.deleteOrder(orderId);
             ResponseUtils.sendNoContent(response);
         } catch (IllegalArgumentException e) {
@@ -96,9 +96,9 @@ public class OrderController {
     }
 
     // 将字符串转换为整数，校验合法性
-    private int parseId(String idParam) {
+    private long parseId(String idParam) {
         try {
-            return Integer.parseInt(idParam);
+            return Long.parseLong(idParam);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("订单 ID 无效");
         }

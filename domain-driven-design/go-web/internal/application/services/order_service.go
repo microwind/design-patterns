@@ -2,9 +2,27 @@
 package services
 
 import (
-	"fmt"
-	"go-web-order/internal/domain/order"
+  "fmt"
+  "go-web-order/internal/domain/order"
+  "math/rand"
+  "sync"
+  "time"
 )
+
+var (
+  rng    = rand.New(rand.NewSource(time.Now().UnixNano()))
+  rngMux sync.Mutex
+)
+
+// GenerateOrderID 生成时间戳 + 随机数的唯一订单号 (int)
+func GenerateOrderID() int {
+  rngMux.Lock()
+  defer rngMux.Unlock()
+
+  timestamp := time.Now().UnixMilli() // 毫秒时间戳
+  random := rng.Intn(1000)            // 0-999 的随机数
+  return int(timestamp*1000) + random
+}
 
 // OrderService 订单应用服务，协调领域逻辑和业务用例
 type OrderService struct {
@@ -17,9 +35,10 @@ func NewOrderService(orderRepo order.OrderRepository) *OrderService {
 }
 
 // CreateOrder 创建订单并保存到仓储中
-func (s *OrderService) CreateOrder(id int, customerName string, amount float64) (*order.Order, error) {
-  // 创建订单
-  newOrder := order.NewOrder(id, customerName, amount)
+func (s *OrderService) CreateOrder(customerName string, amount float64) (*order.Order, error) {
+  // 自动生成订单 ID ，实际应用中会采用分布式ID或者采用数据库自增键
+  orderID := GenerateOrderID()
+  newOrder := order.NewOrder(orderID, customerName, amount)
   if newOrder == nil {
     return nil, fmt.Errorf("订单创建失败")
   }

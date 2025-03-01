@@ -1,15 +1,16 @@
+// 路由测试文件，go语言下一般与源码放在一起
 package routes
 
 import (
-	"encoding/json"
-	"go-web-order/internal/application/services"
-	"go-web-order/internal/domain/order"
-	"go-web-order/internal/interfaces/handlers"
-	"net/http"
-	"net/http/httptest"
-	"strconv"
-	"strings"
-	"testing"
+  "encoding/json"
+  "go-web-order/internal/application/services"
+  "go-web-order/internal/domain/order"
+  "go-web-order/internal/interfaces/handlers"
+  "net/http"
+  "net/http/httptest"
+  "strconv"
+  "strings"
+  "testing"
 )
 
 // mockOrderRepository 模拟订单仓储

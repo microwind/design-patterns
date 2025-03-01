@@ -27,7 +27,9 @@ class Route {
     // 编译路径匹配的正则表达式（对字面量部分转义，并替换路径参数为命名捕获组）
     private Pattern compilePattern(String pathPattern) {
         StringBuilder regex = new StringBuilder("^");
-        Matcher m = Pattern.compile("\\{(\\w+)}").matcher(pathPattern);
+        // Matcher m = Pattern.compile("\\{(\\w+)}").matcher(pathPattern);
+        // 修改正则匹配 {id} 为 :id
+        Matcher m = Pattern.compile(":(\\w+)").matcher(pathPattern);
         int lastIndex = 0;
         while (m.find()) {
             regex.append(Pattern.quote(pathPattern.substring(lastIndex, m.start())));
@@ -42,7 +44,9 @@ class Route {
     // 提取路径中的参数名称
     private List<String> extractParamNames(String pathPattern) {
         List<String> paramNames = new ArrayList<>();
-        Matcher matcher = Pattern.compile("\\{(\\w+)}").matcher(pathPattern);
+        // Matcher matcher = Pattern.compile("\\{(\\w+)}").matcher(pathPattern);
+        // 修改正则匹配 {id} 为 :id
+        Matcher matcher = Pattern.compile(":(\\w+)").matcher(pathPattern);
         while (matcher.find()) {
             paramNames.add(matcher.group(1));
         }

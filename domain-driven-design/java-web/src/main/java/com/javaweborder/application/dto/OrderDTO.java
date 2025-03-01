@@ -3,23 +3,23 @@ package com.javaweborder.application.dto;
 
 public class OrderDTO {
 
-    private int id;
+    private long id;
     private String customerName;
     private double totalAmount;
 
     // 构造函数
-    public OrderDTO(int id, String customerName, double totalAmount) {
+    public OrderDTO(long id, String customerName, double totalAmount) {
         this.id = id;
         this.customerName = customerName;
         this.totalAmount = totalAmount;
     }
 
     // Getters 和 Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

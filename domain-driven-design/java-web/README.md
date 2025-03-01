@@ -12,7 +12,7 @@ java-web/
 │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
 │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
-│   │   │   │        │       ├── Order.java      # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   │        │       ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
 │   │   │   |        │       ├── OrderItem.java       # [可选]订单项实体（子聚合）
 │   │   │   │        │       ├── OrderRepository.java # 订单仓储接口，定义对订单数据的操作
 │   │   │   │        │       └── OrderEvent.java   # 订单领域事件
@@ -24,7 +24,7 @@ java-web/
 │   │   │   │        │   │   ├── DatabaseConfig.java  # 数据库配置
 │   │   │   │        │   │   ├── JWTConfig.java       # JWT 配置
 │   │   │   │        ├── interfaces/           # 接口层（处理外部请求，如HTTP接口）
-│   │   │   │        │   ├── controllers/             # RESTful API接口
+│   │   │   │        │   ├── controllers/      # RESTful API接口
 │   │   │   │        │   │   ├── OrderController.java  # 订单相关的HTTP接口
 │   │   │   │        │   └── routes/           # 路由设置
 │   │   │   │        │       ├── Router.java   # 基础路由工具设置
@@ -35,8 +35,9 @@ java-web/
 │   │   │   │        │   └── ServiceConfig.java  # 服务器与环境配置
 │   │   │   │        └── utils/                # 实用工具
 │   │   │   │        └── Application.java      # 应用启动类
+│   │   │   │        └── TomcatServer.java     # [可选]嵌入式服务器
 │   │   │   └── resources/
-│   │   │       └── application.properties         # 配置文件
+│   │   │       └── application.properties     # 配置文件
 │   └── test/
 │        └── java/
 │            ├── com

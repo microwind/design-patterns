@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
       <pre>
         测试
         <code>
-        创建：curl -X POST "http://localhost:${port}/api/api/orders" -H "Content-Type: application/json" -d '{"customerName": "齐天大圣", "amount": 99.99}'
+        创建：curl -X POST "http://localhost:${port}/api/orders" -H "Content-Type: application/json" -d '{"customerName": "齐天大圣", "amount": 99.99}'
         查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
         更新：curl -X PUT "http://localhost:${port}/api/orders/订单号" -H "Content-Type: application/json" -d '{"customerName": "孙悟空", "amount": 11.22}'
         删除：curl -X DELETE "http://localhost:${port}/api/orders/订单号"

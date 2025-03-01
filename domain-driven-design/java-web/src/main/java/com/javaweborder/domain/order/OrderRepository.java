@@ -10,16 +10,16 @@ import java.util.Optional;
 public interface OrderRepository extends Repository<Order> {
     
     // 保存订单
-    boolean save(Order order);
+    void save(Order order);
 
     // 根据ID查找订单
-    Optional<Order> findById(int id);
+    Optional<Order> findById(long id);
 
     // 查找所有订单
     List<Order> findAll();
 
     // 删除订单
-    void delete(int id);
+    void delete(long id);
 
     // 根据客户名称查找订单
     List<Order> findByCustomerName(String customerName);

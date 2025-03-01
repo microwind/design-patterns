@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 @WebListener
 public class Application implements ServletContextListener {
 
@@ -37,6 +36,10 @@ public class Application implements ServletContextListener {
 
             // 注册路由 Servlet
             context.addServlet("OrderRouter", router).addMapping("/api/*");
+            // 测试路由
+            router.get("/api/hello", (req, resp) -> {
+                resp.getWriter().write("Hello world!");
+            });
 
             // 注册首页 Servlet
             context.addServlet("HomeServlet", new HttpServlet() {
@@ -48,7 +51,7 @@ public class Application implements ServletContextListener {
                                     "<pre>" +
                                     "测试\n" +
                                     "<code>" +
-                                    "创建：curl -X POST \"http://localhost:" + port + "/api/api/orders\" -H \"Content-Type: application/json\" -d '{\"customerName\": \"齐天大圣\", \"amount\": 99.99}'\n" +
+                                    "创建：curl -X POST \"http://localhost:" + port + "/api/orders\" -H \"Content-Type: application/json\" -d '{\"customerName\": \"齐天大圣\", \"amount\": 99.99}'\n" +
                                     "查询：curl -X GET \"http://localhost:" + port + "/api/orders/订单号\"\n" +
                                     "更新：curl -X PUT \"http://localhost:" + port + "/api/orders/订单号\" -H \"Content-Type: application/json\" -d '{\"customerName\": \"孙悟空\", \"amount\": 11.22}'\n" +
                                     "删除：curl -X DELETE \"http://localhost:" + port + "/api/orders/订单号\"\n" +
@@ -73,5 +76,3 @@ public class Application implements ServletContextListener {
         // 清理资源
     }
 }
-
-

@@ -2,13 +2,13 @@ package com.javaweborder.domain.order;
 // 领域层(Domain)：订单项实体
 public class OrderItem {
     
-    private int id;           // 订单项ID
+    private long id;           // 订单项ID
     private String product;   // 产品名称
     private int quantity;     // 数量
     private double price;     // 单价
     private Order order;      // 关联的订单（聚合根）
 
-    public OrderItem(int id, String product, int quantity, double price, Order order) {
+    public OrderItem(long id, String product, int quantity, double price, Order order) {
         this.id = id;
         this.product = product;
         this.quantity = quantity;
@@ -17,11 +17,11 @@ public class OrderItem {
     }
 
     // Getters and Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
