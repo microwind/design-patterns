@@ -4,6 +4,7 @@ package com.javaweborder.interfaces.controllers;
 import com.javaweborder.application.dto.OrderDTO;
 import com.javaweborder.application.services.OrderService;
 import com.javaweborder.domain.order.Order;
+import com.javaweborder.infrastructure.message.MessageQueueService;
 import com.javaweborder.infrastructure.repository.OrderRepositoryImpl;
 import com.javaweborder.utils.BodyParserUtils;
 import com.javaweborder.utils.ResponseUtils;
@@ -18,7 +19,7 @@ public class OrderController {
     private final OrderService orderService;
 
     public OrderController() {
-        this.orderService = new OrderService(new OrderRepositoryImpl());
+        this.orderService = new OrderService(new OrderRepositoryImpl(), new MessageQueueService());
     }
 
     // 创建订单：对应 POST /orders

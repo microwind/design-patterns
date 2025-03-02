@@ -3,6 +3,7 @@ package com.javaweborder;
 
 import com.javaweborder.config.ServerConfig;
 import com.javaweborder.infrastructure.configuration.LoggingConfig;
+import com.javaweborder.infrastructure.message.MessageQueueService;
 import com.javaweborder.interfaces.controllers.OrderController;
 import com.javaweborder.interfaces.routes.OrderRoutes;
 import com.javaweborder.interfaces.routes.Router;
@@ -29,6 +30,10 @@ public class Application implements ServletContextListener {
             loggingConfig.setLevel("INFO"); // 设置日志级别
             loggingConfig.setFile(config.getLogging().getFile()); // 设置日志文件路径
             loggingConfig.init();
+
+            // 初始化消息队列服务，模拟消息服务
+            MessageQueueService messageQueueService = new MessageQueueService();
+            messageQueueService.receiveMessages(); // 启动消息接收线程
 
             // 创建 HTTP 控制器
             OrderController orderController = new OrderController();
