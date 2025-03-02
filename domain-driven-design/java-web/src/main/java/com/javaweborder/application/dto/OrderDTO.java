@@ -1,4 +1,4 @@
-// 数据交换
+// 应用层：数据交换DTO
 package com.javaweborder.application.dto;
 
 public class OrderDTO {

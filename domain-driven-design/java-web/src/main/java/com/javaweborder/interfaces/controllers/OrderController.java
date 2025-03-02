@@ -3,6 +3,7 @@ package com.javaweborder.interfaces.controllers;
 
 import com.javaweborder.application.dto.OrderDTO;
 import com.javaweborder.application.services.OrderService;
+import com.javaweborder.domain.order.Order;
 import com.javaweborder.infrastructure.repository.OrderRepositoryImpl;
 import com.javaweborder.utils.BodyParserUtils;
 import com.javaweborder.utils.ResponseUtils;
@@ -10,6 +11,7 @@ import com.javaweborder.utils.ResponseUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 public class OrderController {
 
@@ -28,7 +30,6 @@ public class OrderController {
 
             // 将订单金额转换为数字，校验是否有效
             double amount = parseAmount(body.getAmount());
-            System.out.println(body);
             OrderDTO order = orderService.createOrder(customerName, amount);
             ResponseUtils.sendJsonResponse(response, 201, order, null);
         } catch (IllegalArgumentException e) {
@@ -81,6 +82,18 @@ public class OrderController {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
             ResponseUtils.sendJsonError(response, 500, "服务器内部错误", null);
+        }
+    }
+
+    // 获取订单：对应 GET /orders
+    public void listOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            List<Order> orders = orderService.listOrder();
+            ResponseUtils.sendJsonResponse(response, 200, orders, null);
+        } catch (IllegalArgumentException e) {
+            ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
+        } catch (Exception e) {
+            ResponseUtils.sendJsonError(response, 500, "内部错误：订单查找失败", null);
         }
     }
 

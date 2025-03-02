@@ -81,13 +81,17 @@ public class Router extends HttpServlet {
     // 处理所有请求
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 设置请求和响应编码为 UTF-8
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+
         String path = req.getRequestURI().substring(req.getContextPath().length());
         String method = req.getMethod().toUpperCase();
 
-        System.out.println("Request URI: " + req.getRequestURI());
-        System.out.println("Context Path: " + req.getContextPath());
-        System.out.println("Processed Path: " + path);
-        System.out.println("out Received request: " + method + " " + path);
+        LogUtils.logInfo("Request URI: " + req.getRequestURI());
+        LogUtils.logInfo("Context Path: " + req.getContextPath());
+        LogUtils.logInfo("Processed Path: " + path);
+        LogUtils.logInfo("out Received request: " + method + " " + path);
 
         for (Route route : routes) {
             Matcher matcher = route.pattern.matcher(path);

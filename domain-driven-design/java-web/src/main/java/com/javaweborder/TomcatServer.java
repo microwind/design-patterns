@@ -2,8 +2,12 @@ package com.javaweborder;
 
 import com.javaweborder.config.ServerConfig;
 import org.apache.catalina.Context;
+import org.apache.catalina.WebResourceRoot;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.webresources.DirResourceSet;
+import org.apache.catalina.webresources.StandardRoot;
+
 import java.io.File;
 
 public class TomcatServer {
@@ -18,23 +22,41 @@ public class TomcatServer {
             int port = config.getPort();
             tomcat.setPort(port);
 
-            // 获取 Tomcat 的 Connector 信息
+            // 配置Connector编码
             Connector connector = tomcat.getConnector();
-            System.out.println("Tomcat connector details: " + connector);
+            connector.setURIEncoding("UTF-8");
+            connector.setUseBodyEncodingForURI(true);
 
-            // 创建 Web 应用上下文
-            String contextPath = "";
-            String baseDir = new File(".").getAbsolutePath();
-            System.out.println("contextPath:" + contextPath + " baseDir:" + baseDir);
-            Context context = tomcat.addWebapp(contextPath, baseDir);
-            // 注册 ServletContextListener
+            // 创建空上下文（使用当前根目录，无webapp）
+            // Context context = tomcat.addContext("", new File(".").getAbsolutePath());
+
+            // 创建Web上下文，创建webapp目录
+            File webappDir = new File("src/main/webapp");
+            if (!webappDir.exists()) webappDir.mkdirs();
+            Context context = tomcat.addWebapp("", webappDir.getAbsolutePath());
+
+            // 配置类加载资源，映射到WEB-INF/classes
+            File classesDir = new File("target/classes");
+            WebResourceRoot resources = new StandardRoot(context);
+            resources.addPreResources(new DirResourceSet(resources, "/WEB-INF/classes",
+                    classesDir.getAbsolutePath(), "/"));
+            context.setResources(resources);
+
+            // 可选配置
+//            context.addLifecycleListener(new Tomcat.FixContextListener());
+//            context.setParentClassLoader(TomcatServer.class.getClassLoader());
+
+            // 显式启用注解扫描
+            context.setAddWebinfClassesResources(true);
+
+            // 注册监听器 ServletContextListener
             context.addApplicationListener(Application.class.getName());
 
             // 启动 Tomcat 服务器
             String  address = tomcat.getServer().getAddress().toLowerCase() + ":" + port;
             System.out.println("Starting server on " + address);
             tomcat.start();
-            System.out.println("The Server has started. please visit " + address + contextPath);
+            System.out.println("The Server has started. please visit " + address);
             tomcat.getServer().await();
         } catch (Exception e) {
             System.err.println("Failed to start server: " + e.getMessage());

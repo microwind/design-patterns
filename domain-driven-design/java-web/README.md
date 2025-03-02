@@ -69,8 +69,9 @@ java-web/
 
 ## 运行
 ```bash
-$ mvn clean install
-$ mvn spring-boot:run
+$ mvn clean install -U
+$ mvn clean package
+$ java -jar target/java-web-order-1.0.0.jar
 Starting server on http://localhost:8080 successfully.
 # 通过 http://localhost:8080 访问系统
 

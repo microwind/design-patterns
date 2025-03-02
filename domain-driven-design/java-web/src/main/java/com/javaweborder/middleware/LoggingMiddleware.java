@@ -19,12 +19,13 @@ public class LoggingMiddleware implements Filter {
     @Override
     public void init(FilterConfig filterConfig) {
         // 初始化操作（可选）
+        System.out.println("LoggingMiddleware initialized.");
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
+        System.out.println("LoggingMiddleware: Filter is executing.");
         // 获取请求开始时间
         Instant startTime = Instant.now();
 

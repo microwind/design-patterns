@@ -11,6 +11,7 @@ public class OrderRoutes {
         router.put("/api/orders/:id", orderController::updateOrder);
         router.delete("/api/orders/:id", orderController::deleteOrder);
         router.post("/api/orders", orderController::createOrder);
+        router.get("/api/orders", orderController::listOrder);
         System.out.println("OrderRoutes->setupOrderRoutes done.");
     }
 }

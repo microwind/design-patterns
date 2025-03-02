@@ -1,11 +1,11 @@
 // 应用层（协调领域逻辑，处理业务用例）：订单应用服务
-// 应用层（协调领域逻辑，处理业务用例）：订单应用服务
 package com.javaweborder.application.services;
 
 import com.javaweborder.application.dto.OrderDTO;
 import com.javaweborder.domain.order.Order;
 import com.javaweborder.domain.order.OrderRepository;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -82,6 +82,12 @@ public class OrderService {
 
         // 从仓储中删除订单
         orderRepository.delete(order.getId());
+    }
+
+    // 列出全部订单[此处应该分页]
+    public List<Order> listOrder() throws Exception {
+        // 返回订单 DTO
+        return orderRepository.findAll();
     }
 }
 
