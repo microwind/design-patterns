@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from src.utils.body_parser import parse_body
-from src.utils.response_helper import response_json
+from src.utils.response import response_json
 
 
 class OrderController:
@@ -11,7 +11,7 @@ class OrderController:
     def create_order(self, request, response):
         try:
             body = parse_body(request)
-            customer_name = body.get('customerName')
+            customer_name = body.get('customer_name')
             amount = body.get('amount')
 
             # 验证订单金额
@@ -43,6 +43,16 @@ class OrderController:
         except Exception as error:
             response_json(response, 404, {'error': str(error)})
 
+
+    def get_all_orders(self, request, response):
+        try:
+            # user_id来自参数或者cookie/session
+            user_id = 10000001
+            orders = self.order_service.get_all_orders(user_id)
+            response_json(response, 200, orders)
+        except Exception as error:
+            response_json(response, 404, {'error': str(error)})
+
     def update_order(self, request, response):
         try:
             body = parse_body(request)
@@ -63,7 +73,7 @@ class OrderController:
                 raise ValueError('订单金额无效')
 
             order = self.order_service.update_order(
-                order_id, body.get('customerName'), amount_number)
+                order_id, body.get('customer_name'), amount_number)
             response_json(response, 200, order)
         except Exception as error:
             response_json(response, 400, {'error': str(error)})

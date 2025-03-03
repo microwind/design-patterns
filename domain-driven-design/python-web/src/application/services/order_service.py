@@ -55,6 +55,15 @@ class OrderService:
         except Exception as error:
             raise ValueError(f'查询订单失败: {error}')
 
+    def get_all_orders(self, user_id):
+        """
+        查询全部订单
+        """
+        try:
+            return self.order_repository.find_all(user_id)
+        except Exception as error:
+            raise ValueError(f'查询订单失败: {error}')
+
     def update_order(self, order_id, customer_name, amount):
         """
         更新订单的客户信息和金额

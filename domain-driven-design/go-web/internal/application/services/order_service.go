@@ -15,18 +15,19 @@ var (
 )
 
 // GenerateOrderID 生成时间戳 + 随机数的唯一订单号 (int)
-func GenerateOrderID() int {
+func GenerateOrderID() int64 {
   rngMux.Lock()
   defer rngMux.Unlock()
 
   timestamp := time.Now().UnixMilli() // 毫秒时间戳
   random := rng.Intn(1000)            // 0-999 的随机数
-  return int(timestamp*1000) + random
+  return int64(timestamp*1000) + int64(random)
 }
 
 // OrderService 订单应用服务，协调领域逻辑和业务用例
 type OrderService struct {
-  OrderRepository order.OrderRepository // 订单仓储接口
+  OrderRepository order.OrderRepository // 使用订单仓储接口
+  // Repository order.OrderRepository // 使用通用接口声明
 }
 
 // 创建OrderService实例对象
@@ -53,7 +54,7 @@ func (s *OrderService) CreateOrder(customerName string, amount float64) (*order.
 }
 
 // CancelOrder 取消订单
-func (s *OrderService) CancelOrder(id int) error {
+func (s *OrderService) CancelOrder(id int64) error {
   order, err := s.OrderRepository.FindByID(id) // 获取订单
   if err != nil {
     return fmt.Errorf("订单取消失败：%v", err)
@@ -68,12 +69,17 @@ func (s *OrderService) CancelOrder(id int) error {
 }
 
 // GetOrder 查询订单
-func (s *OrderService) GetOrder(id int) (*order.Order, error) {
+func (s *OrderService) GetOrder(id int64) (*order.Order, error) {
   return s.OrderRepository.FindByID(id)
 }
 
+// GetAllOrders 列出全部订单，此处省略分页
+func (s *OrderService) GetAllOrders(userId int) ([]*order.Order, error) {
+  return s.OrderRepository.FindAll(userId)
+}
+
 // UpdateOrder 更新订单的客户信息和金额
-func (s *OrderService) UpdateOrder(id int, customerName string, amount float64) (*order.Order, error) {
+func (s *OrderService) UpdateOrder(id int64, customerName string, amount float64) (*order.Order, error) {
   // 获取订单
   order, err := s.OrderRepository.FindByID(id)
   if err != nil {
@@ -94,7 +100,7 @@ func (s *OrderService) UpdateOrder(id int, customerName string, amount float64) 
 }
 
 // DeleteOrder 删除订单
-func (s *OrderService) DeleteOrder(id int) error {
+func (s *OrderService) DeleteOrder(id int64) error {
   // 获取订单
   order, err := s.OrderRepository.FindByID(id)
   if err != nil {

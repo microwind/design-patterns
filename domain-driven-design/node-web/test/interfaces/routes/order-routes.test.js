@@ -4,8 +4,10 @@
 import http from 'http';
 import OrderController from '../../../src/interfaces/controllers/order-controller.js';
 import OrderService from '../../../src/application/services/order-service.js';
-import OrderRepository from '../../../src/infrastructure/repository/order-repository.js';
+import { OrderRepositoryImpl as OrderRepository } from '../../../src/infrastructure/repository/order-repository-impl.js';
 import loggingMiddleware from '../../../src/middleware/logging-middleware.js';
+import serverConfig from '../../../src/config/server-config.js';
+import { setupLogging } from '../../../src/utils/logging.js';
 import orderRoutes from '../../../src/interfaces/routes/order-routes.js';
 
 // 定义统一的 api 前缀
@@ -18,6 +20,9 @@ const orderController = new OrderController(orderService);
 
 // 初始化路由
 const router = orderRoutes(orderController, loggingMiddleware);
+
+  // 初始化日志文件
+  setupLogging(serverConfig.logging.file);
 
 // 创建 HTTP 服务器
 const server = http.createServer((req, res) => {
@@ -64,8 +69,7 @@ function sendRequest(options, data = null) {
 (async () => {
   try {
     // 测试创建订单
-    const createOrderResponse = await sendRequest(
-      {
+    const createOrderResponse = await sendRequest({
         hostname: 'localhost',
         port: 8080,
         path: `${apiPrefix}/orders`,
@@ -74,7 +78,10 @@ function sendRequest(options, data = null) {
           'Content-Type': 'application/json',
         },
       },
-      JSON.stringify({ customerName: '齐天大圣', amount: 99.99 })
+      JSON.stringify({
+        customerName: '齐天大圣',
+        amount: 99.99
+      })
     );
 
     console.log('创建订单测试结果：');
@@ -103,8 +110,7 @@ function sendRequest(options, data = null) {
     }
 
     // 测试更新订单
-    const updateOrderResponse = await sendRequest(
-      {
+    const updateOrderResponse = await sendRequest({
         hostname: 'localhost',
         port: 8080,
         path: `${apiPrefix}/orders/${orderId}`,
@@ -113,7 +119,10 @@ function sendRequest(options, data = null) {
           'Content-Type': 'application/json',
         },
       },
-      JSON.stringify({ customerName: '孙悟空', amount: 11.22 })
+      JSON.stringify({
+        customerName: '孙悟空',
+        amount: 11.22
+      })
     );
 
     console.log('更新订单测试结果：');
@@ -138,6 +147,29 @@ function sendRequest(options, data = null) {
     if (deleteOrderResponse.statusCode !== 204) {
       throw new Error('删除订单测试失败');
     }
+
+    // 测试获取所有订单
+    const getAllOrdersResponse = await sendRequest({
+      hostname: 'localhost',
+      port: 8080,
+      path: `${apiPrefix}/orders`,
+      method: 'GET',
+    });
+
+    console.log('获取所有订单测试结果：');
+    console.log('状态码:', getAllOrdersResponse.statusCode);
+    console.log('响应体:', getAllOrdersResponse.body);
+
+    if (getAllOrdersResponse.statusCode !== 200) {
+      throw new Error('获取所有订单测试失败');
+    }
+
+    const orders = JSON.parse(getAllOrdersResponse.body);
+    if (!Array.isArray(orders)) {
+      throw new Error('获取所有订单接口返回的不是数组');
+    }
+
+    console.log(`当前订单数量: ${orders.length}`);
 
     console.log('所有测试通过！');
   } catch (error) {
@@ -170,6 +202,11 @@ REQUEST: PUT /api/orders/1740292885975985 took 4ms
 REQUEST: DELETE /api/orders/1740292885975985 took 4ms
 删除订单测试结果：
 状态码: 204
+REQUEST: GET /api/orders took 0ms
+获取所有订单测试结果：
+状态码: 200
+响应体: []
+当前订单数量: 0
 所有测试通过！
 测试服务器已关闭
 */

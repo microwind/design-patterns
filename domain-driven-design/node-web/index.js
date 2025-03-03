@@ -2,12 +2,14 @@
 // nodejs-web/index.js
 
 import http from 'http';
-import url from 'url';
 import OrderController from './src/interfaces/controllers/order-controller.js';
 import OrderService from './src/application/services/order-service.js';
-import OrderRepository from './src/infrastructure/repository/order-repository.js';
+import {
+  OrderRepositoryImpl as OrderRepository
+} from './src/infrastructure/repository/order-repository-impl.js';
 import loggingMiddleware from './src/middleware/logging-middleware.js';
 import serverConfig from './src/config/server-config.js';
+import { setupLogging } from './src/utils/logging.js';
 import orderRoutes from './src/interfaces/routes/order-routes.js';
 
 // 初始化依赖
@@ -20,11 +22,17 @@ const port = serverConfig.port;
 // 初始化路由
 const router = orderRoutes(orderController, loggingMiddleware);
 
+  // 初始化日志文件
+  setupLogging(serverConfig.logging.file);
+
 // 创建 HTTP 服务器
 const server = http.createServer((req, res) => {
+
   if (req.method === 'GET' && req.url === '/') {
     // 首页
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8'
+    });
     res.end(`
       <h1>Welcome to DDD example.</h1>
       <pre>
@@ -34,7 +42,7 @@ const server = http.createServer((req, res) => {
         查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
         更新：curl -X PUT "http://localhost:${port}/api/orders/订单号" -H "Content-Type: application/json" -d '{"customerName": "孙悟空", "amount": 11.22}'
         删除：curl -X DELETE "http://localhost:${port}/api/orders/订单号"
-        查询：curl -X GET "http://localhost:${port}/api/orders/订单号"
+        查询全部：curl -X GET "http://localhost:${port}/api/orders"
         </code>
         详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
       </pre>
@@ -62,4 +70,5 @@ REQUEST: PUT /api/orders/1740220487386921 took 7ms
 REQUEST: GET /api/orders/1740220487386921 took 3ms
 REQUEST: DELETE /api/orders/1740220487386921 took 1ms
 REQUEST: GET /api/orders/1740220487386921 took 8ms
+REQUEST: GET /api/orders took 9ms
 */

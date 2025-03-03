@@ -22,6 +22,12 @@ export default function orderRoutes(orderController, loggingMiddleware) {
     (req, res) => orderController.getOrder(req, res, req.query)
   );
 
+  router.get(
+    `${apiPrefix}/orders`,
+    loggingMiddleware,
+    (req, res) => orderController.getAllOrders(req, res)
+  );
+
   router.put(
     `${apiPrefix}/orders/:id`,
     loggingMiddleware,

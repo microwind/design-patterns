@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 # 订单仓储接口（抽象类）
-class OrderRepositoryAbstract(ABC):
+class OrderRepository(ABC):
     @abstractmethod
     def save(self, order):
         """保存订单"""
@@ -14,7 +14,7 @@ class OrderRepositoryAbstract(ABC):
         pass
 
     @abstractmethod
-    def find_all(self):
+    def find_all(self, user_id):
         """查找所有订单"""
         pass
 

@@ -13,9 +13,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.interfaces.routes.order_routes import order_routes
 from src.interfaces.controllers.order_controller import OrderController
 from src.application.services.order_service import OrderService
-from src.infrastructure.repository.order_repository import OrderRepository
+from src.infrastructure.repository.order_repository_impl import OrderRepositoryImpl as OrderRepository 
 from src.middleware.logging_middleware import logging_middleware
-from src.config.server_config import PORT
+from src.utils.logging import setup_logging
+from src.config.server_config import PORT, LOGGING
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -23,7 +24,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]  # 确保日志输出到控制台
 )
 
-""" 以下修复端口占用问题
+#""" 以下修复端口占用问题
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0  # 端口被占用返回 True
@@ -31,15 +32,19 @@ def is_port_in_use(port):
 if is_port_in_use(PORT):
     logging.error(f"Port {PORT} is already in use. Please stop the existing process or use another port.")
     sys.exit(1)  # 终止程序
-"""
+#"""
     
 # 初始化依赖
 order_repository = OrderRepository()
 order_service = OrderService(order_repository)
 order_controller = OrderController(order_service)
 
+# 初始化日志系统
+setup_logging(LOGGING['file'])
+
 # 初始化路由
 router = order_routes(order_controller, logging_middleware)
+
 
 class MainHandler(http.server.SimpleHTTPRequestHandler):
     def handle_request(self):
@@ -62,11 +67,11 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
             <pre>
                 测试
                 <code>
-                创建：curl -X POST "http://localhost:{PORT}/api/orders" -H "Content-Type: application/json" -d '{{"customerName": "齐天大圣", "amount": 99.99}}'
+                创建：curl -X POST "http://localhost:{PORT}/api/orders" -H "Content-Type: application/json" -d '{{"customer_name": "齐天大圣", "amount": 99.99}}'
                 查询：curl -X GET "http://localhost:{PORT}/api/orders/订单号"
-                更新：curl -X PUT "http://localhost:{PORT}/api/orders/订单号" -H "Content-Type: application/json" -d '{{"customerName": "孙悟空", "amount": 11.22}}'
+                更新：curl -X PUT "http://localhost:{PORT}/api/orders/订单号" -H "Content-Type: application/json" -d '{{"customer_name": "孙悟空", "amount": 11.22}}'
                 删除：curl -X DELETE "http://localhost:{PORT}/api/orders/订单号"
-                查询：curl -X GET "http://localhost:{PORT}/api/orders/订单号"
+                查询全部：curl -X GET "http://localhost:{PORT}/api/orders"
                 </code>
                 详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
             </pre>

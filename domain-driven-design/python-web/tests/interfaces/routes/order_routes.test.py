@@ -47,7 +47,7 @@ server_thread = start_server()
 def test_create_order():
     print("开始测试创建订单...")
     create_order_url = f'{BASE_URL}{API_PREFIX}/orders'
-    create_order_data = {'customerName': '齐天大圣', 'amount': 99.99}
+    create_order_data = {'customer_name': '齐天大圣', 'amount': 99.99}
     create_order_response = requests.post(create_order_url, json=create_order_data)
 
     print('创建订单状态码:', create_order_response.status_code)
@@ -71,7 +71,7 @@ def test_get_order(order_id):
 # 更新订单请求
 def test_update_order(order_id):
     update_order_url = f'{BASE_URL}{API_PREFIX}/orders/{order_id}'
-    update_order_data = {'customerName': '孙悟空', 'amount': 11.22}
+    update_order_data = {'customer_name': '孙悟空', 'amount': 11.22}
     update_order_response = requests.put(update_order_url, json=update_order_data)
 
     print('更新订单状态码:', update_order_response.status_code)

@@ -1,8 +1,9 @@
 // 基础设施层（Infrastructure）：订单仓储实现
-// src/infrastructure/repository/order-repository.js
-
-export default class OrderRepository {
+// src/infrastructure/repository/order-repository-impl.js
+import OrderRepository from '../../domain/order/order-repository.js';
+export class OrderRepositoryImpl extends OrderRepository {
   constructor() {
+    super(); 
     this.orders = new Map();
   }
 
@@ -21,7 +22,8 @@ export default class OrderRepository {
   }
 
   // 查找所有订单
-  async findAll() {
+  async findAll(userId) {
+    // 根据userId查询数据库
     return Array.from(this.orders.values());
   }
 

@@ -13,10 +13,10 @@ python-web/
 │   ├── domain/                    # 领域层（核心业务逻辑和接口定义）
 │   │   ├── order/                 # 领域模型（实体、值对象、聚合根）
 │   │   │   └── order.py           # 订单实体（聚合根）
-│   │   │   └── order_repository.py  # 订单仓储抽象类，充当接口
+│   │   │   └── order_repository.py  # 订单仓储抽象类，充当接口，供基础层继承
 │   ├── infrastructure/            # 基础设施层（实现领域层定义的接口）
 │   │   ├── repositories/          # 仓储实现
-│   │   │   └── order_repository.py # 订单仓储实现
+│   │   │   └── order_repository_impl.py # 订单仓储实现
 │   ├── interfaces/                # 接口层（处理外部请求，如 HTTP）
 │   │   ├── controllers/           # 控制器层，处理 HTTP 请求
 │   │   │   └── order_controller.py  # 订单相关的 HTTP 控制器
@@ -28,7 +28,8 @@ python-web/
 │   ├── config/                    # 配置文件
 │   │   └── server_config.py       # 服务器配置，如端口、环境变量
 │   └── utils/                     # 工具类（响应、日期处理等）
-│       └── response_helper.py     # 辅助实用工具
+│   │   └── response.py            # 相应实用工具
+│   │   └── logging.py             # 日志实用工具
 ├── tests/                         # 测试代码
 └── scripts/                       # 脚本目录
 ```

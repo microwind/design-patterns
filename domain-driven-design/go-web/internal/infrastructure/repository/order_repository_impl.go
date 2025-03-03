@@ -2,18 +2,18 @@
 package repository
 
 import (
-	"fmt"
-	"go-web-order/internal/domain/order"
+  "fmt"
+  "go-web-order/internal/domain/order"
 )
 
 // OrderRepositoryImpl 订单仓储实现，具体存储操作
 type OrderRepositoryImpl struct {
-  orders map[int]*order.Order // 存储订单的内存映射
+  orders map[int64]*order.Order // 存储订单的内存映射
 }
 
 // NewOrderRepositoryImpl 创建新的订单仓储实现
 func NewOrderRepositoryImpl() *OrderRepositoryImpl {
-  return &OrderRepositoryImpl{orders: make(map[int]*order.Order)}
+  return &OrderRepositoryImpl{orders: make(map[int64]*order.Order)}
 }
 
 // Save 保存订单
@@ -23,7 +23,7 @@ func (r *OrderRepositoryImpl) Save(order *order.Order) error {
 }
 
 // FindByID 根据ID查找订单
-func (r *OrderRepositoryImpl) FindByID(id int) (*order.Order, error) {
+func (r *OrderRepositoryImpl) FindByID(id int64) (*order.Order, error) {
   order, exists := r.orders[id]
   if !exists {
     return nil, fmt.Errorf("订单 ID %d 不存在", id)
@@ -32,7 +32,7 @@ func (r *OrderRepositoryImpl) FindByID(id int) (*order.Order, error) {
 }
 
 // FindAll 查找所有订单
-func (r *OrderRepositoryImpl) FindAll() ([]*order.Order, error) {
+func (r *OrderRepositoryImpl) FindAll(userId int) ([]*order.Order, error) {
   orders := []*order.Order{}
   for _, order := range r.orders {
     orders = append(orders, order)
@@ -41,7 +41,7 @@ func (r *OrderRepositoryImpl) FindAll() ([]*order.Order, error) {
 }
 
 // Delete 删除订单
-func (r *OrderRepositoryImpl) Delete(id int) error {
+func (r *OrderRepositoryImpl) Delete(id int64) error {
   if _, exists := r.orders[id]; !exists {
     return fmt.Errorf("订单 ID %d 不存在，无法删除", id)
   }

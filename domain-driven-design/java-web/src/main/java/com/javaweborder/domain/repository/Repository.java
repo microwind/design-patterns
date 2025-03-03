@@ -1,4 +1,5 @@
-package com.javaweborder.infrastructure.repository;
+// 领域层(Domain)：通用仓库接口
+package com.javaweborder.domain.repository;
 
 import java.util.List;
 import java.util.Optional;

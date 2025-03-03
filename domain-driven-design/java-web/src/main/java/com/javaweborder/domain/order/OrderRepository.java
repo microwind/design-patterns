@@ -1,10 +1,9 @@
 // 领域层(Domain)：订单数据仓库接口
 package com.javaweborder.domain.order;
 
-import com.javaweborder.infrastructure.repository.Repository;
-
 import java.util.List;
 import java.util.Optional;
+import com.javaweborder.domain.repository.Repository;
 
 // OrderRepository 订单仓储接口，继承通用 Repository<Order>
 public interface OrderRepository extends Repository<Order> {

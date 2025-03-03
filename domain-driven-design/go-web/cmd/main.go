@@ -8,6 +8,7 @@ import (
   "go-web-order/internal/infrastructure/repository"
   "go-web-order/internal/interfaces/handlers"
   "go-web-order/internal/interfaces/routes"
+  "go-web-order/pkg/utils"
   "net/http"
 )
 
@@ -25,7 +26,7 @@ func defaultPage(w http.ResponseWriter, r *http.Request) {
       查询：curl -X GET "http://localhost:%d/api/orders/订单号"
       更新：curl -X PUT "http://localhost:%d/api/orders/订单号" -H "Content-Type: application/json" -d '{"customer_name": "孙悟空", "total_amount": 11.22}'
       删除：curl -X DELETE "http://localhost:%d/api/orders/订单号"
-      查询：curl -X GET "http://localhost:%d/api/orders/订单号"
+      查询全部：curl -X GET "http://localhost:%d/api/orders"
       </code>
       详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design
     </pre>
@@ -51,6 +52,9 @@ func main() {
 
   // 设置订单路由
   routes.SetupOrderRoutes(router, orderHandler)
+
+  // 初始化日志设置
+  utils.SetupLogging(serverConfig.Logging.File)
 
   // 创建 HTTP 多路复用器
   mux := http.NewServeMux()

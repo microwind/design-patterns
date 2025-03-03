@@ -13,14 +13,14 @@ const (
 
 // Order 订单实体，作为聚合根
 type Order struct {
-  ID           int         // 订单ID
+  ID           int64       // 订单ID
   CustomerName string      // 客户名称
   Amount       float64     // 订单金额
   Status       OrderStatus // 订单状态
 }
 
 // NewOrder 创建新订单，返回一个 Order 实体
-func NewOrder(id int, customerName string, amount float64) *Order {
+func NewOrder(id int64, customerName string, amount float64) *Order {
   if amount <= 0 {
     fmt.Println("订单金额无效")
     return nil

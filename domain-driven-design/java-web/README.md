@@ -12,10 +12,12 @@ java-web/
 │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
 │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
-│   │   │   │        │       ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
-│   │   │   |        │       ├── OrderItem.java       # [可选]订单项实体（子聚合）
-│   │   │   │        │       ├── OrderRepository.java # 订单仓储接口，定义对订单数据的操作
-│   │   │   │        │       └── OrderEvent.java   # 订单领域事件
+│   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   │        │   │   ├── OrderRepository.java # 订单仓储接口，定义对订单数据的操作
+│   │   │   |        │   │   ├── OrderItem.java       # [可选]订单项实体（子聚合）
+│   │   │   │        │   │   └── OrderEvent.java   # 订单领域事件
+│   │   │   │        │   └── repository/           # 仓库接口
+│   │   │   │        │   │   ├── Repository.java    # 仓库通用接口
 │   │   │   │        ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   │   │        │   ├── repository/       # 仓储实现
 │   │   │   │        │   │   ├── OrderRepositoryImpl.java # 订单仓储实现

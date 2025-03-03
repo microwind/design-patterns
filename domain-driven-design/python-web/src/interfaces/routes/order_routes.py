@@ -10,7 +10,7 @@ def order_routes(order_controller, logging_middleware):
         raise ValueError("order_controller cannot be None")
     if logging_middleware is None:
         raise ValueError("logging_middleware cannot be None")
-
+    
     router = create_router()
 
     # 注册路由
@@ -27,6 +27,13 @@ def order_routes(order_controller, logging_middleware):
         order_controller.get_order
     )
     logging.debug("Registered route: GET /api/orders/:id")
+
+    router.get(
+        api_prefix + '/orders',
+        logging_middleware,
+        order_controller.get_all_orders
+    )
+    logging.debug("Registered route: GET /api/orders")
 
     router.put(
         api_prefix + '/orders/:id',

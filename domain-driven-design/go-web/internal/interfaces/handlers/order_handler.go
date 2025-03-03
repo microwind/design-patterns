@@ -25,7 +25,7 @@ func NewOrderHandler(service *services.OrderService) *OrderHandler {
 }
 
 // getOrderIDFromPath 从请求路径中获取订单 ID
-func getOrderIDFromPath(r *http.Request) (int, error) {
+func getOrderIDFromPath(r *http.Request) (int64, error) {
   parts := strings.Split(r.URL.Path, "/")
   if len(parts) < 3 {
     return 0, fmt.Errorf("无效的请求路径: %s", r.URL.Path)
@@ -35,7 +35,7 @@ func getOrderIDFromPath(r *http.Request) (int, error) {
   if err != nil || id <= 0 {
     return 0, fmt.Errorf("无效的订单 ID: %s", idStr)
   }
-  return id, nil
+  return int64(id), nil
 }
 
 // 创建订单
@@ -93,6 +93,23 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
   }
 
   utils.SendResponse(w, http.StatusOK, order, "application/json", nil)
+}
+
+// GetAllOrders 获取当前用户的订单列表
+func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
+  // 模拟一个用户id
+  var userId int = 10000001
+
+  // 根据 userId 查询订单
+  orders, err := h.Service.GetAllOrders(userId)
+  if err != nil {
+    log.Printf("查询用户 %d 的订单失败: %v", userId, err)
+    utils.SendError(w, http.StatusNotFound, err.Error(), "application/json", nil)
+    return
+  }
+
+  // 返回订单列表
+  utils.SendResponse(w, http.StatusOK, orders, "application/json", nil)
 }
 
 // 更新订单

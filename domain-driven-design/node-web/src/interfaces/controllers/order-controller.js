@@ -47,6 +47,19 @@ export default class OrderController {
     }
   }
 
+
+  // 获取订单
+  async getAllOrders(req, res, query) {
+    try {
+      // userId可以参数传递或通过cookie、session查询得到
+      const userId = 10000001;
+      const orders = await this.orderService.getAllOrders(userId);
+      sendResponse(res, 200, orders);
+    } catch (error) {
+      sendError(res, 404, error.message);
+    }
+  }
+
   // 更新订单
   async updateOrder(req, res, query) {
     try {

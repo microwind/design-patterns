@@ -1,6 +1,6 @@
-// src/infrastructure/repository/repository.js
-// 模拟通用接口，JS因为没有接口字段，故此文件无用
-class Repository {
+// src/domain/order/order-repository.js
+// 模拟接口供基础层实现，JS因为没有接口，此处用class表示，如果未实现对应函数则发出警告
+export default class OrderRepository {
   // 保存实体
   async save(entity) {
     throw new Error('save 方法未实现');
@@ -20,6 +20,9 @@ class Repository {
   async delete(id) {
     throw new Error('delete 方法未实现');
   }
-}
 
-module.exports = Repository;
+  // 根据客户名称查找订单
+  async findByCustomerName(customerName) {
+    throw new Error('findByCustomerName 方法未实现');
+  }
+}

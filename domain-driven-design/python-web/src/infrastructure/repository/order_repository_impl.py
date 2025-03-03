@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-from src.domain.order.order_repository import OrderRepositoryAbstract
+from src.domain.order.order_repository import OrderRepository
 
-# 订单仓储实现（例如本地字典实现）
-class OrderRepository(OrderRepositoryAbstract):
+# 订单仓储实现OrderRepository抽象类（例如本地字典实现）
+class OrderRepositoryImpl(OrderRepository):
     def __init__(self):
         # 本地字典用作替代数据库，存储订单
         self.orders = {}
@@ -21,7 +21,7 @@ class OrderRepository(OrderRepositoryAbstract):
             raise ValueError(f"订单 ID {order_id} 不存在")
         return order
 
-    def find_all(self):
+    def find_all(self, user_id):
         """获取所有订单"""
         # 返回字典中的所有订单，模拟查询所有记录
         return list(self.orders.values())

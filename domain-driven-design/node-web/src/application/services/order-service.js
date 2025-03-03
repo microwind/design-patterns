@@ -9,7 +9,6 @@ export default class OrderService {
   }
 
   // 创建订单并保存到仓储中
-  // 创建订单并保存到仓储中
   async createOrder(customerName, amount) {
     // 自动生成订单 ID
     const id = await this.generateOrderId();
@@ -53,6 +52,15 @@ export default class OrderService {
       return await this.orderRepository.findByID(id);
     } catch (error) {
       throw new Error(`查询订单失败: ${error.message}`);
+    }
+  }
+
+  // 查询全部订单，省略分页
+  async getAllOrders(userId) {
+    try {
+      return await this.orderRepository.findAll(userId);
+    } catch (error) {
+      throw new Error(`查询全部订单失败: ${error.message}`);
     }
   }
 

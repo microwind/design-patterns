@@ -10,11 +10,12 @@ node-web/
 │   │   │   └── order-service.js   # 订单服务，调用领域层业务逻辑
 │   ├── domain/                    # 领域层（核心业务逻辑和接口定义）
 │   │   └── order/                 # 订单聚合
-│   │   │   └── order.js           # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   ├── order.js           # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   └── order-repository.js # 订单仓储接口或抽象类，供基础层继承实现
 │   ├── infrastructure/            # 基础设施层（实现领域层定义的接口）
 │   │   └── repository/            # 仓储层，数据存储相关实现
-│   │   │   └── repository.js      # 通用仓库接口（CRUD 操作封装）【可选】
-│   │   │   └── order-repository.js # 订单仓储实现，数据库操作
+│   │   │   ├── repository.js      # 通用仓库接口（CRUD 操作封装）【可选】
+│   │   │   └── order-repository-impl.js # 订单仓储实现，数据库操作
 │   ├── interfaces/                # 接口层（处理外部请求，如 HTTP）
 │   │   │── controllers/           # 控制器层，处理 HTTP 请求
 │   │   │   └── order-controller.js # 订单相关的 HTTP 控制器
