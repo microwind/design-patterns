@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
 from src.interfaces.routes.router import create_router
+from src.middleware.logging_middleware import logging_middleware
+from src.middleware.auth_middleware import auth_middleware
 
 api_prefix = "/api"
 
 # 订单路由设置函数
-def order_routes(order_controller, logging_middleware):
+def order_routes(order_controller):
     if order_controller is None:
         raise ValueError("order_controller cannot be None")
-    if logging_middleware is None:
-        raise ValueError("logging_middleware cannot be None")
     
     router = create_router()
 
@@ -17,6 +17,7 @@ def order_routes(order_controller, logging_middleware):
     router.post(
         api_prefix + '/orders',
         logging_middleware,
+        auth_middleware,
         order_controller.create_order
     )
     logging.debug("Registered route: POST /api/orders")
@@ -38,6 +39,7 @@ def order_routes(order_controller, logging_middleware):
     router.put(
         api_prefix + '/orders/:id',
         logging_middleware,
+        auth_middleware,
         order_controller.update_order
     )
     logging.debug("Registered route: PUT /api/orders/:id")
@@ -45,6 +47,7 @@ def order_routes(order_controller, logging_middleware):
     router.delete(
         api_prefix + '/orders/:id',
         logging_middleware,
+        auth_middleware,
         order_controller.delete_order
     )
     logging.debug("Registered route: DELETE /api/orders/:id")

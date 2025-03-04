@@ -14,14 +14,15 @@ from src.interfaces.routes.order_routes import order_routes
 from src.interfaces.controllers.order_controller import OrderController
 from src.application.services.order_service import OrderService
 from src.infrastructure.repository.order_repository_impl import OrderRepositoryImpl as OrderRepository 
-from src.middleware.logging_middleware import logging_middleware
 from src.utils.logging import setup_logging
 from src.config.server_config import PORT, LOGGING
 
+log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), LOGGING['file'])
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]  # 确保日志输出到控制台
+    handlers=[logging.StreamHandler(), logging.FileHandler(log_file, encoding="utf-8")],
+    force=True  # 强制重新配置
 )
 
 #""" 以下修复端口占用问题
@@ -39,14 +40,21 @@ order_repository = OrderRepository()
 order_service = OrderService(order_repository)
 order_controller = OrderController(order_service)
 
-# 初始化日志系统
-setup_logging(LOGGING['file'])
-
 # 初始化路由
-router = order_routes(order_controller, logging_middleware)
+router = order_routes(order_controller)
 
 
-class MainHandler(http.server.SimpleHTTPRequestHandler):
+# MainHandler类，启动HTTP server
+class MainHandler(http.server.BaseHTTPRequestHandler):
+
+    def log_message(self, format, *args):
+        logging.info("%s - - [%s] %s\n" %
+                     (self.client_address[0],
+                      self.log_date_time_string(),
+                      format % args))
+    # 初始化日志系统
+    setup_logging(log_file)
+
     def handle_request(self):
         if self.path == '/favicon.ico':
             self.send_response(204)
@@ -80,8 +88,8 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # 处理其他 API 路由
-        middleware, handler = router.match_route(method, path)
-        logging.debug(f"Route match result: {middleware}, {handler}")
+        handler = router.match_route(method, path)
+        logging.debug(f"Route match result: Handler: {handler}")
 
         if not handler:
             logging.warning(f"No matching route found for {method} {path}")
@@ -89,9 +97,8 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         try:
-            if middleware:
-                middleware(self)  # 执行中间件
-            handler(self)  # 调用处理函数，传递 request 和 response
+            # 调用包装后的处理函数，将 self 同时作为 req 和 resp 传递
+            handler(self, self)
         except Exception as e:
             logging.error(f"Error handling request: {e}")
             self.send_error(500, "Internal Server Error")
@@ -107,6 +114,7 @@ class MainHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_DELETE(self):
         self.handle_request()
+
 
 def run_server():
     with socketserver.TCPServer(("", PORT), MainHandler) as httpd:

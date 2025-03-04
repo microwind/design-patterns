@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+from src.config.server_config import LOGGING
 
 # 全局变量，用于存储日志文件路径
 log_file_path = None
@@ -33,9 +34,12 @@ def log_error(message):
 
 # 将日志消息写入文件
 def log_to_file(message):
-    global log_file_path
-    if log_file_path:
-        with open(log_file_path, 'a', encoding='utf-8') as log_file:
-            log_file.write(message)
-    else:
-        print("日志文件路径未初始化，无法写入日志。")
+    print('log_to_file:', message)
+    # global log_file_path
+    # log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), LOGGING['file'])
+    # print('log_to_file:', log_file_path)
+    # if log_file_path:
+    #     with open(log_file_path, 'a', encoding='utf-8') as log_file:
+    #         log_file.write(message)
+    # else:
+    #     print("日志文件路径未初始化，无法写入日志。")
