@@ -31,7 +31,7 @@ def order_routes(order_controller):
 
     router.get(
         api_prefix + '/orders',
-        logging_middleware,
+        # logging_middleware,
         order_controller.get_all_orders
     )
     logging.debug("Registered route: GET /api/orders")

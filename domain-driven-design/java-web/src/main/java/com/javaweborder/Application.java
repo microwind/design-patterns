@@ -7,7 +7,6 @@ import com.javaweborder.infrastructure.message.MessageQueueService;
 import com.javaweborder.interfaces.controllers.OrderController;
 import com.javaweborder.interfaces.routes.OrderRoutes;
 import com.javaweborder.interfaces.routes.Router;
-import com.javaweborder.middleware.LoggingMiddleware;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebListener;

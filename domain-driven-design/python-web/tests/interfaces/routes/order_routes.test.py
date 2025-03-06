@@ -68,6 +68,18 @@ def test_get_order(order_id):
     if get_order_response.status_code != 200:
         raise Exception('获取订单测试失败')
 
+# 获取订单列表请求
+def test_get_orders(user_id):
+    print(f'test_get_orders[user_id:{user_id}]')
+    get_orders_url = f'{BASE_URL}{API_PREFIX}/orders'
+    get_orders_response = requests.get(get_orders_url)
+
+    print('获取订单列表状态码:', get_orders_response.status_code)
+    print('获取订单列表响应体:', get_orders_response.text)
+
+    if get_orders_response.status_code != 200:
+        raise Exception('获取订单列表测试失败')
+
 # 更新订单请求
 def test_update_order(order_id):
     update_order_url = f'{BASE_URL}{API_PREFIX}/orders/{order_id}'
@@ -95,6 +107,7 @@ try:
     order_id = test_create_order()  # 创建订单并获取 ID
     test_get_order(order_id)
     test_update_order(order_id)
+    test_get_orders(10001)
     test_delete_order(order_id)
 
     logging.info("所有测试通过！")

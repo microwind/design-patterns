@@ -32,7 +32,7 @@ java-web/
 │   │   │   │        │       ├── Router.java   # 基础路由工具设置
 │   │   │   │        │       ├── OrderRoutes.java  # 订单路由配置
 │   │   │   │        ├── middleware/           # 中间件（例如：鉴权、日志、拦截等）
-│   │   │   │        │   └── LoggingMiddleware.java  # 日志中间件
+│   │   │   │        │   └── LoggingFilter.java # 日志中间件，java通常使用Filter
 │   │   │   │        └── config/               # 应用层配置（管理服务器和应用信息）
 │   │   │   │        │   └── ServiceConfig.java  # 服务器与环境配置
 │   │   │   │        └── utils/                # 实用工具

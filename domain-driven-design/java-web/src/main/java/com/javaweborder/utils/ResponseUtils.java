@@ -1,7 +1,7 @@
 package com.javaweborder.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.javaweborder.interfaces.response.ResponseBody;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,8 @@ public class ResponseUtils {
         }
 
         // 生成JSON字符串
-        String json = objectMapper.writeValueAsString(data);
+        ResponseBody responseBody = new ResponseBody(statusCode, data);
+        String json = objectMapper.writeValueAsString(responseBody);
         System.out.println("[DEBUG] 响应JSON: " + json);  // 打印中文日志
 
         // 写入响应体
@@ -72,8 +73,8 @@ public class ResponseUtils {
         }
 
         // 构建错误响应体
-        ErrorResponse error = new ErrorResponse(message);
-        String json = objectMapper.writeValueAsString(error);
+        ResponseBody errorResponse = new ResponseBody(statusCode, message);
+        String json = objectMapper.writeValueAsString(errorResponse);
         System.out.println("[ERROR] 错误响应: " + json);
 
         // 写入响应体
@@ -126,18 +127,5 @@ public class ResponseUtils {
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         response.setHeader("Access-Control-Max-Age", "3600");
-    }
-
-    // 错误响应内部类
-    private static class ErrorResponse {
-        private final String error;
-
-        public ErrorResponse(String error) {
-            this.error = error;
-        }
-
-        public String getError() {
-            return error;
-        }
     }
 }

@@ -27,9 +27,6 @@ public class TomcatServer {
             connector.setURIEncoding("UTF-8");
             connector.setUseBodyEncodingForURI(true);
 
-            // 创建空上下文（使用当前根目录，无webapp）
-            // Context context = tomcat.addContext("", new File(".").getAbsolutePath());
-
             // 创建Web上下文，创建webapp目录
             File webappDir = new File("src/main/webapp");
             if (!webappDir.exists()) webappDir.mkdirs();
@@ -41,10 +38,6 @@ public class TomcatServer {
             resources.addPreResources(new DirResourceSet(resources, "/WEB-INF/classes",
                     classesDir.getAbsolutePath(), "/"));
             context.setResources(resources);
-
-            // 可选配置
-//            context.addLifecycleListener(new Tomcat.FixContextListener());
-//            context.setParentClassLoader(TomcatServer.class.getClassLoader());
 
             // 显式启用注解扫描
             context.setAddWebinfClassesResources(true);

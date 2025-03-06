@@ -88,10 +88,12 @@ public class Router extends HttpServlet {
         String path = req.getRequestURI().substring(req.getContextPath().length());
         String method = req.getMethod().toUpperCase();
 
-        LogUtils.logInfo("Request URI: " + req.getRequestURI());
-        LogUtils.logInfo("Context Path: " + req.getContextPath());
-        LogUtils.logInfo("Processed Path: " + path);
-        LogUtils.logInfo("out Received request: " + method + " " + path);
+        /* 关闭打印，调试再打开
+        // LogUtils.logInfo("Request URI: " + req.getRequestURI());
+        // LogUtils.logInfo("Context Path: " + req.getContextPath());
+        // LogUtils.logInfo("Processed Path: " + path);
+        // LogUtils.logInfo("out Received request: " + method + " " + path);
+         */
 
         for (Route route : routes) {
             Matcher matcher = route.pattern.matcher(path);

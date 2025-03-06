@@ -17,7 +17,8 @@ from src.infrastructure.repository.order_repository_impl import OrderRepositoryI
 from src.utils.logging import setup_logging
 from src.config.server_config import PORT, LOGGING
 
-log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), LOGGING['file'])
+# 默认日志文件
+log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../' + LOGGING['file'])
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -43,6 +44,8 @@ order_controller = OrderController(order_service)
 # 初始化路由
 router = order_routes(order_controller)
 
+# 初始化自定义日志文件
+setup_logging(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../middleware.log'))
 
 # MainHandler类，启动HTTP server
 class MainHandler(http.server.BaseHTTPRequestHandler):
@@ -52,8 +55,7 @@ class MainHandler(http.server.BaseHTTPRequestHandler):
                      (self.client_address[0],
                       self.log_date_time_string(),
                       format % args))
-    # 初始化日志系统
-    setup_logging(log_file)
+
 
     def handle_request(self):
         if self.path == '/favicon.ico':
@@ -63,7 +65,7 @@ class MainHandler(http.server.BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         method = self.command
         path = parsed_url.path
-        logging.debug(f"Received request: {method} {path}")
+        #logging.debug(f"Received request: {method} {path}")
 
         # 处理首页路由
         if method == 'GET' and path == '/':
@@ -89,7 +91,7 @@ class MainHandler(http.server.BaseHTTPRequestHandler):
 
         # 处理其他 API 路由
         handler = router.match_route(method, path)
-        logging.debug(f"Route match result: Handler: {handler}")
+        # logging.debug(f"Route match result: Handler: {handler}")
 
         if not handler:
             logging.warning(f"No matching route found for {method} {path}")

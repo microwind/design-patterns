@@ -3,11 +3,24 @@ package com.javaweborder.utils;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.Duration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.logging.*;
 
 public class LogUtils {
     private static final Logger logger = Logger.getLogger(LogUtils.class.getName());
+
+    static {
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter() {
+            @Override
+            public String format(LogRecord record) {
+                return record.getMessage() + "\n";
+            }
+        });
+        logger.setUseParentHandlers(false);
+        logger.addHandler(handler);
+    }
 
     // 记录 INFO 级别日志
     public static void logInfo(String message, Object... args) {
@@ -22,7 +35,9 @@ public class LogUtils {
     // 记录请求日志
     public static void logRequest(HttpServletRequest request, Instant start) {
         Duration duration = Duration.between(start, Instant.now());
-        String logMessage = String.format("%s %s took %d ms",
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String logMessage = String.format("%s %s %s took %d ms",
+                timestamp,
                 request.getMethod(),
                 request.getRequestURI(),
                 duration.toMillis());

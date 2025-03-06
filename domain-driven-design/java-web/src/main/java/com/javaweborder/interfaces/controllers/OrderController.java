@@ -24,11 +24,16 @@ public class OrderController {
 
     // 创建订单：对应 POST /orders
     public void createOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        OrderRequest body = new OrderRequest();
         try {
             // 解析请求体
-            OrderRequest body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
-            String customerName = body.getCustomerName();
+            body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
+        } catch (Exception e) {
+            ResponseUtils.sendJsonError(response, 500, "请求错误：请检查参数", null);
+        }
 
+        try {
+            String customerName = body.getCustomerName();
             // 将订单金额转换为数字，校验是否有效
             double amount = parseAmount(body.getAmount());
             OrderDTO order = orderService.createOrder(customerName, amount);
@@ -36,7 +41,7 @@ public class OrderController {
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "内部错误：订单已存在", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：订单保存失败", null);
         }
     }
 

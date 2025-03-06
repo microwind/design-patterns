@@ -12,14 +12,15 @@ import java.io.IOException;
 
 // 简单的Tomcat 嵌入式服务器 例子
 public class TomcatServerTest {
-    public static void start(String[] args) {
+    public static void main(String[] args) {
         try {
             // 创建嵌入式 Tomcat 实例并指定端口
             Tomcat tomcat = new Tomcat();
-            tomcat.setPort(8080);
+            int port = 8080
+            tomcat.setPort(port);
 
             // 输出一些调试信息
-            System.out.println("Initializing Tomcat server on port 8080...");
+            System.out.println("Initializing Tomcat server on port " + port + "...");
 
             // 获取 Tomcat 的 Connector 信息
             Connector connector = tomcat.getConnector();
@@ -27,7 +28,7 @@ public class TomcatServerTest {
 
             // 创建 Web 应用上下文
             String contextPath = "";
-            String baseDir = new File(".").getAbsolutePath();
+            String baseDir = new File("src/main/webapp").getAbsolutePath();
             System.out.println("Base directory for the web application: " + baseDir);
 
             // 创建和添加上下文
@@ -47,7 +48,7 @@ public class TomcatServerTest {
 
             // 启动 Tomcat 服务器
             tomcat.start();
-            System.out.println("Tomcat started successfully on port 7070.");
+            System.out.println("Tomcat started successfully on port " + port + ".");
 
             // 获取 Tomcat 服务器信息
             String serverInfo = tomcat.getServer().getStateName();

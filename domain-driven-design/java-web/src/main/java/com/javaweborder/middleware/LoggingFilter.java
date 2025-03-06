@@ -14,18 +14,18 @@ import java.io.IOException;
 import java.time.Instant;
 
 @WebFilter("/*") // 适用于所有请求
-public class LoggingMiddleware implements Filter {
+public class LoggingFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) {
         // 初始化操作（可选）
-        System.out.println("LoggingMiddleware initialized.");
+        System.out.println("LoggingFilter initialized.");
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        System.out.println("LoggingMiddleware: Filter is executing.");
+        System.out.println("LoggingFilter: Filter is executing.");
         // 获取请求开始时间
         Instant startTime = Instant.now();
 
@@ -34,7 +34,7 @@ public class LoggingMiddleware implements Filter {
 //        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // 记录请求的日志（开始时间）
-        LogUtils.logRequest(httpRequest, startTime);
+//        LogUtils.logRequest(httpRequest, startTime);
 
         // 调用下一个过滤器或目标资源（如 Controller）
         chain.doFilter(request, response);
