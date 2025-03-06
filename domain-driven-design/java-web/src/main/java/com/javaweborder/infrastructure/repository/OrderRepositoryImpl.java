@@ -8,24 +8,22 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderRepositoryImpl implements OrderRepository {
-    
-    private final Map<Long, Order> orders = new ConcurrentHashMap<>(); // 线程安全的 HashMap
+
+    private final static Map<Long, Order> orders = new ConcurrentHashMap<>(); // 线程安全的 HashMap
 
     @Override
     public void save(Order order) {
-        if (orders.containsKey(order.getId())) {
-            throw new NoSuchElementException("订单 ID " + order.getId() + " 已存在");
-        }
         orders.put(order.getId(), order);
     }
 
-
     @Override
     public Optional<Order> findById(long id) {
-        if (!orders.containsKey(id)) {
+        Order order = orders.get(id);
+        if (order == null) {
             throw new NoSuchElementException("订单 ID " + id + " 未找到");
         }
-        return Optional.ofNullable(orders.get(id));
+        System.out.println("查询ID: " + id + ", 结果: " + order.getId());
+        return Optional.of(order);
     }
 
     @Override

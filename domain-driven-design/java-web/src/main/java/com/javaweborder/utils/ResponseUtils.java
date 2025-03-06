@@ -24,8 +24,8 @@ public class ResponseUtils {
 
     // 发送JSON响应（支持中文）
     public static void sendJsonResponse(HttpServletResponse response, int statusCode,
-                                        Object data, Map<String, String> headers) throws IOException {
-        sendResponse(response, statusCode, data, "application/json;charset=UTF-8", headers);
+                                        String message, Object data, Map<String, String> headers) throws IOException {
+        sendResponse(response, statusCode, message, data, "application/json;charset=UTF-8", headers);
     }
 
     // 发送JSON错误响应（支持中文）
@@ -36,7 +36,7 @@ public class ResponseUtils {
 
     // 核心响应方法
     private static void sendResponse(HttpServletResponse response, int statusCode,
-                                     Object data, String contentType, Map<String, String> headers) throws IOException {
+                                     String message, Object data, String contentType, Map<String, String> headers) throws IOException {
         // 设置基础响应头
         response.setStatus(statusCode);
         response.setContentType(contentType != null ? contentType : "application/json;charset=UTF-8");
@@ -48,7 +48,8 @@ public class ResponseUtils {
         }
 
         // 生成JSON字符串
-        ResponseBody responseBody = new ResponseBody(statusCode, data);
+        ResponseBody responseBody = new ResponseBody(statusCode, message);
+        responseBody.setData(data);
         String json = objectMapper.writeValueAsString(responseBody);
         System.out.println("[DEBUG] 响应JSON: " + json);  // 打印中文日志
 

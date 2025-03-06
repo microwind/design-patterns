@@ -29,7 +29,7 @@ public class OrderController {
             // 解析请求体
             body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "请求错误：请检查参数", null);
+            ResponseUtils.sendJsonError(response, 500, "请求错误：" + e.getMessage(), null);
         }
 
         try {
@@ -37,11 +37,11 @@ public class OrderController {
             // 将订单金额转换为数字，校验是否有效
             double amount = parseAmount(body.getAmount());
             OrderDTO order = orderService.createOrder(customerName, amount);
-            ResponseUtils.sendJsonResponse(response, 201, order, null);
+            ResponseUtils.sendJsonResponse(response, 201,"创建成功", order, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "内部错误：订单保存失败", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：" + e.getMessage(), null);
         }
     }
 
@@ -51,11 +51,11 @@ public class OrderController {
             String idParam = extractId(request);
             long orderId = parseId(idParam);
             OrderDTO order = orderService.getOrder(orderId);
-            ResponseUtils.sendJsonResponse(response, 200, order, null);
+            ResponseUtils.sendJsonResponse(response, 200, "获取成功", order, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "内部错误：订单未找到", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：" + e.getMessage(), null);
         }
     }
 
@@ -69,11 +69,11 @@ public class OrderController {
             double amount = parseAmount(body.getAmount());
 
             OrderDTO order = orderService.updateOrder(orderId, body.getCustomerName(), amount);
-            ResponseUtils.sendJsonResponse(response, 200, order, null);
+            ResponseUtils.sendJsonResponse(response, 200,"更新成功", order, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "内部错误：订单未找到", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：" + e.getMessage(), null);
         }
     }
 
@@ -87,19 +87,19 @@ public class OrderController {
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "服务器内部错误", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：" + e.getMessage(), null);
         }
     }
 
     // 获取订单：对应 GET /orders
     public void listOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            List<Order> orders = orderService.listOrder();
-            ResponseUtils.sendJsonResponse(response, 200, orders, null);
+            List<OrderDTO> orders = orderService.listOrder();
+            ResponseUtils.sendJsonResponse(response, 200,"查询成功", orders, null);
         } catch (IllegalArgumentException e) {
             ResponseUtils.sendJsonError(response, 400, e.getMessage(), null);
         } catch (Exception e) {
-            ResponseUtils.sendJsonError(response, 500, "内部错误：订单查找失败", null);
+            ResponseUtils.sendJsonError(response, 500, "内部错误：" + e.getMessage(), null);
         }
     }
 

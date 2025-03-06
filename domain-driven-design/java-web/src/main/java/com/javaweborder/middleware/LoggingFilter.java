@@ -31,10 +31,6 @@ public class LoggingFilter implements Filter {
 
         // 转换为HttpServletRequest和HttpServletResponse，以便使用HTTP相关方法
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-//        HttpServletResponse httpResponse = (HttpServletResponse) response;
-
-        // 记录请求的日志（开始时间）
-//        LogUtils.logRequest(httpRequest, startTime);
 
         // 调用下一个过滤器或目标资源（如 Controller）
         chain.doFilter(request, response);

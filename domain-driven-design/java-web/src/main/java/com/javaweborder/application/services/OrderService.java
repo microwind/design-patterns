@@ -6,7 +6,9 @@ import com.javaweborder.domain.order.OrderRepository;
 import com.javaweborder.infrastructure.message.MessageQueueService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class OrderService {
 
@@ -64,7 +66,6 @@ public class OrderService {
     public OrderDTO getOrder(long id) throws Exception {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new Exception("订单未找到"));
-
         // 返回订单 DTO
         return new OrderDTO(order.getId(), order.getCustomerName(), order.getAmount());
     }
@@ -81,7 +82,7 @@ public class OrderService {
 
         // 保存更新后的订单
         orderRepository.save(order);
-
+        System.out.println(id + " " + customerName + " " + amount + " " + order.getCustomerName() + " " + order.getAmount());
         // 发送消息
         String message = String.format("Order updated: ID=%d, Customer=%s, Amount=%.2f",
                 order.getId(), order.getCustomerName(), order.getAmount());
@@ -106,8 +107,13 @@ public class OrderService {
     }
 
     // 列出全部订单[此处应该分页]
-    public List<Order> listOrder() throws Exception {
+    public List<OrderDTO> listOrder() throws Exception {
+        List<Order> orders = orderRepository.findAll();
+        List<OrderDTO> orderDTOs;
+        orderDTOs = orders.stream()
+                .map(order -> new OrderDTO(order.getId(), order.getCustomerName(), order.getAmount()))
+                .collect(Collectors.toList());
         // 返回订单列表
-        return orderRepository.findAll();
+        return orderDTOs;
     }
 }

@@ -2,9 +2,10 @@ package com.javaweborder.interfaces.response;
 
 public class ResponseBody {
     private final int status;
-    private final Object message;
+    private final String message;
+    private Object data;
 
-    public ResponseBody(int status, Object message) {
+    public ResponseBody(int status, String message) {
         this.status = status;
         this.message = message;
     }
@@ -15,5 +16,13 @@ public class ResponseBody {
 
     public Object getMessage() {
         return message;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+    public Object getData() {
+        return data;
     }
 }

@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,10 +36,10 @@ public class AuthorizationFilter implements Filter {
         String path = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
 
         // 白名单路径直接放行，根据需要设置
-        // if (isAllowed(path)) {
-        //    chain.doFilter(request, response);
-        //    return;
-        // }
+         if (isAllowed(path)) {
+            chain.doFilter(request, response);
+            return;
+         }
 
         try {
             // 1. 验证用户是否登录（示例：检查Token）
@@ -70,7 +71,8 @@ public class AuthorizationFilter implements Filter {
 
     // 判断是否为公开路径
     private boolean isAllowed(String path) {
-        return ALLOWED_PATHS.contains(path);
+        return true; // 全部放行
+       // return ALLOWED_PATHS.contains(path);
     }
 
     // 模拟Token验证逻辑（替换为实际验证逻辑）
@@ -88,9 +90,15 @@ public class AuthorizationFilter implements Filter {
 
     // 返回JSON格式错误响应
     private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+        // 检查响应是否已提交，避免重复写入
+        if (response.isCommitted()) {
+            return; // 响应已经提交，跳过处理
+        }
         response.setStatus(status);
         response.setContentType("application/json;charset=UTF-8");
+        PrintWriter writer = response.getWriter();
         ResponseBody errorResponse = new ResponseBody(status, message);
-        objectMapper.writeValue(response.getWriter(), errorResponse);
+        objectMapper.writeValue(writer, errorResponse);
+        writer.flush();
     }
 }

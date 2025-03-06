@@ -7,6 +7,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 // 在过滤器的 doFilter 方法中，自定义包装器来响应对象，并针对状态码进行不同处理，以返回自定义错误页面
 @WebFilter("/*")
@@ -60,11 +61,16 @@ public class GlobalExceptionFilter implements Filter {
     }
 
     private void handleException(HttpServletResponse response, int status, String message) throws IOException {
-        response.reset(); // 重置响应，确保自定义内容可写入
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        ResponseBody errorResponse = new ResponseBody(status, message);
-        objectMapper.writeValue(response.getWriter(), errorResponse);
+        // 只有在响应没有提交时才进行 reset()
+        if (!response.isCommitted()) {
+            response.reset();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            PrintWriter writer = response.getWriter();
+            ResponseBody errorResponse = new ResponseBody(status, message);
+            objectMapper.writeValue(writer, errorResponse);
+            writer.flush();
+        }
     }
 
     @Override
