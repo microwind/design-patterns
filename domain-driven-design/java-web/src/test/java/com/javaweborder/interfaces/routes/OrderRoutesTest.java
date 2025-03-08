@@ -81,6 +81,13 @@ public class OrderRoutesTest {
 
     assertEquals(200, getLastResponseCode(), "更新订单测试失败");
 
+    // 测试获取订单
+    String getAllOrdersResponse = sendRequest(BASE_URL + API_PREFIX + "/orders", "GET", null);
+    System.out.println("获取全部订单测试状态码："  + getLastResponseCode());
+    System.out.println("响应体: " + getOrderResponse);
+
+    assertEquals(200, getLastResponseCode(), "获取订单测试失败");
+
     // 测试删除订单
     String deleteOrderResponse = sendRequest(BASE_URL + API_PREFIX + "/orders/" + orderId, "DELETE", null);
     System.out.println("删除订单测试状态码："  + getLastResponseCode());
@@ -109,7 +116,7 @@ public class OrderRoutesTest {
     setLastResponseCode(responseCode);
 
     StringBuilder response = new StringBuilder();
-    try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+    try (Scanner scanner = new Scanner(connection.getInputStream(), String.valueOf(StandardCharsets.UTF_8))) {
       while (scanner.hasNextLine()) {
         response.append(scanner.nextLine());
       }
@@ -117,7 +124,7 @@ public class OrderRoutesTest {
       // 处理获取响应体时的异常
       System.err.println("获取响应体时出错: " + e.getMessage());
       if (connection.getErrorStream() != null) {
-        try (Scanner errorScanner = new Scanner(connection.getErrorStream(), StandardCharsets.UTF_8)) {
+        try (Scanner errorScanner = new Scanner(connection.getErrorStream(), String.valueOf(StandardCharsets.UTF_8))) {
           while (errorScanner.hasNextLine()) {
             response.append(errorScanner.nextLine());
           }

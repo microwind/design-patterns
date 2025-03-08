@@ -71,16 +71,21 @@ java-web/
 
 ## 运行
 ```bash
+# 安装
 $ mvn clean install -U
-$ mvn clean package
+# 打包
+$ mvn clean package -DskipTests
+# 执行
 $ java -jar target/java-web-order-1.0.0.jar
-Starting server on http://localhost:8080 successfully.
+# 看到最后出现成功提示
+The Server has started. please visit localhost:8080.
 # 通过 http://localhost:8080 访问系统
 
 # 测试用例
 $ mvn test
+# 单个测试
 $ mvn  surefire:test -Dtest=com.javaweborder.TomcatServerTest 
-# 展示测试结果
+$ mvn  surefire:test -Dtest=com.javaweborder.interfaces.routes.OrderRoutesTest 
 ```
 
 ## Java 语言 DDD（领域驱动设计）特点

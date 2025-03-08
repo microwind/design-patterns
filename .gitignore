@@ -2,6 +2,7 @@
 a.out
 *.o
 *.class
+target/
 *.pyc
 .idea
 
