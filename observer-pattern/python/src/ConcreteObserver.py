@@ -20,7 +20,7 @@ class ConcreteObserver(ObserverAPI):
         self.subject = subject
         subject.register(self)
 
-    # 观察者发出更新通知，不用单独告诉订阅者，由订阅者自行监听
+    # 观察者更新事件，主题类有新发布时会批量调用，而无需逐个通知
     def update(self, content):
         print(self.__class__.__name__ + '::update() [subject.name = ' +
               self.subject.name + ' content = ' + content + ']')

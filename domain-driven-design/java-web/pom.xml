@@ -22,7 +22,7 @@
         <servlet-api.version>4.0.1</servlet-api.version>
         <jackson.version>2.16.0</jackson.version>
         <httpclient.version>5.2</httpclient.version>
-        <junit.version>4.13.2</junit.version>
+        <junit-jupiter.version>5.8.2</junit-jupiter.version>
 
         <!-- 插件版本 -->
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
@@ -71,11 +71,17 @@
             <version>${httpclient.version}</version>
         </dependency>
 
-        <!-- JUnit -->
+        <!-- JUnit 5 依赖 -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -92,8 +98,8 @@
                     <compilerArgs>
                         <arg>-Xlint:all</arg>
                     </compilerArgs>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>10</source>
+                    <target>10</target>
                 </configuration>
             </plugin>
 
@@ -151,12 +157,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <!-- 测试配置 -->
-                <!-- <configuration>
+                <configuration>
                     <skip>false</skip>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
-                </configuration> -->
+                </configuration>
             </plugin>
 
             <!-- Maven Site Plugin -->

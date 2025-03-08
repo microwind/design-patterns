@@ -8,7 +8,7 @@ public class ConcreteObserver2 implements ObserverAPI {
   public ConcreteObserver2() {
   }
 
-  // 观察者发出更新通知，观察者自行监听
+  //  观察者更新事件，主题类有新发布时会批量调用，而无需逐个通知
   public void update(String content) {
     System.out.println(String.format("%s::update() [content = %s]",
         this.getClass().getName(), content));

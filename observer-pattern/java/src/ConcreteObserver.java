@@ -12,7 +12,7 @@ public class ConcreteObserver implements ObserverAPI {
       this.subject.register((ObserverAPI) this);
    }
 
-   // 观察者发出更新通知，不用单独告诉订阅者，由订阅者自行监听
+   // 观察者更新事件，主题类有新发布时会批量调用，而无需逐个通知
    public void update(String content) {
       System.out.println(String.format("%s::update() [subject.name = %s content = %s]",
             this.getClass().getName(),

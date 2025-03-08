@@ -7,7 +7,7 @@ java-web/
 │   │   │   ├── com
 │   │   │   │   └── javaweborder
 │   │   │   │        ├── application/          # 应用层（协调领域逻辑，处理业务用例）
-│   │   │   │        │   ├── service/          # 服务层，业务逻辑目录
+│   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
 │   │   │   │        │   │   └── OrderService.java   # 订单应用服务
 │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
 │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
@@ -79,6 +79,7 @@ Starting server on http://localhost:8080 successfully.
 
 # 测试用例
 $ mvn test
+$ mvn  surefire:test -Dtest=com.javaweborder.TomcatServerTest 
 # 展示测试结果
 ```
 

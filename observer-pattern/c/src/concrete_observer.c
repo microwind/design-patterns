@@ -5,7 +5,7 @@ void concrete_observer_set_subject(ConcreteObserver *observer, Subject *subject)
   observer->subject = subject;
 }
 
-// 观察者发出更新通知，不用单独告诉订阅者，由订阅者自行监听
+//  观察者更新事件，主题类有新发布时会批量调用，而无需逐个通知
 void concrete_observer_update(ConcreteObserver *observer, char *content)
 {
   printf("\r\n ConcreteObserver::update() [subject->name = %s content = %s]", observer->subject->name, content);
