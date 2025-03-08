@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.javaweborder</groupId>
+    <groupId>com.microwind.javaweborder</groupId>
     <artifactId>java-web-order</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -34,7 +34,7 @@
         <maven.site.plugin.version>3.12.0</maven.site.plugin.version>
 
         <!-- 主类 -->
-        <mainClass>com.javaweborder.TomcatServer</mainClass>
+        <mainClass>com.microwind.javaweborder.TomcatServer</mainClass>
     </properties>
 
     <dependencies>

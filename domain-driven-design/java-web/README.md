@@ -5,47 +5,49 @@ java-web/
 │   ├── main/
 │   │   ├── java/
 │   │   │   ├── com
-│   │   │   │   └── javaweborder
-│   │   │   │        ├── application/          # 应用层（协调领域逻辑，处理业务用例）
-│   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
-│   │   │   │        │   │   └── OrderService.java   # 订单应用服务
-│   │   │   │        │   └── dto/              # 数据传输对象（DTO）
-│   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
-│   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
-│   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
-│   │   │   │        │   │   ├── OrderRepository.java # 订单仓储接口，定义对订单数据的操作
-│   │   │   |        │   │   ├── OrderItem.java       # [可选]订单项实体（子聚合）
-│   │   │   │        │   │   └── OrderEvent.java   # 订单领域事件
-│   │   │   │        │   └── repository/           # 仓库接口
-│   │   │   │        │   │   ├── Repository.java    # 仓库通用接口
-│   │   │   │        ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
-│   │   │   │        │   ├── repository/       # 仓储实现
-│   │   │   │        │   │   ├── OrderRepositoryImpl.java # 订单仓储实现
-│   │   │   │        │   ├── messaging/        # 消息队列实现
-│   │   │   │        │   └── configuration/    # 基础配置（与外部系统相关）
-│   │   │   │        │   │   ├── DatabaseConfig.java  # 数据库配置
-│   │   │   │        │   │   ├── JWTConfig.java       # JWT 配置
-│   │   │   │        ├── interfaces/           # 接口层（处理外部请求，如HTTP接口）
-│   │   │   │        │   ├── controllers/      # RESTful API接口
-│   │   │   │        │   │   ├── OrderController.java  # 订单相关的HTTP接口
-│   │   │   │        │   └── routes/           # 路由设置
-│   │   │   │        │       ├── Router.java   # 基础路由工具设置
-│   │   │   │        │       ├── OrderRoutes.java  # 订单路由配置
-│   │   │   │        ├── middleware/           # 中间件（例如：鉴权、日志、拦截等）
-│   │   │   │        │   └── LoggingFilter.java # 日志中间件，java通常使用Filter
-│   │   │   │        └── config/               # 应用层配置（管理服务器和应用信息）
-│   │   │   │        │   └── ServiceConfig.java  # 服务器与环境配置
-│   │   │   │        └── utils/                # 实用工具
-│   │   │   │        └── Application.java      # 应用启动类
-│   │   │   │        └── TomcatServer.java     # [可选]嵌入式服务器
+│   │   │   │   └── microwind                      # 组织名
+│   │   │   │   │   └── javaweborder               # 项目名
+│   │   │   │   │        ├── application/          # 应用层（协调领域逻辑，处理业务用例）
+│   │   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
+│   │   │   │   │        │   │   └── OrderService.java   # 订单应用服务
+│   │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
+│   │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
+│   │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
+│   │   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   │   │        │   │   ├── OrderRepository.java # 订单仓储接口，定义对订单数据的操作
+│   │   │   │   |        │   │   ├── OrderItem.java       # [可选]订单项实体（子聚合）
+│   │   │   │   │        │   │   └── OrderEvent.java   # 订单领域事件
+│   │   │   │   │        │   └── repository/           # 仓库接口
+│   │   │   │   │        │   │   ├── Repository.java    # 仓库通用接口
+│   │   │   │   │        ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
+│   │   │   │   │        │   ├── repository/       # 仓储实现
+│   │   │   │   │        │   │   ├── OrderRepositoryImpl.java # 订单仓储实现
+│   │   │   │   │        │   ├── messaging/        # 消息队列实现
+│   │   │   │   │        │   └── configuration/    # 基础配置（与外部系统相关）
+│   │   │   │   │        │   │   ├── DatabaseConfig.java  # 数据库配置
+│   │   │   │   │        │   │   ├── JWTConfig.java       # JWT 配置
+│   │   │   │   │        ├── interfaces/           # 接口层（处理外部请求，如HTTP接口）
+│   │   │   │   │        │   ├── controllers/      # RESTful API接口
+│   │   │   │   │        │   │   ├── OrderController.java  # 订单相关的HTTP接口
+│   │   │   │   │        │   └── routes/           # 路由设置
+│   │   │   │   │        │       ├── Router.java   # 基础路由工具设置
+│   │   │   │   │        │       ├── OrderRoutes.java  # 订单路由配置
+│   │   │   │   │        ├── middleware/           # 中间件（例如：鉴权、日志、拦截等）
+│   │   │   │   │        │   └── LoggingFilter.java # 日志中间件，java通常使用Filter
+│   │   │   │   │        └── config/               # 应用层配置（管理服务器和应用信息）
+│   │   │   │   │        │   └── ServiceConfig.java  # 服务器与环境配置
+│   │   │   │   │        └── utils/                # 实用工具
+│   │   │   │   │        └── Application.java      # 应用启动类
+│   │   │   │   │        └── TomcatServer.java     # [可选]嵌入式服务器
 │   │   │   └── resources/
-│   │   │       └── application.properties     # 配置文件
-│   └── test/
-│        └── java/
-│            ├── com
-│            │   └── javaweborder
-│            │        ├── application/       # 应用层的测试
-│            │        ├── interfaces/        # 接口层的测试
+│   │   │   │   └── application.properties         # 配置文件
+│   │   │   └── webapp/                            # [可选]web运行目录，可模拟
+│   │   └── test/
+│   │        └── java/
+│   │            ├── com
+│   │            │   └── javaweborder
+│   │            │        ├── application/       # 应用层的测试
+│   │            │        ├── interfaces/        # 接口层的测试
 │── pom.xml                      # Maven 配置文件（如果使用 Maven）
 │── build.gradle                 # Gradle 配置文件（如果使用 Gradle）
 ```
@@ -84,8 +86,8 @@ The Server has started. please visit localhost:8080.
 # 测试用例
 $ mvn test
 # 单个测试
-$ mvn  surefire:test -Dtest=com.javaweborder.TomcatServerTest 
-$ mvn  surefire:test -Dtest=com.javaweborder.interfaces.routes.OrderRoutesTest 
+$ mvn surefire:test -Dtest=com.microwind.javaweborder.TomcatServerTest 
+$ mvn surefire:test -Dtest=com.microwind.javaweborder.interfaces.routes.OrderRoutesTest
 ```
 
 ## Java 语言 DDD（领域驱动设计）特点
