@@ -116,6 +116,7 @@ class Controller {
     // View 可以持有 Model，或在更新视图时传递Model
     const view = new View(model);
     const controller = new Controller(model, view);
+    // controller.init();
 
     console.log("Test 1: Button Click");
     controller.onButtonClick();

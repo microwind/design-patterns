@@ -82,7 +82,7 @@ public class Application implements ServletContextListener {
             // FilterRegistration.Dynamic loggingFilter = context.addFilter("LoggingMiddleware", LoggingMiddleware.class);
             // loggingFilter.addMappingForUrlPatterns(null, false, "/*");
 
-            System.out.println("Application context initialized. Java Servlet is running on port " + port);
+            System.out.println("Application context initialized. Java Servlet is running on port " + port + " in " + config.getEnv() + ".");
         } catch (Exception e) {
             System.err.println("Application initialization failed." + e.getMessage());
         }

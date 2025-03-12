@@ -38,7 +38,7 @@ public class ServerConfig {
 
             // 读取基本配置
             this.port = Integer.parseInt(properties.getProperty("server.port", "8080"));
-            this.env = properties.getProperty("env", "development");
+            this.env = properties.getProperty("server.env", "development");
             this.appName = properties.getProperty("appName", "DDD Java App");
 
             // 读取数据库配置

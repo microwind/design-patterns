@@ -1,6 +1,6 @@
 ## Java SpringBoot `MVC`目录结构
 ```bash
-spring-boot-order/
+spring-mvc/
 ├── src
 │   ├── main
 │   │   ├── java
@@ -20,14 +20,20 @@ spring-boot-order/
 │   │   │               ├── models           # 模型层（数据对象定义）
 │   │   │               |   └── order       
 │   │   │               |       ├── Order.java       
-│   │   │               ├── config           # 配置类（如数据库、Web配置）
-│   │   │               ├── utils            # 工具类（通用工具方法）
-│   │   │               └── Application.java # 启动类
+│   │   │               ├── middleware/             # 中间件（例如：鉴权、日志、拦截等）
+│   │   │               │   ├── LoggingFilter.java  # 日志中间件，java通常使用Filter
+│   │   │               │   └── AuthorizationFilter.java  # 鉴权中间件
+│   │   │               └── config/                 # 配置类（如数据库、Web配置）
+│   │   │               │   └── ServiceConfig.java  # 服务器与环境配置
+│   │   │               └── utils/                  # （通用工具方法）
+│   │   │               │   └── ResponseUtils.java  # 响应包装处理工具
+│   │   │               └── Application.java        # 启动类
 │   │   ├── resources
 │   │   │   ├── static                      # 静态资源（CSS、JS、图片）
 │   │   │   ├── templates                   # 模板文件（Thymeleaf/HTML）
 │   │   │   ├── application.properties      # 配置文件（端口、数据源等）
-│   │   │   └── webapp/                     # [可选] Web资源目录
+│   │   ├── webapp                          # [可选] Web资源目录,可以模拟生成
+│   │   │   └── WEB-INF/                    # [可选] 嵌入式服务器模拟生成
 │   ├── test                                # 单元测试目录
 │   │   ├── java
 │   │   │   └── com
@@ -64,12 +70,30 @@ spring-boot-order/
 说明：Spring Boot 的配置文件，用于配置应用的各种属性，如数据库连接信息、服务器端口等。
 
 ## 运行
+创建db.sql，导入数据库结构。
+```sql
+CREATE DATABASE order_db;
+CREATE TABLE `orders` (
+  `order_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+  `order_no` VARCHAR(50) NOT NULL COMMENT '订单编号',
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+  `order_name` VARCHAR(255) NOT NULL COMMENT '订单名称',
+  `amount` DECIMAL(10, 2) NOT NULL COMMENT '订单金额',
+  `status` VARCHAR(50) NOT NULL COMMENT '订单状态',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `idx_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+```
 ```bash
 # 编译打包
-$ mvn clean package
-
+$ mvn clean install -U
 # 启动应用
 $ java -jar target/spring-boot-order-1.0.0.jar
+# 直接启动
+$ mvn spring-boot:run
 Starting server on http://localhost:8080 successfully.
 
 # 访问验证

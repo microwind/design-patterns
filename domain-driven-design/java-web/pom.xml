@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microwind.javaweborder</groupId>
@@ -137,7 +137,8 @@
                         </filter>
                     </filters>
                     <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <transformer
+                            implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>${mainClass}</mainClass>
                         </transformer>
                     </transformers>
@@ -173,6 +174,14 @@
                 <version>${maven.site.plugin.version}</version>
             </plugin>
         </plugins>
+
+        <!-- Resource configuration -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 
     <profiles>
@@ -180,7 +189,7 @@
         <profile>
             <id>dev</id>
             <properties>
-                <env>development</env>
+                <server.env>development</server.env>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -191,7 +200,7 @@
         <profile>
             <id>prod</id>
             <properties>
-                <env>production</env>
+                <server.env>production</server.env>
             </properties>
         </profile>
     </profiles>

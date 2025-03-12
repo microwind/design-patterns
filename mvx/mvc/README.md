@@ -299,7 +299,7 @@ class OrderRepository {
 
 ### JavaScript 前端版 MVC
 功能：点击按钮增减数值并更新视图
-1. 观察者模式：模型通过事件通知视图更新（如 setTimeout 异步触发回调）
+1. 观察者模式：模型通过事件通知视图更新
 2. 双向绑定：通过 input 事件监听实现模型到视图的同步
 3. 分层解耦：视图不直接操作模型，控制器作为中间层处理逻辑
 ```javascript
@@ -310,19 +310,24 @@ class CounterModel {
         this.listeners = []; // 存储监听数据变更的回调函数
     }
 
-    // 增加计数器值并通知全部监听器
-    add() {
+    // 增加计数器值时通知全部监听器
+    addNum() {
         this.value++;
-        this.listeners.forEach(fn => fn(this.value));
+        this.notifyListeners({ field: 'num', value: this.value });
     }
 
-    // 减少计数器值并通知全部监听器
-    sub() {
+    // 减少计数器值时通知全部监听器
+    subNum() {
         this.value--;
-        this.listeners.forEach(fn => fn(this.value));
+        this.notifyListeners({ field: 'num', value: this.value });
     }
 
-    // 注册监听器
+    // 通知所有监听器数据变更
+    notifyListeners(data) {
+        this.listeners.forEach(fn => fn(data));
+    }
+
+    // 注册更新用监听器
     onUpdate(fn) {
         this.listeners.push(fn);
     }
@@ -330,37 +335,71 @@ class CounterModel {
 
 // CounterView 类，处理视图操作，监听 DOM 事件并触发控制器方法，充当订阅者。
 class CounterView {
-    constructor(controller) {
-        this.$num = document.getElementById('num');
-        this.$inc = document.getElementById('increase');
-        this.$dec = document.getElementById('decrease');
+
+    get template() {
+    return `
+      <div class="counter">
+        <button class="btn" id="decrease">-</button>
+        <span class="value" id="num">0</span>
+        <button class="btn" id="increase">+</button>
+      </div>
+    `;
+    }
+
+    constructor(container) {
+        this.$ele = container;
+        this.render();
+    }
+
+    bindEvent(controller) {
+        const $ele = this.$ele;
+        this.$num = $ele.querySelector('#num');
+        this.$inc = $ele.querySelector('#increase');
+        this.$dec = $ele.querySelector('#decrease');
         // 为增加按钮绑定点击事件，触发控制器的增加操作
-        this.$inc.addEventListener('click', controller.increase);
+        this.$inc.addEventListener('click', () => controller.increase());
         // 为减少按钮绑定点击事件，触发控制器的减少操作
-        this.$dec.addEventListener('click', controller.decrease);
+        this.$dec.addEventListener('click', () => controller.decrease());
+    }
+
+    render() {
+        this.$ele.innerHTML = this.template;
     }
 
     // 更新视图中显示的计数器值
-    update(value) {
-        this.$num.textContent = value;
+    update(data) {
+        this.$num.textContent = data.value;
     }
 }
 
-// 定义 CounterController 类，协调模型和视图的交互
+// 定义 CounterController 类，传递模型和视图的交互，充当中介
 class CounterController {
-    constructor() {
-        this.model = new CounterModel();
-        this.view = new CounterView({
-            increase: this.model.add.bind(this.model),
-            decrease: this.model.sub.bind(this.model)
-        });
+    constructor(view, model) {
+        this.view = view;
+        this.model = model;
+        this.init();
+    }
+
+    init() {
+        this.view.bindEvent(this);
         // 绑定视图与模型。当模型数据变更时，调用视图的更新方法
         this.model.onUpdate(this.view.update.bind(this.view));
+    }
+
+    increase() {
+        this.model.addNum();
+    }
+
+    decrease() {
+        this.model.subNum();
     }
 }
 
 // 创建控制器实例，启动应用
-const counterController = new CounterController();
+const appContainer = document.body;
+const model = new CounterModel();
+const view = new CounterView(appContainer);
+const controller = new CounterController(view, model);
 ```
 
 ## 总结

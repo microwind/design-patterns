@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ========== 基础信息 ========== -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.4.3</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.microwind.springbootorder</groupId>
+  <artifactId>spring-boot-order</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>spring-boot-order</name>
+  <description>Spring Boot DDD sample project</description>
+
+  <!-- ========== 全局属性 ========== -->
+  <properties>
+    <!-- 项目版本 -->
+    <project.version>1.0.0</project.version>
+    <spring.boot.version>3.4.3</spring.boot.version>
+
+    <!-- 环境配置 -->
+    <java.version>17</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <!-- 中间件版本 -->
+    <h2.database.version>2.2.224</h2.database.version>
+    <mysql.connector.version>8.3.0</mysql.connector.version>
+    <tomcat.version>11.0.5</tomcat.version>
+    <servlet-api.version>4.0.1</servlet-api.version>
+    <jackson.version>2.16.0</jackson.version>
+    <httpclient.version>5.4.2</httpclient.version>
+    <lombok.version>1.18.36</lombok.version>
+
+    <!-- 测试框架 -->
+    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+
+    <!-- 插件版本 -->
+    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+    <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
+    <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
+    <org.mapstruct.version>1.6.3</org.mapstruct.version>
+
+    <!-- 主启动类 -->
+    <mainClass>com.microwind.springbootorder.Application</mainClass>
+  </properties>
+
+  <!-- ========== 依赖配置 ========== -->
+  <dependencies>
+    <!-- Spring Boot 基础组件 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <!-- 嵌入式容器 -->
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-core</artifactId>
+      <version>${tomcat.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-jasper</artifactId>
+      <version>${tomcat.version}</version>
+    </dependency>
+
+    <!-- 数据库相关 -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.database.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <version>${mysql.connector.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Web 中间件 -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${servlet-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>${httpclient.version}</version>
+    </dependency>
+
+    <!-- MapStruct 主依赖 -->
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${org.mapstruct.version}</version>
+    </dependency>
+    <!-- MapStruct 编译器插件 -->
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct-processor</artifactId>
+      <version>${org.mapstruct.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- 开发工具 -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- 测试组件 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring.boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <!-- ========== 构建配置 ========== -->
+  <build>
+    <plugins>
+      <!-- Spring Boot 插件 -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>${mainClass}</mainClass>
+          <excludes>
+<!--            <exclude>-->
+<!--              <groupId>org.projectlombok</groupId>-->
+<!--              <artifactId>lombok</artifactId>-->
+<!--            </exclude>-->
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <!-- 增强构建插件 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xlint:all</arg>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.plugin.version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>${mainClass}</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <!-- Resource configuration -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+  </build>
+
+  <!-- ========== 环境配置 ========== -->
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <spring.profiles.active>dev</spring.profiles.active>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <spring.profiles.active>prod</spring.profiles.active>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

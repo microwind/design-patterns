@@ -11,6 +11,7 @@ java-web/
 │   │   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
 │   │   │   │   │        │   │   └── OrderService.java   # 订单应用服务
 │   │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
+│   │   │   │   │        │   │   └── OrderDTO.java # 订单数据交换对象
 │   │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
 │   │   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
@@ -37,6 +38,7 @@ java-web/
 │   │   │   │   │        └── config/               # 应用层配置（管理服务器和应用信息）
 │   │   │   │   │        │   └── ServiceConfig.java  # 服务器与环境配置
 │   │   │   │   │        └── utils/                # 实用工具
+│   │   │   │   │        │   └── ResponseUtils.java # 响应包装处理工具
 │   │   │   │   │        └── Application.java      # 应用启动类
 │   │   │   │   │        └── TomcatServer.java     # [可选]嵌入式服务器
 │   │   │   └── resources/
@@ -76,7 +78,7 @@ java-web/
 # 安装
 $ mvn clean install -U
 # 打包
-$ mvn clean package -DskipTests
+$ mvn clean package -P prod -DskipTests
 # 执行
 $ java -jar target/java-web-order-1.0.0.jar
 # 看到最后出现成功提示
