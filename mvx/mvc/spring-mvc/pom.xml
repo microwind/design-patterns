@@ -24,6 +24,7 @@
     <!-- 项目版本 -->
     <project.version>1.0.0</project.version>
     <spring.boot.version>3.4.3</spring.boot.version>
+    <spring-security.version>6.4.3</spring-security.version>
 
     <!-- 环境配置 -->
     <java.version>17</java.version>
@@ -36,21 +37,21 @@
     <mysql.connector.version>8.3.0</mysql.connector.version>
     <tomcat.version>11.0.5</tomcat.version>
     <servlet-api.version>4.0.1</servlet-api.version>
+    <jakarta-api.version>6.1.0</jakarta-api.version>
     <jackson.version>2.16.0</jackson.version>
     <httpclient.version>5.4.2</httpclient.version>
     <lombok.version>1.18.36</lombok.version>
 
     <!-- 测试框架 -->
-    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+    <junit-jupiter.version>5.11.4</junit-jupiter.version>
 
     <!-- 插件版本 -->
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
     <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
     <org.mapstruct.version>1.6.3</org.mapstruct.version>
-
-    <!-- 主启动类 -->
     <mainClass>com.microwind.springbootorder.Application</mainClass>
+
   </properties>
 
   <!-- ========== 依赖配置 ========== -->
@@ -63,6 +64,23 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-rest</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- 嵌入式容器 -->
@@ -82,7 +100,7 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${h2.database.version}</version>
-      <scope>runtime</scope>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.mysql</groupId>
@@ -91,11 +109,11 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Web 中间件 -->
+    <!-- Web 中间件，采用新版jakarta.servlet -->
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>${servlet-api.version}</version>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>${jakarta-api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -120,15 +138,15 @@
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct-processor</artifactId>
       <version>${org.mapstruct.version}</version>
-      <scope>provided</scope>
+      <scope>compile</scope>
     </dependency>
 
-    <!-- 开发工具 -->
+    <!-- lombok开发工具，生成样板代码 -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>${lombok.version}</version>
-      <optional>true</optional>
+      <optional>true</optional> <!-- 防止传递依赖 -->
     </dependency>
 
     <!-- 测试组件 -->
@@ -154,10 +172,19 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- 统一 Spring Security 版本 -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
         <version>${spring.boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- BOM 管理子模块版本 -->
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-bom</artifactId>
+        <version>${spring-security.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -167,17 +194,18 @@
   <!-- ========== 构建配置 ========== -->
   <build>
     <plugins>
-      <!-- Spring Boot 插件 -->
+      <!-- Spring Boot 打包插件 -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <mainClass>${mainClass}</mainClass>
+          <!-- 排除非必要依赖 -->
           <excludes>
-<!--            <exclude>-->
-<!--              <groupId>org.projectlombok</groupId>-->
-<!--              <artifactId>lombok</artifactId>-->
-<!--            </exclude>-->
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -189,9 +217,49 @@
         <version>${maven.compiler.plugin.version}</version>
         <configuration>
           <compilerArgs>
+            <!-- 参数用 <arg> 标签包裹 -->
             <arg>-Xlint:all</arg>
             <arg>-parameters</arg>
+            <arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>
+            <arg>-Amapstruct.defaultComponentModel=spring</arg>
           </compilerArgs>
+          <!-- 处理器顺序: Lombok 必须在 MapStruct 之前 -->
+          <annotationProcessorPaths>
+            <!--
+                注解处理器路径配置说明：
+                1. 所有注解处理器必须在此处显式声明
+                2. 处理器执行顺序按声明顺序进行
+                3. 需要与主依赖(pom.xml的<dependencies>中)配合使用
+                4. 要求 maven-compiler-plugin ≥ 3.5 版本
+            -->
+
+            <!-- Lombok 处理器 (版本通过 ${lombok.version} 变量管理)
+                作用：
+                - 自动生成 getter/setter/toString 等方法
+                - 编译时实现 @Slf4j 等注解的日志变量注入
+                - 实现构造器自动生成 (@AllArgsConstructor 等)
+            -->
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+
+            <!-- MapStruct 实现类生成
+                核心功能：
+                - 自动生成接口实现类
+                - 编译时验证映射规则的完整性
+                - 支持自定义类型转换器
+                注意事项：
+                - 需要与 mapstruct 主依赖配合使用
+                - 推荐启用 componentModel = "spring" 实现自动装配
+            -->
+            <path>
+              <groupId>org.mapstruct</groupId>
+              <artifactId>mapstruct-processor</artifactId>
+              <version>${org.mapstruct.version}</version>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
 
@@ -201,6 +269,8 @@
         <version>${maven.shade.plugin.version}</version>
         <executions>
           <execution>
+            <!-- 添加唯一的 id 避免与父 POM 的配置合并 -->
+            <id>shade-jar</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -208,7 +278,9 @@
             <configuration>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>${mainClass}</mainClass>
+                  <manifestEntries>
+                    <Start-Class>${mainClass}</Start-Class>
+                  </manifestEntries>
                 </transformer>
               </transformers>
             </configuration>
@@ -216,6 +288,7 @@
         </executions>
       </plugin>
 
+      <!-- Maven Surefire插件 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -224,6 +297,7 @@
           <includes>
             <include>**/*Test.java</include>
           </includes>
+          <testFailureIgnore>false</testFailureIgnore>
         </configuration>
       </plugin>
     </plugins>

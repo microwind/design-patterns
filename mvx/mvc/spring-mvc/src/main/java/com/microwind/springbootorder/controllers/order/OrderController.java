@@ -1,10 +1,13 @@
 package com.microwind.springbootorder.controllers.order;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microwind.springbootorder.models.order.Order;
 import com.microwind.springbootorder.services.order.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,7 +57,17 @@ public class OrderController {
     public Page<Order> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return orderService.getAllOrders(PageRequest.of(page, size));
+//        return orderService.getAllOrders(PageRequest.of(page, size));
+        // 更改content字段为orders
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderPage = orderService.getAllOrders(pageable);
+        return new PageImpl<>(orderPage.getContent(), pageable, orderPage.getTotalElements()) {
+            @Override
+            @JsonProperty("orders")
+            public List<Order> getContent() {
+                return super.getContent();
+            }
+        };
     }
 
     // 查询全部订单状态接口
