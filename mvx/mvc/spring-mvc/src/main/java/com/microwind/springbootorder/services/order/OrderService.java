@@ -42,10 +42,10 @@ public class OrderService {
   }
 
   // 更新订单状态
-  public void updateOrderStatus(String orderNo, Order.OrderStatus status) {
+  public Order updateOrderStatus(String orderNo, Order.OrderStatus status) {
     Order order = getByOrderNo(orderNo);
     order.setStatus(status);
-    orderRepository.save(order);
+    return orderRepository.save(order);
   }
 
   // 更新订单

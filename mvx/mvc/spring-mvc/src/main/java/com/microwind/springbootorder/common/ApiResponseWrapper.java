@@ -1,7 +1,10 @@
 package com.microwind.springbootorder.common;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -21,15 +24,15 @@ public class ApiResponseWrapper implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object body, MethodParameter returnType,
                                   MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
-        // 仅当请求路径以 "/api/" 开头时，才进行包装
-        if (request.getURI().getPath().startsWith("/api/")) {
-            // 如果响应体是 ApiResponse 类型，直接返回
-            if (body instanceof ApiResponse) {
+        // 仅当请求路径以 "/api" 开头时，才进行包装
+        if (request.getURI().getPath().startsWith("/api")) {
+            // 如果响应体已经过包装，则直接返回
+            if (body instanceof ApiResponse || body instanceof ResponseEntity
+                    || body instanceof ProblemDetail) {
                 return body;
             }
 
-            // 统一将所有非 ApiResponse 类型的返回值都包装成 ApiResponse
-            return new ApiResponse<>(200, body, "获取成功");
+            return new ApiResponse<>(HttpStatus.OK.value(), body, "返回结果");
         }
 
         // 否则，直接返回原始的响应体

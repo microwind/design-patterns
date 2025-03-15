@@ -1,20 +1,18 @@
 package com.microwind.springbootorder.middleware;
 
 import com.microwind.springbootorder.utils.NotFoundException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.sql.SQLException;
 
 /**
  * 全局异常处理控制器建议继承 ResponseEntityExceptionHandler
@@ -32,20 +30,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * @param status HTTP 状态码
      * @param title  错误标题
      * @param detail 错误详情
-     * @param errors 验证错误列表（可选）
+     * @param error 验证错误（可选）
      * @return 标准化错误响应
      */
     private ResponseEntity<Object> buildErrorResponse(
-            HttpStatus status,
+            HttpStatusCode status,
             String title,
-            String detail,
-            List<Map<String, String>> errors) {
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
-        problemDetail.setTitle(title);
-
-        if (errors != null && !errors.isEmpty()) {
-            problemDetail.setProperty("errors", errors);
+            Object detail,
+            Object error) {
+        ProblemDetail problemDetail = null;
+        if (detail != null) {
+            if (detail instanceof ProblemDetail) {
+                problemDetail = (ProblemDetail) detail;
+            } else {
+                problemDetail = ProblemDetail.forStatusAndDetail(status, detail.toString());
+            }
+            problemDetail.setTitle(title);
+            if (error != null) {
+                problemDetail.setProperty("error", error.toString());
+            }
+            // 增加一个code返回值
+            problemDetail.setProperty("code", status.value());
         }
 
         // 结构化日志记录
@@ -53,66 +58,73 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 status.value(),
                 title,
                 detail,
-                errors
+                error
         );
-
         return ResponseEntity.status(status).body(problemDetail);
     }
 
     /**
-     * 处理自定义业务异常（404 Not Found）
+     * 覆盖ResponseEntityExceptionHandler下的createResponseEntity方法，其他handle都会调用此方法
+     */
+    @Override
+    protected ResponseEntity<Object> createResponseEntity(@Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+        return buildErrorResponse(
+                statusCode,
+                "error",
+                body,
+                null
+        );
+    }
+
+    /**
+     * 处理通用404异常（404 Not Found）
      */
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Object> handleNotFound(NotFoundException ex) {
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
                 "404 Not Found",
-                ex.getMessage(),
-                null
+                "The resource was not found.",
+                ex
         );
     }
 
     /**
      * 处理权限不足异常（403 Forbidden）
      */
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex) {
         return buildErrorResponse(
                 HttpStatus.FORBIDDEN,
                 "Access Denied",
-                "You don't have permission to access this resource",
-                null
+                "You don't have permission to access this resource.",
+                ex
         );
     }
 
     /**
-     * 重写父类方法处理验证异常（400 Bad Request）
-     *
-     * @Override 必须添加否则无法正确覆盖父类方法
+     * 处理JDBC连接失败
      */
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request) {
-
-        // 提取验证错误详情
-        List<Map<String, String>> errors = ex.getBindingResult().getFieldErrors()
-                .stream()
-                .map(fieldError -> {
-                    Map<String, String> error = new HashMap<>();
-                    error.put("field", fieldError.getField());       // 字段名称
-                    error.put("message", fieldError.getDefaultMessage());// 默认错误消息
-                    return error;
-                })
-                .collect(Collectors.toList());
-
+    @ExceptionHandler(JDBCConnectionException.class)
+    public ResponseEntity<Object> handleDatabaseConnectionException(JDBCConnectionException ex) {
         return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                "Validation Failed",
-                "Please check the request payload",
-                errors
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Database connection failed",
+                "Database connection error. Please contact the administrator.",
+                ex
+        );
+    }
+
+    /**
+     * 处理数据库操作失败
+     */
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<Object> handleSQLException(SQLException ex) {
+        return buildErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Database operation failed",
+                "Database operation timed out. Please try again after.",
+                ex
         );
     }
 }

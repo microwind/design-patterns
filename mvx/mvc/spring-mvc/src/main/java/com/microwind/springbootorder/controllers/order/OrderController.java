@@ -1,13 +1,12 @@
 package com.microwind.springbootorder.controllers.order;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.microwind.springbootorder.common.ApiResponse;
 import com.microwind.springbootorder.models.order.Order;
+import com.microwind.springbootorder.services.order.OrderPageDTO;
 import com.microwind.springbootorder.services.order.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,14 +28,22 @@ public class OrderController {
 
     // 根据订单号查询
     @GetMapping("/{orderNo}")
-    public Order getOrder(@PathVariable String orderNo) {
-        return orderService.getByOrderNo(orderNo);
+    public ApiResponse<Order> getOrder(@PathVariable String orderNo) {
+        // return orderService.getByOrderNo(orderNo);
+        // 或自定义ApiResponse返回
+        Order order = orderService.getByOrderNo(orderNo);
+        if (order != null) {
+            return ApiResponse.success(order, "查询订单成功。");
+        } else {
+            return ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询订单失败。");
+        }
     }
+
 
     // 查询用户订单列表
     @GetMapping("/user/{userId}")
-    public List<Order> getUserOrders(@PathVariable Long userId) {
-        return orderService.getUserOrders(userId);
+    public ApiResponse<List<Order>> getUserOrders(@PathVariable Long userId) {
+        return new ApiResponse<>(HttpStatus.OK.value(), orderService.getUserOrders(userId), "根据用户查询订单。");
     }
 
     // 更新接口
@@ -54,26 +61,17 @@ public class OrderController {
 
     // 查询全部订单接口
     @GetMapping
-    public Page<Order> getAllOrders(
+    public OrderPageDTO getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-//        return orderService.getAllOrders(PageRequest.of(page, size));
-        // 更改content字段为orders
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orderPage = orderService.getAllOrders(pageable);
-        return new PageImpl<>(orderPage.getContent(), pageable, orderPage.getTotalElements()) {
-            @Override
-            @JsonProperty("orders")
-            public List<Order> getContent() {
-                return super.getContent();
-            }
-        };
+        Page<Order> orderPages = orderService.getAllOrders(PageRequest.of(page, size));
+        return new OrderPageDTO(orderPages);
     }
 
-    // 查询全部订单状态接口
+    // 更新订单状态接口
     @PatchMapping("/{orderNo}/status")
-    public void updateStatus(@PathVariable String orderNo, @RequestBody Map<String, String> body) {
+    public Order updateStatus(@PathVariable String orderNo, @RequestBody Map<String, String> body) {
         Order.OrderStatus status = Order.OrderStatus.valueOf(body.get("status"));
-        orderService.updateOrderStatus(orderNo, status);
+        return orderService.updateOrderStatus(orderNo, status);
     }
 }
