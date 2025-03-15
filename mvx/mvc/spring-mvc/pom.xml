@@ -17,7 +17,7 @@
   <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>spring-boot-order</name>
-  <description>Spring Boot DDD sample project</description>
+  <description>Spring Boot MVC sample project</description>
 
   <!-- ========== 全局属性 ========== -->
   <properties>

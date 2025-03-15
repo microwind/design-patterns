@@ -5,26 +5,21 @@
 ## MVC 结构图形示例
 以Web后端开发为例
 ```text
-                                请求入口
-                                   |
-                                   v
-+-------------------+       +-------------------+
-|      视图层        |<----->|    控制器层        |
-|      View         |       |    Controller     |
-+-------------------+       +-------------------+
-                                   |
-                                   v
-+-------------------+       +-------------------+
-|      模型层        |<----->|    数据访问层       |
-|      Model        |       |    Repository     |
-+-------------------+       +-------------------+
+                     用户请求  
+                       |  
+                       v
++---------+       +-----------+      +-----------+
+|  View   |  <--- | Controller| ---> |   Model   | 
++---------+       +-----------+      +-----------+
+    ^                                      v
+    |            Model数据映射到View         |
+    ****--------------------------------****
 ```
 
 ### 各层职责
 - **视图层（View）**：处理用户界面展示和用户输入事件
 - **控制器层（Controller）**：接收用户请求，协调模型和视图
 - **模型层（Model）**：封装业务逻辑和数据结构
-- **数据访问层（Repository）**：处理数据持久化操作
 
 ## MVC 分层架构与 DDD 分层架构的对比
 
@@ -34,6 +29,18 @@
 | 核心分层 | 3 层（View、Controller、Model） | 4 层（UI、应用、领域、基础设施） |
 | 适用场景 | Web 应用、前端应用 | 企业级复杂业务系统 |
 | 开发效率 | 快速开发，适合中小项目 | 需要领域建模，适合大型项目 |
+
+## MVC与MVP的主要区别
+MVC与MVP总体上一致，只是在View与Model是否完全解耦上有差别。
+### MVC
+单向控制：Controller 接收 View 请求 → 操作 Model → Model 直接通知 View 更新。
+View 主动：View 直接监听 Model 事件（如 model.onUpdate(this.view.update)）。
+View与Model有简单耦合，View绑定Model。
+
+### MVP
+双向通信：View 和 Presenter 双向交互（事件触发 → 数据更新）。
+Model 被动：Model 不直接通知 View，需通过 Presenter 中转。
+View与Model无耦合，View不知道有Model。
 
 ## MVC 的应用场景
 - **Web 应用程序**（如电商网站、博客系统）
@@ -298,112 +305,115 @@ class OrderRepository {
 ```
 
 ### JavaScript 前端版 MVC
-功能：点击按钮增减数值并更新视图
-1. 观察者模式：模型通过事件通知视图更新
-2. 双向绑定：通过 input 事件监听实现模型到视图的同步
-3. 分层解耦：视图不直接操作模型，控制器作为中间层处理逻辑
+功能：点击按钮增减数值并更新视图。
+1. 模型层：CounterModel 类封装数据和操作逻辑，包含数值和标题的修改方法。
+2. 视图层：CounterView 类负责渲染界面，绑定模型数据，根据模型状态更新视图。
+3. 控制层：CounterController 类作为中间层，绑定视图和模型，监听事件，实现数据和视图的更新。
 ```javascript
-// CounterModel 类，封装数据逻辑并通知数据变更，充当发布者。
+// Model 类：封装数据逻辑
 class CounterModel {
     constructor() {
-        this.value = 0; // 初始化计数器值
-        this.listeners = []; // 存储监听数据变更的回调函数
+        // 初始化数据
+        this.title = '点击更换标题';
+        this.num = 0;
     }
 
-    // 增加计数器值时通知全部监听器
-    addNum() {
-        this.value++;
-        this.notifyListeners({ field: 'num', value: this.value });
+    // 标题操作：增加标题
+    changeTitle() {
+        this.title = '点击更换标题' + Math.floor(Math.random() * 100);
     }
 
-    // 减少计数器值时通知全部监听器
-    subNum() {
-        this.value--;
-        this.notifyListeners({ field: 'num', value: this.value });
+    // 数据操作方法：增加数值
+    increment() {
+        this.num++;
     }
 
-    // 通知所有监听器数据变更
-    notifyListeners(data) {
-        this.listeners.forEach(fn => fn(data));
-    }
-
-    // 注册更新用监听器
-    onUpdate(fn) {
-        this.listeners.push(fn);
+    // 数据操作方法：减少数值
+    decrement() {
+        this.num--;
     }
 }
 
-// CounterView 类，处理视图操作，监听 DOM 事件并触发控制器方法，充当订阅者。
+// View 类：处理界面渲染
 class CounterView {
-
-    get template() {
-    return `
-      <div class="counter">
-        <button class="btn" id="decrease">-</button>
-        <span class="value" id="num">0</span>
-        <button class="btn" id="increase">+</button>
-      </div>
-    `;
+    template(data = {}) {
+        return `
+        <div class="counter">
+            <h3 class="title">${data.title}</h3>
+            <button class="dec-btn">-</button>
+            <span class="num">${data.num}</span>
+            <button class="inc-btn">+</button>
+        </div>
+        `;
     }
 
-    constructor(container) {
-        this.$ele = container;
-        this.render();
-    }
-
-    bindEvent(controller) {
-        const $ele = this.$ele;
-        this.$num = $ele.querySelector('#num');
-        this.$inc = $ele.querySelector('#increase');
-        this.$dec = $ele.querySelector('#decrease');
-        // 为增加按钮绑定点击事件，触发控制器的增加操作
-        this.$inc.addEventListener('click', () => controller.increase());
-        // 为减少按钮绑定点击事件，触发控制器的减少操作
-        this.$dec.addEventListener('click', () => controller.decrease());
-    }
-
-    render() {
-        this.$ele.innerHTML = this.template;
-    }
-
-    // 更新视图中显示的计数器值
-    update(data) {
-        this.$num.textContent = data.value;
-    }
-}
-
-// 定义 CounterController 类，传递模型和视图的交互，充当中介
-class CounterController {
-    constructor(view, model) {
-        this.view = view;
-        this.model = model;
+    constructor(model, container) {
+        this.model = model; // 绑定模型，这是跟MVP最大区别
+        this.$container = container;
         this.init();
     }
 
+    // 初始化DOM
     init() {
-        this.view.bindEvent(this);
-        // 绑定视图与模型。当模型数据变更时，调用视图的更新方法
-        this.model.onUpdate(this.view.update.bind(this.view));
+        this.$container.innerHTML = this.template(this.model);
+        this.$titleEl = this.$container.querySelector('.title');
+        this.$numEl = this.$container.querySelector('.num');
+        this.$incBtn = this.$container.querySelector('.inc-btn');
+        this.$decBtn = this.$container.querySelector('.dec-btn');
     }
 
-    increase() {
-        this.model.addNum();
-    }
-
-    decrease() {
-        this.model.subNum();
+    // 更新视图方法
+    render() {
+        // 可以根据数据是否有变化来确定要更新哪个字段
+        const data = this.model
+        this.$titleEl.textContent = data.title;
+        this.$numEl.textContent = data.num;
     }
 }
 
-// 创建控制器实例，启动应用
+// Controller 类：处理用户输入
+class CounterController {
+    constructor(model, view) {
+        this.model = model;
+        this.view = view;
+        this.bindEvents();
+    }
+
+    // 绑定DOM事件
+    bindEvents() {
+        this.view.$titleEl.addEventListener('click', () => this.changeTitleHandle());
+        this.view.$incBtn.addEventListener('click', () => this.incrementHandle());
+        this.view.$decBtn.addEventListener('click', () => this.decrementHandle());
+    }
+
+    changeTitleHandle() {
+        this.model.changeTitle();
+        this.view.render(); // 直接更新视图，不必传递model
+    }
+ 
+    // 事件处理：增加操作
+    incrementHandle() {
+        this.model.increment();
+        this.view.render(); // 直接更新视图，不必传递model
+    }
+
+    // 事件处理：减少操作
+    decrementHandle() {
+        this.model.decrement();
+        this.view.render(); // 直接更新视图，不必传递model
+    }
+}
+
+// 初始化应用
 const appContainer = document.body;
 const model = new CounterModel();
-const view = new CounterView(appContainer);
-const controller = new CounterController(view, model);
+const view = new CounterView(model, appContainer);
+const controller = new CounterController(model, view);
 ```
 
 ## 总结
 - **MVC** 适用于快速开发 Web 应用，强调职责分离
+- **MVP** 适用于对视图和业务逻辑分离要求较高的场景，强调展示层对视图和模型的协调
 - **DDD** 适用于复杂业务系统，强调领域建模
 - **核心优势**：代码可维护性强，团队协作效率高
 - **选型建议**：中小型项目优先考虑 MVC，复杂业务系统可结合 DDD

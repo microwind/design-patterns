@@ -90,13 +90,17 @@ CREATE TABLE `orders` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 ```
 ```bash
-# 安装依赖
+# 本例子依赖 JDK17 Tomcat10、Maven3.8、Lomok1.8、Mapstruct1.6等，详见pom.xml
+# 安装
 $ mvn clean install -U
-# 编译打包
+
+# 打包
 $ mvn clean package -P prod -DskipTests
-# 启动应用
+
+# 运行应用
 $ java -jar target/spring-boot-order-1.0.0.jar
-# 直接启动
+
+# 直接运行
 $ mvn spring-boot:run
 Starting server on http://localhost:8080 successfully.
 
