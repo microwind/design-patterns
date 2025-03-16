@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderRepositoryImpl implements OrderRepository {
 
+    // 此处拿Map示意，实际会存储到数据库中。
     private final static Map<Long, Order> orders = new ConcurrentHashMap<>(); // 线程安全的 HashMap
 
     @Override

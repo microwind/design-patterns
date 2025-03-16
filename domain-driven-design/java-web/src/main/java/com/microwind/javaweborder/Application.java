@@ -67,7 +67,7 @@ public class Application implements ServletContextListener {
                                     "查询：curl -X GET \"http://localhost:" + port + "/api/orders/订单号\"\n" +
                                     "更新：curl -X PUT \"http://localhost:" + port + "/api/orders/订单号\" -H \"Content-Type: application/json; charset=UTF-8\" -d '{\"customerName\": \"孙悟空\", \"amount\": 11.22}'\n" +
                                     "删除：curl -X DELETE \"http://localhost:" + port + "/api/orders/订单号\"\n" +
-                                    "查询：curl -X GET \"http://localhost:" + port + "/api/orders/订单号\"\n" +
+                                    "查询全部：curl -X GET \"http://localhost:" + port + "/api/orders\"\n" +
                                     "</code>" +
                                     "详细：https://github.com/microwind/design-patterns/tree/main/domain-driven-design" +
                                     "</pre>"

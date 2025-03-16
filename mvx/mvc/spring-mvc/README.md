@@ -70,7 +70,7 @@ spring-mvc/
 说明：Spring Boot 的配置文件，用于配置应用的各种属性，如数据库连接信息、服务器端口等。
 
 ## 运行
-创建db.sql，导入数据库结构。
+创建schema.sql，导入数据库结构。
 ```sql
 CREATE DATABASE order_db;
 use order_db;
