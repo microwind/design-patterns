@@ -1,11 +1,10 @@
-package com.microwind.springbootorder.infrastructure.repository;
+package com.microwind.springbootorder.domain.order;
 
-import com.microwind.springbootorder.domain.order.CustomOrderRepository;
-import com.microwind.springbootorder.domain.order.Order;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Transactional
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
     @PersistenceContext
@@ -37,7 +39,7 @@ public class CustomOrderRepositoryImpl implements CustomOrderRepository {
     }
 
     @Override
-    public Page<Order> findAll(Pageable pageable) {
+    public Page<Order> findAllOrders(Pageable pageable) {
         String query = "SELECT o FROM Order o";
         List<Order> orders = entityManager.createQuery(query, Order.class)
                 .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())

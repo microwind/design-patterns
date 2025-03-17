@@ -1,5 +1,6 @@
 package com.microwind.springbootorder.middleware;
 
+import com.microwind.springbootorder.exception.ResourceNotFoundException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +111,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.SERVICE_UNAVAILABLE,
                 "Database operation failed",
                 "Database operation timed out. Please try again after.",
+                ex
+        );
+    }
+
+    /**
+     * 处理通用404异常（404 Not Found）
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
+                "404 Not Found",
+                "The resource was not found.",
                 ex
         );
     }

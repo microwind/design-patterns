@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 订单实体类
@@ -16,6 +18,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "orders")
 public class Order {
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();           // 订单项列表
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,10 +51,30 @@ public class Order {
 
     public void markAsCancelled() {
         this.status = OrderStatus.CANCELLED;
+        // 订单取消时，可添加对 OrderItem 的处理逻辑
+        for (OrderItem item : items) {
+            // 例如可以标记订单项为无效等操作
+        }
     }
 
     public void markAsPaid() {
         this.status = OrderStatus.PAID;
+        // 订单支付时，可添加对 OrderItem 的处理逻辑
+        for (OrderItem item : items) {
+            // 例如可以标记订单项为已支付等操作
+        }
+    }
+
+    // 添加订单项
+    public void addOrderItem(OrderItem item) {
+        item.setOrder(this);
+        items.add(item);
+    }
+
+    // 移除订单项
+    public void removeOrderItem(OrderItem item) {
+        items.remove(item);
+        item.setOrder(null);
     }
 
     // 订单状态枚举

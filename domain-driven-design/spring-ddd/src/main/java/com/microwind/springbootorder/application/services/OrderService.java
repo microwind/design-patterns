@@ -6,9 +6,8 @@ import com.microwind.springbootorder.domain.order.OrderDomainService;
 import com.microwind.springbootorder.domain.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import com.microwind.springbootorder.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,8 +48,16 @@ public class OrderService {
     // 更新订单状态
     public Order updateOrderStatus(String orderNo, Order.OrderStatus status) {
         Order order = getByOrderNo(orderNo);
-        order.setStatus(status);
-        return orderRepository.save(order);
+         order.setStatus(status);
+        // 1. 方式1，先查并全量写入
+        // return orderRepository.save(order);
+
+        // 2. 方式2，仅更新状态，效率更高
+        int rowCount = orderRepository.updateOrderStatus(orderNo, status);
+        if (rowCount > 0) {
+            return order;
+        }
+        throw new ResourceNotFoundException("Order with orderNo " + orderNo + " not found or status update failed.");
     }
 
     // 更新订单
@@ -82,7 +89,10 @@ public class OrderService {
 
     // 获取所有订单
     public Page<Order> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable);
+        // 使用默认JPA查询
+        // return orderRepository.findAll(pageable);
+        // 使用自定义查询
+        return orderRepository.findAllOrders(pageable);
     }
 
     // 支付订单

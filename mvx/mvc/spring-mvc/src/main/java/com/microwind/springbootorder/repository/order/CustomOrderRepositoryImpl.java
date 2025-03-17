@@ -4,7 +4,6 @@ import com.microwind.springbootorder.models.order.Order;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+// 在同一个目录下，Sping会查找以Impl结尾的同名文件并自动注册
 @Repository
 public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
