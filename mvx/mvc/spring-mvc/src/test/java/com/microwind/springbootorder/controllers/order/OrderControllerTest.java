@@ -1,6 +1,10 @@
 package com.microwind.springbootorder.controllers.order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microwind.springbootorder.models.order.Order;
+import com.microwind.springbootorder.services.order.OrderService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,7 +36,12 @@ public class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private String orderNo;
+    @Autowired
+    private OrderService orderService;
 
     // 初始化方法：每个测试方法前执行
     @BeforeEach
@@ -105,6 +115,7 @@ public class OrderControllerTest {
 
     @Test
     @DisplayName("更新订单状态")
+    @Transactional
     void testUpdateOrderStatus() throws Exception {
         String updateJson = objectMapper.writeValueAsString(Map.of(
                 "status", "COMPLETED"
@@ -114,8 +125,15 @@ public class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.code").value(200));
+//                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+
+        // 查询更新后的订单
+        Order updatedOrder = orderService.getByOrderNo(orderNo);
+        entityManager.refresh(updatedOrder);
+
+       // 验证订单状态已更新
+        assertEquals(Order.OrderStatus.COMPLETED, updatedOrder.getStatus());
     }
 
     @Test

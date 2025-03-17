@@ -5,6 +5,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,18 +37,19 @@ public class CustomOrderRepositoryImpl implements CustomOrderRepository {
     }
 
     @Override
-    public Page<Order> findAll(PageRequest pageRequest) {
+    public Page<Order> findAllOrders(Pageable pageable) {
         String query = "SELECT o FROM Order o";
         List<Order> orders = entityManager.createQuery(query, Order.class)
-                .setFirstResult(pageRequest.getPageNumber() * pageRequest.getPageSize())
-                .setMaxResults(pageRequest.getPageSize())
+                .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
+                .setMaxResults(pageable.getPageSize())
                 .getResultList();
         // PageImpl 可以包装成 Page 类型
-        return new org.springframework.data.domain.PageImpl<>(orders, pageRequest, orders.size());
+        return new org.springframework.data.domain.PageImpl<>(orders, pageable, orders.size());
     }
 
     @Override
     @Transactional
+    @Modifying(clearAutomatically = true)
     public int updateOrderStatus(String orderNo, Order.OrderStatus status) {
         return entityManager.createQuery(
                         "UPDATE Order o SET o.status = :status WHERE o.orderNo = :orderNo")

@@ -3,10 +3,12 @@ package com.microwind.springbootorder.services.order;
 import com.microwind.springbootorder.models.order.Order;
 import com.microwind.springbootorder.repository.order.OrderRepository;
 import com.microwind.springbootorder.utils.NotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,11 +44,23 @@ public class OrderService {
   }
 
   // 更新订单状态
+  @Transactional
   public Order updateOrderStatus(String orderNo, Order.OrderStatus status) {
-    Order order = getByOrderNo(orderNo);
-    order.setStatus(status);
-    return orderRepository.save(order);
+    // 1. 先取后存
+    /*
+     Order order = getByOrderNo(orderNo);
+     order.setStatus(status);
+     return orderRepository.save(order);
+     */
+
+    // 2. 更新状态后再查询，需要注意事务的缓存问题
+    int updatedRows = orderRepository.updateOrderStatus(orderNo, status);
+    if (updatedRows > 0) {
+      return getByOrderNo(orderNo);
+    }
+    throw new EntityNotFoundException("Order update failed, order not found: " + orderNo);
   }
+
 
   // 更新订单
   public Order updateOrder(String orderNo, Order order) {
@@ -76,6 +90,9 @@ public class OrderService {
 
   // 获取所有订单
   public Page<Order> getAllOrders(Pageable pageable) {
-    return orderRepository.findAll(pageable);
+    // 调用默认JPA方法，简单
+//    return orderRepository.findAll(pageable);
+    // 调用自定义方法，个性化
+    return orderRepository.findAllOrders(pageable);
   }
 }
