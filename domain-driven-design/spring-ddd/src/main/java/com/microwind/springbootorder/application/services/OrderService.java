@@ -3,7 +3,8 @@ package com.microwind.springbootorder.application.services;
 import com.microwind.springbootorder.application.dto.OrderMapper;
 import com.microwind.springbootorder.domain.order.Order;
 import com.microwind.springbootorder.domain.order.OrderDomainService;
-import com.microwind.springbootorder.domain.order.OrderRepository;
+import com.microwind.springbootorder.domain.repository.OrderJpaRepository;
+import com.microwind.springbootorder.domain.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    private final OrderRepository orderRepository;
+    // 采用Spring Data Jpa模式，任选其一
+     private final OrderJpaRepository orderRepository;
+//     采用Spring jdbcTemplate模式
+//    private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final OrderDomainService orderDomainService;
 

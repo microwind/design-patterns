@@ -2,7 +2,7 @@
 package com.microwind.javaweborder.infrastructure.repository;
 
 import com.microwind.javaweborder.domain.order.Order;
-import com.microwind.javaweborder.domain.order.OrderRepository;
+import com.microwind.javaweborder.domain.repository.OrderRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

@@ -34,7 +34,7 @@
 
     <!-- 中间件版本 -->
     <h2.database.version>2.2.224</h2.database.version>
-    <mysql.connector.version>8.3.0</mysql.connector.version>
+    <mysql.connector.version>9.2.0</mysql.connector.version>
     <tomcat.version>11.0.5</tomcat.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <jakarta-api.version>6.1.0</jakarta-api.version>

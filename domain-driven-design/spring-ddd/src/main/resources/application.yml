@@ -1,0 +1,50 @@
+# default Environment
+spring:
+  profiles:
+    active: dev
+
+  # Spring Boot level
+  logging:
+    level:
+      root: INFO
+      org.springframework: DEBUG
+
+    file:
+      name: logs/app.log
+      path: logs
+
+  # H2 config (commented out)
+  # datasource:
+  #   url: jdbc:h2:mem:orderdb
+  #   driverClassName: org.h2.Driver
+  #   username: sa
+  #   password:
+  #   #spring.h2.console.enabled: true
+  #   #spring.h2.console.path: /h2-console
+
+  # JPA config
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: validate
+
+  # MySQL
+  datasource:
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      minimum-idle: 5                # ???????
+      maximum-pool-size: 20          # ???????
+      connection-timeout: 30000      # ????????
+      idle-timeout: 600000           # ?????????????????
+      max-lifetime: 1800000          # ?????????????
+      auto-commit: true              # ????????
+      transaction-isolation: TRANSACTION_READ_COMMITTED  # ??????
+      connection-init-sql: SELECT 1  # ??????????? SQL ??
+      pool-name: HikariCP-Pool        # ?????

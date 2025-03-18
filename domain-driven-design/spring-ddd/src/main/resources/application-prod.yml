@@ -1,0 +1,24 @@
+spring:
+  # server config
+  server:
+    port: 8080
+    env: production
+
+  # local Cache (commented out)
+  # datasource:
+  #   url: jdbc:h2:mem:orderdb
+  #   driverClassName: org.h2.Driver
+  #   username: sa
+  #   password:
+
+  # H2 (commented out)
+  # h2:
+  #   console:
+  #     enabled: true
+  #     path: /h2-console
+
+  # MySQL config
+  datasource:
+    url: jdbc:mysql://localhost:3306/order_db?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: order_admin
+    password: order798

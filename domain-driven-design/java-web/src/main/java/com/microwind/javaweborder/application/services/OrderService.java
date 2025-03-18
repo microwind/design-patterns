@@ -2,7 +2,7 @@ package com.microwind.javaweborder.application.services;
 
 import com.microwind.javaweborder.application.dto.OrderDTO;
 import com.microwind.javaweborder.domain.order.Order;
-import com.microwind.javaweborder.domain.order.OrderRepository;
+import com.microwind.javaweborder.domain.repository.OrderRepository;
 import com.microwind.javaweborder.infrastructure.message.MessageQueueService;
 
 import java.util.List;

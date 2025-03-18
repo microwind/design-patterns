@@ -169,7 +169,7 @@
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
-      <version>8.3.0</version>
+      <version>9.2.0</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -323,26 +323,26 @@
     </dependencies>
   </dependencyManagement>
   <properties>
-    <org.mapstruct.version>1.6.3</org.mapstruct.version>
     <mainClass>com.microwind.springbootorder.Application</mainClass>
-    <java.version>17</java.version>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
     <spring.boot.version>3.4.3</spring.boot.version>
     <tomcat.version>11.0.5</tomcat.version>
     <jackson.version>2.16.0</jackson.version>
-    <project.version>1.0.0</project.version>
     <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
     <httpclient.version>5.4.2</httpclient.version>
-    <lombok.version>1.18.36</lombok.version>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
-    <junit-jupiter.version>5.11.4</junit-jupiter.version>
     <spring-security.version>6.4.3</spring-security.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <h2.database.version>2.2.224</h2.database.version>
     <jakarta-api.version>6.1.0</jakarta-api.version>
+    <org.mapstruct.version>1.6.3</org.mapstruct.version>
+    <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <project.version>1.0.0</project.version>
+    <lombok.version>1.18.36</lombok.version>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <junit-jupiter.version>5.11.4</junit-jupiter.version>
     <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
-    <mysql.connector.version>8.3.0</mysql.connector.version>
+    <mysql.connector.version>9.2.0</mysql.connector.version>
   </properties>
 </project>

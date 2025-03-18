@@ -1,5 +1,6 @@
-package com.microwind.springbootorder.domain.order;
+package com.microwind.springbootorder.domain.repository;
 
+import com.microwind.springbootorder.domain.order.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

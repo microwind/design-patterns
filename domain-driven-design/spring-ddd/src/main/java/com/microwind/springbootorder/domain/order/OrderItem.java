@@ -26,6 +26,6 @@ public class OrderItem {
     private int quantity;     // 数量
     private double price;     // 单价
     @ManyToOne
-    @JoinColumn(name = "order_order_id", insertable = false, updatable = false)
+    @JoinColumn(name = "order_id")
     private Order order;      // 关联的订单（聚合根）
 }

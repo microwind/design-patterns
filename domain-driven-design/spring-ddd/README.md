@@ -17,14 +17,13 @@ java-web/
 │   │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
 │   │   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
-│   │   │   │   │        │   │   ├── OrderRepository.java  # 订单仓储接口，继承通用接口
-│   │   │   │   │        │   │   ├── CustomOrderRepository # 自定义订单仓储接口，定义对订单数据的操作
 │   │   │   │   │        │   └── book/                 # 书本聚合（聚合根和业务逻辑）
 │   │   │   │   │        │   └── repository/           # 仓库接口
 │   │   │   │   │        │   │   ├── Repository.java    # [可选]仓库通用接口
+│   │   │   │   │        │   │   ├── OrderRepository.java       # 订单仓储接口，继承通用接口
 │   │   │   │   │        ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   │   │   │        │   ├── repository/       # 仓储实现
-│   │   │   │   │        │   │   ├── CustomOrderRepositoryImpl.java # 订单仓储实现
+│   │   │   │   │        │   │   ├── OrderRepositoryImpl.java # 订单仓储实现
 │   │   │   │   │        │   ├── messaging/        # 消息队列实现
 │   │   │   │   │        │   └── configuration/    # 基础配置（与外部系统相关）
 │   │   │   │   │        │   │   ├── DatabaseConfig.java  # [可选]数据库配置
@@ -40,7 +39,7 @@ java-web/
 │   │   │   │   │        │   └── DataUtils.java    # 日期工具
 │   │   │   │   │        └── Application.java      # 应用启动类
 │   │   │   └── resources/
-│   │   │   │   └── application.properties         # 配置文件
+│   │   │   │   └── application.yml         # 配置文件
 │   │   │   └── webapp/                            # [可选]web运行目录，可模拟
 │   │   └── test/
 │   │        └── java/
@@ -76,6 +75,7 @@ java-web/
 ```sql
 CREATE DATABASE order_db;
 use order_db;
+-- orders表
 CREATE TABLE `orders` (
   `order_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
   `order_no` VARCHAR(50) NOT NULL COMMENT '订单编号',
@@ -90,6 +90,16 @@ CREATE TABLE `orders` (
   UNIQUE KEY `idx_order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+
+-- order_item表
+CREATE TABLE `order_item` (
+  `order_item_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `price` double NOT NULL,
+  `product` varchar(255) DEFAULT NULL,
+  `quantity` int NOT NULL,
+  `order_id` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`order_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 ```
 ```bash
 # 本例子依赖 JDK17 Tomcat10、Maven3.8、Lomok1.8、Mapstruct1.6等，详见pom.xml

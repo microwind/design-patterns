@@ -24,6 +24,7 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id", columnDefinition = "BIGINT")
     private Long orderId;
 
     // 添加 getter 和 setter 方法
