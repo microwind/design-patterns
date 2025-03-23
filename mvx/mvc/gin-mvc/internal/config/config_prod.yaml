@@ -1,0 +1,31 @@
+server:
+  addr:
+  port: 8080
+  read_timeout: 5
+  write_timeout: 10
+  env: production
+
+database:
+  host: "localhost"
+  port: 3306
+  dbname: "order_db"
+  user: "order_admin"
+  password: "order798"
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: 5m
+  time_zone: "Asia/Shanghai"
+
+cache:
+  type: redis
+  redis:
+    addr: "localhost:6379"
+    password: ""
+    db: 0
+  max_size: 1000
+  expiration: 3600
+
+log:
+  level: info
+  format: json
+  output: stdout 

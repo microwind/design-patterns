@@ -3,10 +3,9 @@
 ```bash
 gin-order/
 ├── cmd
-│   └── gin-order/           
-│       └── main.go              # 应用入口，启动 Gin 引擎
+│   └── main.go              # 应用入口，启动 Gin 引擎
 ├── internal
-│   ├── controllers              # 控制器层（处理 HTTP 请求）
+│   ├── controllers              # 控制器层（处理 HTTP 请求），也可以叫handlers
 │   │   └── order
 │   │       └── order_controller.go  # Order 模块的控制器
 │   ├── services                 # 服务层（业务逻辑处理）
@@ -65,20 +64,17 @@ gin-order/
 ## 运行项目
 假设已正确配置数据库与环境变量，可使用以下命令启动应用：
 ```bash
-# 初始化模块
-$ go mod init github.com/yourname/gin-order
-
 # 安装依赖
 $ go get -u github.com/gin-gonic/gin
 $ go get -u gorm.io/gorm
 $ go get -u gorm.io/driver/mysql
+$ go mod tidy
 
 # 运行服务
-$ go run cmd/server/main.go
+$ go run cmd/main.go
 
-# 测试接口
-$ curl -X GET http://localhost:8080/api/orders/1
-$ curl -X POST http://localhost:8080/api/orders -d '{"order_no":"20240501"}'
+# 查看服务
+$ curl -X GET http://localhost:8080
 
 # 运行测试
 $ go test -v ./...

@@ -83,5 +83,6 @@
     "cinttypes": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled",
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.compile.nullAnalysis.mode": "automatic"
 }
