@@ -15,6 +15,7 @@ database:
   max_idle_conns: 10
   conn_max_lifetime: 5m
   time_zone: "Asia/Shanghai"
+  schema_file: "internal/config/schema.sql"
 
 cache:
   type: redis
@@ -29,3 +30,4 @@ log:
   level: info
   format: json
   output: stdout 
+  log_file: "logs/app.log"

@@ -4,7 +4,7 @@ package com.microwind.springbootorder.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-// 自定义仓库接口
+// 自定义仓库接口，本文件为通用接口，供业务继承[可选]
 public interface Repository<T> {
 
     void save(T entity);              // 保存实体

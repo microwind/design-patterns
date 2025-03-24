@@ -48,7 +48,10 @@ public class Order {
     private OrderStatus status; // 订单状态
 
     @Column(updatable = false)
-    private LocalDateTime createTime; // 创建时间
+    private LocalDateTime createdAt; // 创建时间
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt; // 更新时间
 
     public void markAsCancelled() {
         this.status = OrderStatus.CANCELLED;
@@ -108,9 +111,15 @@ public class Order {
         }
     }
 
-    // 持久化（persist） orderNo 为空，就会自动生成一个唯一的订单编号
     @PrePersist
     protected void onCreate() {
-        createTime = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now; // 确保创建时同时初始化 updatedAt
+    }
+
+    @PreUpdate // 必须添加此注解
+    public void onUpdate() { // 建议改为 public 访问级别
+        this.updatedAt = LocalDateTime.now();
     }
 }

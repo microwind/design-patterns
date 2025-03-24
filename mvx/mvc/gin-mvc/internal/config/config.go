@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"gin-order/pkg/logger"
 	"os"
 	"sync"
 	"time"
@@ -39,6 +38,7 @@ type Config struct {
 		MaxIdleConns    int           `yaml:"max_idle_conns"`    // 最大空闲连接数 (建议值: 25)
 		ConnMaxLifetime string           `yaml:"conn_max_lifetime"` // 连接最大生命周期 (建议值: 5m)
 		TimeZone        string        `yaml:"time_zone"`         // 时区配置 (示例: "Asia/Shanghai")
+		SchemaFile      string        `yaml:"schema_file"`         // schema.sql 文件路径
 	} `yaml:"database"`
 
 	Cache struct {
@@ -56,6 +56,11 @@ type Config struct {
 		Level  string `yaml:"level"`
 		Format string `yaml:"format"`
 		Output string `yaml:"output"`
+		File       string `yaml:"file"`
+		MaxSize    int    `yaml:"max_size"`
+		MaxBackups int    `yaml:"max_backups"`
+		MaxAge     int    `yaml:"max_age"`
+		Compress   bool   `yaml:"compress"`
 	} `yaml:"log"`
 }
 
@@ -114,20 +119,25 @@ func Init(env *string) {
 	// 如果配置实例为空，则加载配置
 	if configInstance == nil {
 		var filePath string
-		if *env == "production" {
-			filePath = "internal/config/config_prod.yaml"
-		} else if *env == "test" {
-			filePath = "internal/config/config_test.yaml"
-		} else {
-			filePath = "internal/config/config_test.yaml"
-		}
+		var configFile string
+
+		switch *env {
+    case "production":
+        configFile = "config_prod.yaml"
+    case "dev":
+        configFile = "config_dev.yaml"
+    default:
+        configFile = "config_test.yaml"
+    }
+
+		filePath = "internal/config/" + configFile
 
 		cfg, err := LoadConfig[Config](filePath); 
     if err == nil {
       configInstance = cfg
-      logger.Println("Configuration initialized successfully.")
+      fmt.Printf("Configuration initialized successfully in %s environment.", configFile)
     } else {
-      logger.Fatalf("Failed to initialize config: %v", err)
+      fmt.Println("Failed to initialize config: %w", err)
     }
   }
 }

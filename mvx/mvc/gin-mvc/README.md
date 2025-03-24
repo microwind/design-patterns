@@ -61,6 +61,26 @@ gin-order/
 ### pkg
 存放项目公共的工具和辅助函数，如响应格式封装等，供各模块复用。
 
+## 安装数据库
+手工创建数据库或导入schema.sql。请提前准备好[MySQL](https://dev.mysql.com/downloads/mysql/)
+```sql
+CREATE DATABASE order_db;
+use order_db;
+CREATE TABLE `orders` (
+  `order_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+  `order_no` VARCHAR(50) NOT NULL COMMENT '订单编号',
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+  `order_name` VARCHAR(255) NOT NULL COMMENT '订单名称',
+  `amount` DECIMAL(10, 2) NOT NULL COMMENT '订单金额',
+  `status` VARCHAR(50) NOT NULL COMMENT '订单状态',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `idx_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+```
+
 ## 运行项目
 假设已正确配置数据库与环境变量，可使用以下命令启动应用：
 ```bash
@@ -77,7 +97,7 @@ $ go run cmd/main.go
 $ curl -X GET http://localhost:8080
 
 # 运行测试
-$ go test -v ./...
+$ go test -v ./internal/controllers/order
 ```
 
 ## Gin MVC 架构

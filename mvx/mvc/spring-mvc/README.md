@@ -70,7 +70,7 @@ spring-mvc/
 说明：Spring Boot 的配置文件，用于配置应用的各种属性，如数据库连接信息、服务器端口等。
 
 ## 运行
-创建schema.sql，导入数据库结构。
+手工创建数据库或导入schema.sql。请提前准备好[MySQL](https://dev.mysql.com/downloads/mysql/)
 ```sql
 CREATE DATABASE order_db;
 use order_db;
@@ -83,12 +83,12 @@ CREATE TABLE `orders` (
   `status` VARCHAR(50) NOT NULL COMMENT '订单状态',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `create_time` datetime(6) DEFAULT NULL,
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `idx_order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 ```
+
 ```bash
 # 本例子依赖 JDK17 Tomcat10、Maven3.8、Lomok1.8、Mapstruct1.6等，详见pom.xml
 # 安装

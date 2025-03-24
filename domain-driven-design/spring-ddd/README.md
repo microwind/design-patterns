@@ -75,7 +75,7 @@ java-web/
 - routes：路由配置，映射 API 路径和控制器。
 
 ## 运行
-创建schema.sql，导入数据库结构。
+创建schema.sql，导入数据库结构。请提前准备好[MySQL](https://dev.mysql.com/downloads/mysql/)
 ```sql
 CREATE DATABASE order_db;
 use order_db;
@@ -89,7 +89,6 @@ CREATE TABLE `orders` (
   `status` VARCHAR(50) NOT NULL COMMENT '订单状态',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `create_time` datetime(6) DEFAULT NULL,
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `idx_order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`)
@@ -105,8 +104,11 @@ CREATE TABLE `order_item` (
   PRIMARY KEY (`order_item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 ```
+
 ```bash
 # 本例子依赖 JDK17 Tomcat10、Maven3.8、Lomok1.8、Mapstruct1.6等，详见pom.xml
+# 相关版本可以降低或升级，需要同步调整依赖包和个别代码写法。
+
 # 安装
 $ mvn clean install -U
 

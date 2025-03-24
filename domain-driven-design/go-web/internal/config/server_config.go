@@ -51,7 +51,7 @@ func NewServerConfig() *ServerConfig {
     Logging: LoggingConfig{
       Level: getEnv("LOG_LEVEL", "info"),
       // 定义日志文件地址
-      File: getEnv("LOG_FILE", "app.log"),
+      File: getEnv("LOG_FILE", "logs/app.log"),
     },
     JWT: JWTConfig{
       Secret:    getEnv("JWT_SECRET", "your_jwt_secret"),

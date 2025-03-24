@@ -22,6 +22,12 @@ spring:
   #   #spring.h2.console.enabled: true
   #   #spring.h2.console.path: /h2-console
 
+  # "always" means that schema.sql will be executed during startup.
+  sql:
+    # init:
+      # mode: always
+      # schema-locations: classpath:schema.sql
+
   # JPA config
   jpa:
     show-sql: true
@@ -39,12 +45,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      minimum-idle: 5                # ???????
-      maximum-pool-size: 20          # ???????
-      connection-timeout: 30000      # ????????
-      idle-timeout: 600000           # ?????????????????
-      max-lifetime: 1800000          # ?????????????
-      auto-commit: true              # ????????
-      transaction-isolation: TRANSACTION_READ_COMMITTED  # ??????
-      connection-init-sql: SELECT 1  # ??????????? SQL ??
-      pool-name: HikariCP-Pool        # ?????
+      minimum-idle: 5                # 连接池中最少的空闲连接数
+      maximum-pool-size: 20          # 连接池中允许的最大连接数
+      connection-timeout: 30000      # 连接超时时间（毫秒）
+      idle-timeout: 600000           # 空闲连接的最大存活时间（毫秒），超时会被释放
+      max-lifetime: 1800000          # 连接的最大生命周期（毫秒），避免数据库连接长期占用
+      auto-commit: true              # 是否自动提交事务
+      transaction-isolation: TRANSACTION_READ_COMMITTED  # 事务隔离级别，防止读取未提交的数据
+      connection-init-sql: SELECT 1  # 连接创建时执行的 SQL 语句，检查连接可用性
+      pool-name: HikariCP-Pool       # 连接池的名称

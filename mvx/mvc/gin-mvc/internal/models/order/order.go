@@ -16,10 +16,11 @@ type Order struct {
   OrderID   int64           `gorm:"primaryKey;autoIncrement"`     // 符合GORM惯例
   OrderNo   string          `gorm:"uniqueIndex;not null;size:36"` // 添加唯一索引，限制长度
   UserID    int64           `gorm:"not null"`
-  Amount    decimal.Decimal `gorm:"type:decimal(10,2)"`                // 使用更合适的decimal类型
-  OrderName string          `gorm:"not null;size:200"`                 // 添加合理长度限制
-  Status    OrderStatus     `gorm:"type:varchar(20);index"`            // 添加索引
-  CreatedAt time.Time       `gorm:"autoCreateTime;column:create_time"` // 符合GORM时间追踪惯例
+  Amount    decimal.Decimal `gorm:"type:decimal(10,2)"`               // 使用更合适的decimal类型
+  OrderName string          `gorm:"not null;size:200"`                // 添加合理长度限制
+  Status    OrderStatus     `gorm:"type:varchar(20);index"`           // 添加索引
+  CreatedAt time.Time       `gorm:"autoCreateTime;column:created_at"` // 自动创建时间[6,7](@ref)
+  UpdatedAt time.Time       `gorm:"autoUpdateTime;column:updated_at"` // 自动更新时间[6,7](@ref)
 }
 
 // OrderStatus 订单状态枚举

@@ -7,6 +7,7 @@ package repository
 import (
   "fmt"
   "net/url"
+  "os"
   "time"
 
   "gorm.io/driver/mysql"
@@ -14,7 +15,7 @@ import (
   "gorm.io/gorm/logger"
 )
 
-func ConnectDatabase(dbConfig *DatabaseConfig) (*gorm.DB, error) {
+func ConnectGormDB(dbConfig *DatabaseConfig) (*gorm.DB, error) {
   if dbConfig == nil {
     return nil, fmt.Errorf("数据库配置不能为空")
   }
@@ -31,7 +32,7 @@ func ConnectDatabase(dbConfig *DatabaseConfig) (*gorm.DB, error) {
 
   // 构建DSN连接字符串
   dsn := fmt.Sprintf(
-    "%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=%s",
+    "%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=%s&multiStatements=true",
     encodedUser,
     encodedPassword,
     dbConfig.Host,
@@ -46,6 +47,20 @@ func ConnectDatabase(dbConfig *DatabaseConfig) (*gorm.DB, error) {
   })
   if err != nil {
     return nil, fmt.Errorf("无法连接到数据库: %w", err)
+  }
+
+  // 读取文件内容
+  if dbConfig.SchemaFile != "" {
+    content, err := os.ReadFile(dbConfig.SchemaFile)
+    if err != nil {
+      return nil, fmt.Errorf("failed to read schema file: %w", err)
+    }
+
+    // 将读取到的内容转换为字符串后执行
+    sql := string(content)
+    if err := gormDB.Exec(sql).Error; err != nil {
+      return nil, fmt.Errorf("failed to execute schema file: %w", err)
+    }
   }
 
   // 获取底层的 sql.DB 实例以配置连接池
@@ -79,6 +94,6 @@ func ConnectDatabase(dbConfig *DatabaseConfig) (*gorm.DB, error) {
     return nil, fmt.Errorf("数据库不可用: %w", err)
   }
 
-  fmt.Println("成功连接到数据库")
+  fmt.Println("ConnectGormDB successfully. 成功连接到数据库。")
   return gormDB, nil
 }

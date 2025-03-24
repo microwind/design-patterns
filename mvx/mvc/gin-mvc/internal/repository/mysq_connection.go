@@ -9,6 +9,7 @@ import (
   "fmt"
   "gin-order/pkg/logger"
   "net/url"
+  "os"
   "time"
 
   _ "github.com/go-sql-driver/mysql"
@@ -27,6 +28,7 @@ type DatabaseConfig struct {
   MaxIdleConns    int    // 最大空闲连接数 (建议值: 25)
   ConnMaxLifetime string // 连接最大生命周期 (建议值: 5m)
   TimeZone        string // 时区配置 (示例: "Asia/Shanghai")
+  SchemaFile      string // schema.sql 文件路径
 }
 
 func ConnectMySQL(dbConfig *DatabaseConfig) (*sql.DB, error) {
@@ -46,7 +48,7 @@ func ConnectMySQL(dbConfig *DatabaseConfig) (*sql.DB, error) {
 
   // 构建DSN连接字符串
   dsn := fmt.Sprintf(
-    "%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=%s",
+    "%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=%s&multiStatements=true",
     encodedUser,
     encodedPassword,
     dbConfig.Host,
@@ -60,6 +62,21 @@ func ConnectMySQL(dbConfig *DatabaseConfig) (*sql.DB, error) {
   if err != nil {
     logger.Printf("无法连接到数据库，错误信息：%v", err)
     return nil, fmt.Errorf("无法连接到数据库: %w", err)
+  }
+
+  // 读取文件内容
+  if dbConfig.SchemaFile != "" {
+    content, err := os.ReadFile(dbConfig.SchemaFile)
+    if err != nil {
+      return nil, fmt.Errorf("failed to read schema file: %w", err)
+    }
+
+    // 将读取到的内容转换为字符串后执行
+    sql := string(content)
+    _, err = db.Exec(sql)
+    if err != nil {
+      return nil, fmt.Errorf("failed to execute schema file: %w", err)
+    }
   }
 
   // 配置连接池（带默认值逻辑）
@@ -89,6 +106,6 @@ func ConnectMySQL(dbConfig *DatabaseConfig) (*sql.DB, error) {
     return nil, fmt.Errorf("数据库不可用: %w", err)
   }
 
-  logger.Println("成功连接到数据库")
+  logger.Println("ConnectMySQL successfully. 成功连接到数据库。")
   return db, nil
 }

@@ -19,9 +19,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderService {
     // 采用Spring Data Jpa模式，任选其一
-     private final OrderJpaRepository orderRepository;
+//     private final OrderJpaRepository orderRepository;
 //     采用Spring jdbcTemplate模式
-//    private final OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final OrderDomainService orderDomainService;
 

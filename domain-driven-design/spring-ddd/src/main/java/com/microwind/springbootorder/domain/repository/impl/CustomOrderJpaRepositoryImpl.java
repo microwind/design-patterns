@@ -1,6 +1,6 @@
 package com.microwind.springbootorder.domain.repository.impl;
 
-import com.microwind.springbootorder.domain.repository.CustomOrderRepository;
+import com.microwind.springbootorder.domain.repository.CustomOrderJpaRepository;
 import com.microwind.springbootorder.domain.order.Order;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -28,7 +28,7 @@ import java.util.Optional;
  */
 @Primary
 @Repository
-public class CustomOrderRepositoryImpl implements CustomOrderRepository {
+public class CustomOrderJpaRepositoryImpl implements CustomOrderJpaRepository {
 
     // JPQL常量集中管理
     private static final String FIND_BY_ORDER_NO_JPQL =

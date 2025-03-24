@@ -9,6 +9,7 @@ package logger
 
 import (
   "fmt"
+  "gin-order/internal/config"
   "os"
   "path/filepath"
   "runtime"
@@ -23,9 +24,9 @@ var log = logrus.New()
 // FileLineHook 是一个自定义 Hook，用于自动添加 file:line
 type FileLineHook struct{}
 
-// Hook 逻辑：自动获取调用的文件名和行号
+// Fire 逻辑：自动获取调用的文件名和行号
 func (hook *FileLineHook) Fire(entry *logrus.Entry) error {
-  _, file, line, ok := runtime.Caller(10) // 这里偏移量 10 适配 logrus 内部调用
+  _, file, line, ok := runtime.Caller(10) // 偏移量 10 适配 logrus 内部调用
   if !ok {
     file = "unknown"
     line = 0
@@ -35,12 +36,12 @@ func (hook *FileLineHook) Fire(entry *logrus.Entry) error {
   return nil
 }
 
-// 这个 Hook 适用于所有日志级别
+// Levels 适用于所有日志级别
 func (hook *FileLineHook) Levels() []logrus.Level {
   return logrus.AllLevels
 }
 
-// 自定义格式化器，保证是纯文本输出
+// PlainTextFormatter 自定义格式化器，确保是纯文本输出
 type PlainTextFormatter struct{}
 
 func (f *PlainTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -50,21 +51,46 @@ func (f *PlainTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 // Init 初始化日志配置
-func Init() {
-  // 设置日志输出格式为 JSON 格式
-  // Logger.SetFormatter(&logrus.JSONFormatter{
-  //   TimestampFormat: time.RFC3339,
-  // })
+func Init(cfg *config.Config) {
+  config := cfg.Log
+  // 设置日志格式
+  if config.Format == "json" {
+    log.SetFormatter(&logrus.JSONFormatter{
+      TimestampFormat: time.RFC3339,
+    })
+  } else {
+    log.SetFormatter(&PlainTextFormatter{})
+  }
 
-  log.SetOutput(os.Stdout)                // 默认输出到标准输出
-  log.SetFormatter(&PlainTextFormatter{}) // 使用Text格式
-  log.SetLevel(logrus.InfoLevel)          // 设置默认日志级别为 Info
-  log.AddHook(&FileLineHook{})            // 添加自定义 Hook，可以打印文件名和行号
+  // 设置日志级别
+  level, err := logrus.ParseLevel(config.Level)
+  if err != nil {
+    log.SetLevel(logrus.InfoLevel) // 默认 Info
+  } else {
+    log.SetLevel(level)
+  }
+
+  // 设置日志输出位置
+  if config.Output == "stdout" {
+    log.SetOutput(os.Stdout)
+  } else if config.Output == "file" && config.File != "" {
+    SetLogToFile(config.File, config.MaxSize, config.MaxBackups, config.MaxAge, config.Compress)
+  }
+
+  log.AddHook(&FileLineHook{}) // 添加文件名行号 Hook
 }
 
 // SetLogLevel 设置日志级别
 func SetLogLevel(level logrus.Level) {
   log.SetLevel(level)
+}
+
+// SetLogLevelFromConfig 根据配置字符串设置日志级别
+func SetLogLevelFromConfig(level string) {
+  parsedLevel, err := logrus.ParseLevel(level)
+  if err == nil {
+    log.SetLevel(parsedLevel)
+  }
 }
 
 // Debug 输出调试级别日志
@@ -158,4 +184,5 @@ func SetLogToFile(filename string, maxSize int, maxBackups int, maxAge int, comp
     MaxAge:     maxAge,     // 文件保存的最大天数
     Compress:   compress,   // 是否压缩旧日志
   })
+  fmt.Println("日志输出到文件:", filename)
 }

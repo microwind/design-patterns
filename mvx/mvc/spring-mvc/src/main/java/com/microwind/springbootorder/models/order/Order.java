@@ -1,11 +1,11 @@
 package com.microwind.springbootorder.models.order;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * 订单实体类
@@ -39,20 +39,45 @@ public class Order {
 
     @Getter
     @Setter
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private OrderStatus status; // 订单状态
+    private OrderStatus status;
 
     @Column(updatable = false)
-    private LocalDateTime createTime; // 创建时间
+    private LocalDateTime createdAt; // 创建时间
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt; // 更新时间
 
     // 订单状态枚举
     public enum OrderStatus {
-        CREATED, PAID, DELIVERED, COMPLETED, CANCELLED
+        CREATED("已创建"),
+        PAID("已支付"),
+        DELIVERED("已发货"),
+        COMPLETED("已完成"),
+        CANCELLED("已取消");
+
+        private final String description;
+
+        OrderStatus(String description) {
+            this.description = description;
+        }
+
+        @JsonValue // 序列化时返回 description
+        public String getDescription() {
+            return description;
+        }
     }
 
-    // 持久化（persist） orderNo 为空，就会自动生成一个唯一的订单编号
     @PrePersist
     protected void onCreate() {
-        createTime = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now; // 确保创建时同时初始化 updatedAt
+    }
+
+    @PreUpdate // 必须添加此注解
+    public void onUpdate() { // 建议改为 public 访问级别
+        this.updatedAt = LocalDateTime.now();
     }
 }

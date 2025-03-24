@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-// 在同一个目录下，Sping会查找以Impl结尾的同名文件并自动注册
+// 在同一个目录下，SpringBoot会自动扫描@Repository注解的类，并自动注册到容器中
 @Repository
 public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
