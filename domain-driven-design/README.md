@@ -530,3 +530,5 @@ DDD本质上是一种代码组织策略，旨在帮助开发者更高效地理�
 - [DDD C语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/c) 原始C语言体现DDD架构
 - [DDD Rust语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/rust) 原始C语言体现DDD架构
 - [DDD Springboot框架版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/spring-ddd) 基于Springboot框架的DDD架构
+
+[英文版本](https://medium.com/@microwind/ddd-layered-architecture-overview-b1eb2026504d)

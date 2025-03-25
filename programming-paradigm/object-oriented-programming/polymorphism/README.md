@@ -1,4 +1,4 @@
-# 一文搞懂什么是多态
+# 一文搞懂什么是多态，Java/Go/Python/JavaScript实现
 
 # 概念
 
@@ -565,11 +565,6 @@ public class PolymorphismSimple {
         // A类中没有show(B)方法，但有show(A)方法，因为A是B的父类，ab也是A的实例，于是定位到A.show(A)方法。
         // 由于B是A的子类，且B重写了A的show(A)，A的方法被覆盖了，于是定位到B.show(A)，这就是动态绑定。
         // 虽然B中有show(B)方法，但是因为ab的类型是A，编译时根据类型定位到A的方法，而不是B。
-        // 以下几种可开关打开/注释代码测试下。
-        // - 若A里有show(A)和show(B)，B里有show(B)有show(A)，则编译时关联到A.show(B)，因B覆盖了A.show(B)，动态绑定到B.show(B)。
-        // - 若A里有show(A)和show(B)，B里无show(B)有show(A)，则编译时关联到A.show(B)，因B无覆盖，则直接调用A.show(B)。
-        // - 若A里有show(A)无show(B)，B里无show(B)有show(A)，则编译时关联到A.show(A)，因B覆盖了A.show(A)，动态绑定到B.show(A)。
-        // - 若A里有show(A)无show(B)，B里无show(A)有show(B)，则编译时关联到A.show(A)，因B无覆盖，则直接调用A.show(A)。
         // 查找顺序为：编译时根据引用类型确定所属类 -> 根据重载参数类型定位（类型按子->父->祖逐级往上查找）到类的具体方法（包括继承的方法） ->
         // 运行时实例对象覆盖（覆盖只有子->父一层）了引用类型的同名方法 -> 定位到实例对象的方法。
         System.out.println("4) " + ab.show(b));
