@@ -1,6 +1,8 @@
 # DDD 分层架构设计概述
 
-领域驱动设计（Domain-Driven Design，简称 DDD）是一种软件架构方法，旨在通过分层和领域建模的方式来管理复杂业务逻辑。DDD 主要通过分层架构来组织代码，以实现高内聚、低耦合。
+领域驱动设计（Domain-Driven Design，简称 DDD）是一种软件架构方法，通过分层结构和领域建模来应对复杂业务逻辑。它将代码组织为高内聚、低耦合的不同层次，确保各部分职责明确，易于维护和扩展。
+
+与传统的 MVC 架构相比，DDD 更侧重于抽象基础设施和领域层：复杂的业务规则和逻辑被集中放置在领域层，而强大的基础设施则为领域层提供有力支持。这种设计理念非常适合构建复杂的企业级应用，使系统更具弹性和可持续发展性。
 
 ## DDD 结构图形示例
 
@@ -42,7 +44,7 @@
 | 主要目标   | 分离 UI、业务逻辑和数据 | 解决复杂领域建模与业务逻辑 |
 | 关注点     | UI 驱动，适用于前端开发 | 领域驱动，适用于复杂业务系统 |
 | 层次       | 3 层（Model、View、X） | 4 层（UI、应用、领域、基础设施） |
-| 适用场景   | 前端框架、简单应用     | 企业级系统、复杂业务领域 |
+| 适用场景   | 前端框架、强交互应用     | 企业级系统、复杂业务领域 |
 
 ## DDD 的应用场景
 
@@ -196,7 +198,6 @@ class OrderRepository {
 
 ### Go 语言实现 DDD
 ```go
-
 /* 用户界面层（UI Layer）*/
 // ui.go
 func main() {
@@ -491,3 +492,16 @@ class OrderRepository {
 ## 最后
 - **要用DDD吗？** 不是每个项目都适合DDD，是否采用DDD应当根据项目的实际情况来。
 - **什么叫适合？** 就是开发团队开发和维护起来最清晰、最靠谱、最轻松就是最适合的。
+
+## 源码
+
+DDD本质上是一种代码组织策略，旨在帮助开发者更高效地理解、构建和维护系统。不同编程语言特点不同，但都能基于DDD架构构造出清晰、易维护、可扩展的代码。
+
+- [DDD源码仓库](https://github.com/microwind/design-patterns/tree/main/domain-driven-design)
+- [DDD Go语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/go-web) 原始Go语言体现DDD架构
+- [DDD Java语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/java-web) 原始Java语言体现DDD架构
+- [DDD JS语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/node-web) 原始JS语言体现DDD架构
+- [DDD python语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/python-web) 原始Python语言体现DDD架构
+- [DDD C语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/c) 原始C语言体现DDD架构
+- [DDD Rust语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/rust) 原始C语言体现DDD架构
+- [DDD Springboot框架版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/spring-ddd) 基于Springboot框架的DDD架构
