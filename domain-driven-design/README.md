@@ -412,8 +412,8 @@ class OrderRepository {
         this.apiUrl = ""; // 模拟无 API 的情况
         // 模拟数据
         this.mockData = [
-            { id: "1001", customerName: "Alice", amount: 250.5 },
-            { id: "1002", customerName: "Bob", amount: 150.0 }
+            new Order("1001", "Alice", 250.5),
+            new Order("1002", "Bob", 150.0)
         ];
     }
 
