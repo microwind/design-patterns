@@ -606,7 +606,7 @@ Go语言、Python和JavaScript不完全符合严格意义上的多态，但具�
 
 ## 各语言完整示例
 
-https://github.com/microwind/design-pattern/tree/main/programming-paradigm/oop/polymorphism
+[https://github.com/microwind/design-pattern/tree/main/programming-paradigm/oop/polymorphism](https://github.com/microwind/design-patterns/tree/main/programming-paradigm/object-oriented-programming/polymorphism)
 
 [PolymorphismExample.java](./PolymorphismExample.java) 
 [PolymorphismExample.go](./PolymorphismExample.go) 
