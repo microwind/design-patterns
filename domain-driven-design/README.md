@@ -378,6 +378,99 @@ module.exports = OrderRepository;
 
 ### JavaScript (前端版)  实现 DDD
 ```javascript
+/* 应用服务层（Application Layer）*/
+// OrderService.js
+class OrderService {
+    constructor(repository) {
+        this.repository = repository;
+    }
+
+    async createOrder(id, name, amount) {
+        const order = new Order(id, name, amount);
+        await this.repository.save(order);
+    }
+
+    async getAllOrders() {
+        return await this.repository.getAll();
+    }
+}
+
+/* 领域层（Domain Layer）*/
+// Order.js
+class Order {
+    constructor(id, customerName, amount) {
+        this.id = id;
+        this.customerName = customerName;
+        this.amount = amount;
+    }
+}
+
+/* 基础设施层（Infrastructure Layer）*/
+// OrderRepository.js
+class OrderRepository {
+    constructor() {
+        this.apiUrl = ""; // 模拟无 API 的情况
+        // 模拟数据
+        this.mockData = [
+            { id: "1001", customerName: "Alice", amount: 250.5 },
+            { id: "1002", customerName: "Bob", amount: 150.0 }
+        ];
+    }
+
+    async save(order) {
+        if (!this.apiUrl) {
+            // 如果 apiUrl 为空，直接将订单添加到模拟数据中
+            this.mockData.push(order);
+            return { success: true, message: "订单保存成功", data: order };
+        }
+        // 否则，执行实际的 API 请求
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(order)
+            });
+            const data = await response.json();
+            return { success: true, message: "订单保存成功", data: data };
+        } catch (error) {
+            console.error("保存订单失败:", error);
+            return { success: false, message: "保存订单失败", data: null };
+        }
+    }
+
+    async get(id) {
+        if (!this.apiUrl) {
+            // 如果 apiUrl 为空，从模拟数据中查找订单
+            return this.mockData.find(order => order.id === id) || null;
+        }
+        // 否则，执行实际的 API 请求
+        try {
+            const response = await fetch(`${this.apiUrl}/${id}`);
+            const data = await response.json();
+            return data || null;
+        } catch (error) {
+            console.error("获取订单失败:", error);
+            return null;
+        }
+    }
+
+    async getAll() {
+        if (!this.apiUrl) {
+            // 如果 apiUrl 为空，返回模拟数据
+            return this.mockData;
+        }
+        // 否则，执行实际的 API 请求
+        try {
+            const response = await fetch(this.apiUrl);
+            const data = await response.json();
+            return data || [];
+        } catch (error) {
+            console.error("获取订单列表失败:", error);
+            return [];
+        }
+    }
+}
+
 /* 用户界面层（UI Layer）*/
 // UI.js
 class View {
@@ -424,63 +517,11 @@ class View {
     }
 }
 
-// **初始化 UI**
+// **初始化**
+const orderService = new OrderService(new OrderRepository());
 const app = new View("#app");
 app.init();
 app.updateOrderList();
-
-
-/* 应用服务层（Application Layer）*/
-// OrderService.js
-class OrderService {
-    constructor(repository) {
-        this.repository = repository;
-    }
-
-    async createOrder(id, name, amount) {
-        const order = new Order(id, name, amount);
-        await this.repository.save(order);
-    }
-
-    async getAllOrders() {
-        return await this.repository.getAll();
-    }
-}
-
-const orderService = new OrderService(new OrderRepository());
-
-/* 领域层（Domain Layer）*/
-// Order.js
-class Order {
-    constructor(id, customerName, amount) {
-        this.id = id;
-        this.customerName = customerName;
-        this.amount = amount;
-    }
-}
-
-
-/* 基础设施层（Infrastructure Layer）*/
-// 前端应用里面对于数据操作主要是调用接口，此处可以改为OrderAPI.js
-// OrderRepository.js
-class OrderRepository {
-    constructor() {
-        this.apiUrl = "http://localhost:3000/api/orders"; // 后端API地址
-    }
-
-    async save(order) {
-        await fetch(this.apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(order)
-        });
-    }
-
-    async getAll() {
-        const response = await fetch(this.apiUrl);
-        return response.json();
-    }
-}
 ```
 
 
