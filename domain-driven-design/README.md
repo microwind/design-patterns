@@ -438,22 +438,6 @@ class OrderRepository {
         }
     }
 
-    async get(id) {
-        if (!this.apiUrl) {
-            // 如果 apiUrl 为空，从模拟数据中查找订单
-            return this.mockData.find(order => order.id === id) || null;
-        }
-        // 否则，执行实际的 API 请求
-        try {
-            const response = await fetch(`${this.apiUrl}/${id}`);
-            const data = await response.json();
-            return data || null;
-        } catch (error) {
-            console.error("获取订单失败:", error);
-            return null;
-        }
-    }
-
     async getAll() {
         if (!this.apiUrl) {
             // 如果 apiUrl 为空，返回模拟数据
