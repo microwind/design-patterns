@@ -148,7 +148,7 @@ console.log(Object.prototype.__proto__); // null
 
 ## prototype图形展示
 ```text
-// 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
+// https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
 
 +----------------+  constructor  +---------------------+
 |   Function     | <------------ |  Function.prototype |
@@ -159,7 +159,7 @@ console.log(Object.prototype.__proto__); // null
        |------------------------------     | __proto__
        |          __proto__                |
        |                                   v
-+----------------+  constructor   +------------------+               +--------+
++----------------+  constructor +------------------+               +--------+
 |    Function    | <----------  |  Object.prototype | --------->   |  终点   | 
 | (Object 函数)   | ---------->  |  (所有对象的基类)   |  __proto__   |  null  |
 +----------------+  prototype   +------------------+               +--------+
@@ -209,75 +209,66 @@ function Foo() {}
 const newFoo = new Foo();
 ```
 
-### **1. 创建一个新对象**  
+**1. 创建一个新对象**  
 JavaScript 先创建一个新的空对象 `newFoo`。
 ```javascript
 const newFoo = {};
 ```
 
-### **2. 设置新对象的原型**  
+**2. 设置新对象的原型**  
 `newFoo.__proto__` 被设置为 `Foo.prototype`，即 `newFoo` 继承了 `Foo.prototype` 的属性和方法。
 ```javascript
 newFoo.__proto__ = Foo.prototype;
 ```
 
-### **3. 执行构造函数，并绑定 `this`**  
+**3. 执行构造函数，并绑定 `this`**  
+调用 `Foo` 构造函数，并将 `newFoo` 作为 `this` 传入。  
 ```js
 const result = Foo.apply(newFoo, arguments);
 ```
-调用 `Foo` 构造函数，并将 `newFoo` 作为 `this` 传入。  
-若 `Foo` 显式返回一个对象，则 `new` 操作符返回该对象；否则返回 `newFoo`。
 
-### 返回对象
-若构造函数返回对象，则返回该对象。否则返回新创建的 obj。
+**4. 返回对象**
+若构造函数 `Foo` 显式地返回一个对象，则 `new` 操作符返回该对象；否则返回新创建的 `newFoo`。
 ```javascript
 return typeof result === "object" && result !== null ? result : newFoo;
 ```
 
 ---
 
-基于上面 `newFoo = new Foo();` 进行分析。
+## 原型链分析
+基于上面 `const newFoo = new Foo();` 进行分析。
 
-## **原型链分析**
+**原型链指向**
 ```javascript
 newFoo.__proto__ === Foo.prototype   // ✅ `newFoo` 的原型是 `Foo.prototype`
 Foo.prototype.__proto__ === Object.prototype   // ✅ `Foo.prototype` 的原型是 `Object.prototype`
 Object.prototype.__proto__ === null   // ✅ `Object.prototype` 的原型是 `null`（即原型链的终点）
 ```
 
----
-
-## **构造器关系**
+**构造器关系**
 ```javascript
 newFoo.constructor === Foo.prototype.constructor   // ✅ `newFoo` 的构造函数是 `Foo`
 Foo.prototype.constructor === Foo   // ✅ `Foo.prototype` 的 `constructor` 指向 `Foo` 本身
 Foo.prototype.constructor.prototype === Foo.prototype   // ✅ `Foo.prototype.constructor` 的 `prototype` 仍然是 `Foo.prototype`
 ```
-**说明：**
 - 当我们创建一个新对象时，它的 `constructor` 属性通常来源于它的原型（即 `Foo.prototype.constructor`）。
 - 使用 `Object.create` 或修改原型时，有可能需要手动修正 `constructor` 指向。
 
----
-
-## **`Function` 和 `Object` 互相指向**
+**`Function` 和 `Object` 互相指向**
 ```javascript
 Foo.prototype.__proto__.constructor.__proto__ === Function.prototype   // ✅ `Object` 构造函数的 `__proto__` 指向 `Function.prototype`
 Function.prototype === Object.__proto__   // ✅ `Function.prototype` 就是 `Object` 的 `__proto__`
 Function.prototype.__proto__.__proto__ === null   // ✅ `Function.prototype.__proto__` 是 `Object.prototype`，再往上是 `null`
 ```
 
----
-
-## **构造器和原型链的循环指向**
+**构造器和原型链的循环指向**
 ```javascript
 Foo.prototype.constructor.prototype.constructor === Foo   // ✅ 循环指向 `Foo`
 Foo.prototype.constructor.prototype.constructor.prototype === Foo.prototype   // ✅ 再次循环指向 `Foo.prototype`
 Foo.prototype.constructor === Foo   // ✅ `Foo.prototype.constructor` 仍然指向 `Foo`
 ```
 
----
-
-## **`Object` 和 `Function` 之间的关系**
+**`Object` 和 `Function` 之间的关系**
 ```javascript
 Object.prototype.constructor === Object   // ✅ `Object.prototype` 的 `constructor` 是 `Object`
 Object.prototype.constructor.__proto__ === Function.prototype   // ✅ `Object` 构造函数本身是 `Function` 的一个实例
@@ -313,7 +304,7 @@ a.data.push(1); // 所有实例的 data 都会变化
 2. `prototype` 是一个对象，所有由该函数创建的实例都会共享 `prototype` 上的方法。
 3. `__proto__` 指向该对象的原型（即构造函数的 `prototype`），形成原型链。
 4. 通过 `Object.create()` 进行原型继承，ES6 `class` 语法是 `prototype` 的语法糖。
-5. 原型链终点 为 Object.prototype，其 __proto__ 为 null。
+5. 原型链终点 为 Object.prototype，其 `__proto__` 为 null。
 
 - **`new` 关键字的作用**
 1. 创建一个新对象 `newFoo`
