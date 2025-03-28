@@ -19,7 +19,9 @@ import java.util.Optional;
 
 /**
  * 自定义订单仓储实现（基于JPA）
- *
+ * 本实现文件应该放在Infrastructure层以体现依赖倒置，Domain层只有接口
+ * 但Spring下@Repository注解默认仅从同一个包内扫描对应同名文件进行加载，故Impl需放在同一个目录下
+ * 
  * 优化点：
  * 1. JPQL集中管理，避免硬编码
  * 2. 增强参数校验与防御性编程
