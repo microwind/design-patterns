@@ -10,9 +10,9 @@ go-web/
 │   ├── domain/               # 领域层（核心业务逻辑和接口定义）
 │   │   ├── order/            # 订单聚合
 │   │   │   ├── order.go      # 订单实体（聚合根），包含核心业务逻辑
-│   │   │   └── order_repository.go # 订单仓储接口，定义对订单数据的操作
-│   │   ├── repository/       # [可选]通用仓库接口
+│   │   ├── repository/       # 通用仓库接口
 │   │   │   ├── repository.go # 通用仓库接口（通用 CRUD 操作）
+│   │   │   └── order_repository.go # 订单仓储接口，定义对订单数据的操作
 │   ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   ├── repository/       # 仓储实现
 │   │   │   └── order_repository_impl.go  # 订单仓储实现，具体的订单数据存储

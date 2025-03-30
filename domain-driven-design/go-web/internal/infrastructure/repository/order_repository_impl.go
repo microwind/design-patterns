@@ -8,7 +8,7 @@ import (
 
 // OrderRepositoryImpl 订单仓储实现，具体存储操作
 type OrderRepositoryImpl struct {
-  orders map[int64]*order.Order // 存储订单的内存映射
+  orders map[int64]*order.Order // 存储订单的内存映射，实际会使用数据库，此处仅演示
 }
 
 // NewOrderRepositoryImpl 创建新的订单仓储实现

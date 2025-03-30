@@ -4,6 +4,7 @@ package services
 import (
   "fmt"
   "go-web-order/internal/domain/order"
+  "go-web-order/internal/domain/repository"
   "math/rand"
   "sync"
   "time"
@@ -26,12 +27,12 @@ func GenerateOrderID() int64 {
 
 // OrderService 订单应用服务，协调领域逻辑和业务用例
 type OrderService struct {
-  OrderRepository order.OrderRepository // 使用订单仓储接口
-  // Repository order.OrderRepository // 使用通用接口声明
+  OrderRepository repository.OrderRepository // 使用订单仓储接口
+  // OrderRepository repository.Repository[order.Order] // 使用通用接口声明
 }
 
 // 创建OrderService实例对象
-func NewOrderService(orderRepo order.OrderRepository) *OrderService {
+func NewOrderService(orderRepo repository.OrderRepository) *OrderService {
   return &OrderService{orderRepo}
 }
 
