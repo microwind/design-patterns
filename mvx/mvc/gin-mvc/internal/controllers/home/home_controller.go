@@ -20,7 +20,7 @@ func GetIndex(c *gin.Context) {
   // 根路径返回 HTML 页面
   port := 8080
   htmlContent := fmt.Sprintf(`
-      <h1>Welcome to DDD example.</h1>
+      <h1>Welcome to Go MVC example.</h1>
       <pre>
       测试
       <code>

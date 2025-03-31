@@ -27,7 +27,8 @@ type OrderService interface {
   DeleteOrder(orderNo string) error
 }
 
-// OrderService 订单服务实现 OrderServiceInterface
+// OrderServiceImpl 订单服务实现 OrderService 接口
+// 如不实现接口，也可以只定义struct，接口会更加利于扩展
 type OrderServiceImpl struct {
   repo repository.OrderRepository
 }

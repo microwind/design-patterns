@@ -28,7 +28,7 @@ cache:
 
 log:
   format: json           # 日志格式，可选值: text, json
-  output: file         # 日志输出方式，可选值: stdout（标准输出）或 file（文件输出）
+  output: stdout         # 日志输出方式，可选值: stdout（标准输出）或 file（文件输出）
   level: "debug"          # 日志级别，可选值: debug, info, warn, error, fatal
   file: "logs/app.log"   # 日志文件路径，仅在 output 设置为 file 时生效
   max_size: 10           # 单个日志文件的最大大小（单位 MB），超出后会创建新文件

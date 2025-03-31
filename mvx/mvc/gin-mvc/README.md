@@ -91,7 +91,8 @@ $ go get -u gorm.io/driver/mysql
 $ go mod tidy
 
 # 运行服务
-$ go run cmd/main.go
+$ go run cmd/main.go # 默认 test 环境
+$ APP_ENV=production go run cmd/main.go # production 环境
 
 # 查看服务
 $ curl -X GET http://localhost:8080

@@ -52,6 +52,7 @@ func (f *PlainTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 // Init 初始化日志配置
 func Init(cfg *config.Config) {
+  log.Info("init config log:", config.GetConfig().Log)
   config := cfg.Log
   // 设置日志格式
   if config.Format == "json" {

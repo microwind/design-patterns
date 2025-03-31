@@ -37,7 +37,7 @@ func main() {
   gin.SetMode(gin.ReleaseMode)       // 强制切换为生产模式[1,5](@ref)
   defaultEnv := os.Getenv("APP_ENV") // 读取系统环境变量，默认test
   // 解析命令行参数
-  env := flag.String("env", defaultEnv, "Application environment (production, test)")
+  env := flag.String("env", defaultEnv, "Application environment (production, test, dev)")
   flag.Parse()
 
   // 初始化配置
@@ -45,13 +45,22 @@ func main() {
 
   // 获取配置
   cfg := config.GetConfig()
-  logger.Info("Config loaded successfully. " + cfg.Server.Addr) // 使用 logger 记录信息
-  logger.Println("config:\r\n", cfg)
 
   // 初始化日志
   logger.Init(cfg)
 
-  r := gin.Default()
+  logger.Info("Config loaded successfully. " + cfg.Server.Addr) // 使用 logger 记录信息
+  logger.Println("config:\r\n", cfg)
+
+  // r := gin.Default()
+
+  r := gin.New() // 不使用 gin.Default()，避免默认日志污染 logrus
+  // 替换 Gin 日志
+  r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+    Output: logger.GetLogger().Out, // 让 Gin 访问日志输出到 logrus
+  }))
+  r.Use(gin.Recovery())
+
   // 斜杠自动重定向
   r.RedirectTrailingSlash = true
 

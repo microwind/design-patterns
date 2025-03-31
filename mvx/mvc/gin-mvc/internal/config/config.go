@@ -135,7 +135,7 @@ func Init(env *string) {
 		cfg, err := LoadConfig[Config](filePath); 
     if err == nil {
       configInstance = cfg
-      fmt.Printf("Configuration initialized successfully in %s environment.", configFile)
+      fmt.Printf("Configuration initialized successfully in %s environment. ", configFile)
     } else {
       fmt.Println("Failed to initialize config: %w", err)
     }
