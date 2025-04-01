@@ -1,72 +1,74 @@
-# DDD 分层架构设计概述
+# Overview of DDD Layered Architecture Design
 
-领域驱动设计（Domain-Driven Design，简称 DDD）是一种软件架构方法，通过分层结构和领域建模来应对复杂业务逻辑。它将代码组织为高内聚、低耦合的不同层次，确保各部分职责明确，易于维护和扩展。
+Domain-Driven Design (DDD) is a software architectural approach that aims to manage complex business logic through layering and domain modeling. DDD primarily organizes code using a layered architecture to achieve high cohesion and low coupling.
 
-与传统的 MVC 架构相比，DDD 更侧重于抽象基础设施和领域层：复杂的业务规则和逻辑被集中放置在领域层，而强大的基础设施则为领域层提供有力支持。这种设计理念非常适合构建复杂的企业级应用，使系统更具弹性和可持续发展性。
+Compared with traditional MVC architectures, DDD places greater emphasis on abstracting the infrastructure and domain layers: complex business rules and logic are centralized in the domain layer, while robust infrastructure strongly supports it. This design philosophy is particularly well-suited for building complex enterprise-level applications, making systems more resilient and sustainable.
 
-![](../docs/mvc-ddd/mvc-ddd.png)
+![](../docs/mvc-ddd/mvc-ddd-en.png)
 
-## DDD 结构图形示例
+View Source: https://github.com/microwind/design-patterns/tree/main/domain-driven-design
+
+Example Diagram of the DDD Structure
 
 ```
 +--------------------+
-|     用户界面层       |
-|   User Interface   |
+|    User Interface  |
+|     Layer (UI)     |
 +--------------------+
           |
           v
 +--------------------+
-|   应用服务层         |
 |  Application Layer |
+|   (Application)    |
 +--------------------+
           |
           v
 +--------------------+
-|       领域层        |
 |    Domain Layer    |
+|      (Domain)      |
 +--------------------+
           |
           v
 +----------------------+
-|   基础设施层           |
 | Infrastructure Layer |
+|  (Repository Impl)   |
 +----------------------+
 ```
 
-### 各层职责
-- **用户界面（UI）层**：处理用户输入与展示信息。
-- **应用服务层**：负责应用层流程逻辑，协调领域层的操作。
-- **领域层**：实现核心业务逻辑，包括实体、值对象、聚合、领域服务等。
-- **基础设施层**：提供数据库、外部 API、消息队列等技术支持。
+### Responsibilities of Each Layer
+- **User Interface (UI) Layer:** Handles user input and displays information.
 
-> DDD将MVC的“业务逻辑层”拆分为应用层​（流程编排）和领域层​（业务规则内聚），业务逻辑内聚于领域内，将业务能力划分为领域模块（如支付域、风控域），取代MVC的纯技术分层，以降低跨模块耦合。
+- **Application Layer:** Manages application flow logic and coordinates operations within the domain layer.
 
-### 依赖倒置原则
+- **Domain Layer:** Implements core business logic, including entities, value objects, aggregates, domain services, etc.
 
-领域层不应直接依赖基础设施，而是通过 **接口（Interface）** 进行依赖倒置（DIP）。Domain是最核心的内层，仅定义业务规则和接口抽象，其他层级依赖Domain实现，Domain不依赖任何外部实现。
+- **Infrastructure Layer:** Provides technical support such as databases, external APIs, message queues, and more.
 
-## DDD 分层架构与 MVX 分层架构的对比
+> DDD splits the “business logic layer” in MVC into two distinct layers: the Application Layer (for process orchestration) and the Domain Layer (where business rules are cohesively encapsulated). In this approach, business logic is concentrated within the domain, and business capabilities are divided into domain modules (for example, a Payment Domain or a Risk Control Domain). This model replaces the purely technical layering of MVC, thereby reducing cross-module coupling.
 
-| 特性       | MVX（MVC/MVP/MVVM） | DDD（领域驱动设计） |
-|------------|---------------------|---------------------|
-| 主要目标   | 分离 UI、业务逻辑和数据 | 解决复杂领域建模与业务逻辑 |
-| 关注点     | UI 驱动，适用于前端开发 | 领域驱动，适用于复杂业务系统 |
-| 层次       | 3 层（Model、View、X） | 4 层（UI、应用、领域、基础设施） |
-| 适用场景   | 前端框架、强交互应用     | 企业级系统、复杂业务领域 |
+## Comparison between DDD Layered Architecture and MVX Layered Architecture
 
-## DDD 的应用场景
+| Feature             | MVX (MVC/MVP/MVVM)                          | DDD (Domain-Driven Design)                        |
+|---------------------|---------------------------------------------|---------------------------------------------------|
+| Primary Goal        | Separate UI, business logic, and data       | Solve complex domain modeling and business logic  |
+| Focus               | UI-driven, suitable for front-end development | Domain-driven, ideal for complex business systems |
+| Layers              | 3 layers (Model, View, X)                     | 4 layers (UI, Application, Domain, Infrastructure) |
+| Applicable Scenarios| Front-end frameworks, highly interactive applications | Enterprise systems, complex business domains  |
 
-- **企业级系统**，如电商平台、ERP、银行系统。
-- **业务逻辑复杂**，需要清晰的领域建模。
-- **多个系统交互**，涉及数据库、外部 API、消息队列等。
-- **团队协作开发**，需要业务人员和开发人员紧密合作。
+## Application Scenarios for DDD
+- **Enterprise Systems**: such as e-commerce platforms, ERP systems, banking systems.
+- **Complex Business Logic**: where clear domain modeling is required.
+- **Multiple System Interactions**: involving databases, external APIs, message queues, etc.
+- **Team Collaborative Development**: where business personnel and developers work closely together.
 
-## DDD 的例子（C、Java、JavaScript、Go、Python）
+## DDD Examples in C, Java, JavaScript, Go, and Python
 
-### C 语言实现 DDD
-C 语言不支持 OOP，但可以用结构体和函数模块化实现 DDD。
+### Implementing DDD in C
+
+Although C does not support Object-Oriented Programming (OOP), you can implement DDD principles using structures and functions for modular design.
+
 ```c
-/* 用户界面层（UI Layer）*/
+/* User Interface Layer (UI Layer) */
 // ui.c
 #include <stdio.h>
 #include "application.h"
@@ -82,7 +84,7 @@ int main() {
     return 0;
 }
 
-/* 应用服务层（Application Layer）*/
+/* Application Service Layer (Application Layer) */
 // order_service.c
 #include <string.h>
 #include "application.h"
@@ -103,7 +105,7 @@ Order get_order(OrderService *service, const char *id) {
     return find_order(&service->repo, id);
 }
 
-/* 领域层（Domain Layer）*/
+/* Domain Layer */
 // order.h
 #ifndef DOMAIN_H
 #define DOMAIN_H
@@ -116,7 +118,7 @@ typedef struct {
 
 #endif
 
-/* 基础设施层（Infrastructure Layer）*/
+/* Infrastructure Layer */
 // order_repository.c
 #include <stdio.h>
 #include <string.h>
@@ -141,9 +143,10 @@ Order find_order(OrderRepository *repo, const char *id) {
 }
 ```
 
-### Java 语言实现 DDD
+### Implementing DDD in Java
+
 ```java
-/* 用户界面层（UI Layer）*/
+/* User Interface Layer (UI Layer) */
 // UI.java
 public class UI {
     public static void main(String[] args) {
@@ -155,7 +158,7 @@ public class UI {
     }
 }
 
-/* 应用服务层（Application Layer）*/
+/* Application Service Layer (Application Layer) */
 // OrderService.java
 class OrderService {
     private OrderRepository repository = new OrderRepository();
@@ -170,7 +173,7 @@ class OrderService {
     }
 }
 
-/* 领域层（Domain Layer）*/
+/* Domain Layer */
 // Order.java
 class Order {
     String id, customerName;
@@ -182,14 +185,16 @@ class Order {
         this.amount = amount;
     }
 
+    @Override
     public String toString() {
         return id + ", " + customerName + ", " + amount;
     }
 }
 
-/* 基础设施层（Infrastructure Layer）*/
+/* Infrastructure Layer */
 // OrderRepository.java
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 class OrderRepository {
     private Map<String, Order> db = new HashMap<>();
@@ -204,9 +209,10 @@ class OrderRepository {
 }
 ```
 
-### Go 语言实现 DDD
+### Implementing DDD in Go
+
 ```go
-/* 用户界面层（UI Layer）*/
+/* User Interface Layer (UI Layer) */
 // ui.go
 func main() {
 	repo := NewOrderRepository()
@@ -218,7 +224,7 @@ func main() {
 	fmt.Println("Retrieved Order:", order)
 }
 
-/* 应用服务层（Application Layer）*/
+/* Application Service Layer (Application Layer) */
 // order_service.go
 type OrderService struct {
 	repo *OrderRepository
@@ -237,7 +243,7 @@ func (s *OrderService) GetOrder(id string) Order {
 	return s.repo.FindById(id)
 }
 
-/* 领域层（Domain Layer）*/
+/* Domain Layer */
 // order.go
 type Order struct {
 	ID           string
@@ -245,7 +251,7 @@ type Order struct {
 	Amount       float64
 }
 
-/* 基础设施层（Infrastructure Layer）*/
+/* Infrastructure Layer */
 // order_repository.go
 type OrderRepository struct {
 	data map[string]Order
@@ -264,11 +270,10 @@ func (r *OrderRepository) FindById(id string) Order {
 }
 ```
 
+### Implementing DDD in Python
 
-### Python 语言实现 DDD
-```py
-
-# 用户界面层（UI Layer）
+```python
+# User Interface Layer (UI Layer)
 # ui.py
 from application import OrderService
 
@@ -278,8 +283,7 @@ order = service.get_order("1001")
 
 print(f"Retrieved Order: {order}")
 
-
-# 应用服务层（Application Layer）
+# Application Service Layer (Application Layer)
 # order_service.py
 from domain import Order
 from infrastructure import OrderRepository
@@ -295,8 +299,7 @@ class OrderService:
     def get_order(self, order_id):
         return self.repository.get(order_id)
 
-
-# 领域层（Domain Layer）
+# Domain Layer
 # order.py
 class Order:
     def __init__(self, order_id, customer_name, amount):
@@ -307,7 +310,7 @@ class Order:
     def __str__(self):
         return f"{self.order_id}, {self.customer_name}, {self.amount}"
 
-# 基础设施层（Infrastructure Layer）
+# Infrastructure Layer
 # order_repository.py
 class OrderRepository:
     def __init__(self):
@@ -318,12 +321,12 @@ class OrderRepository:
 
     def get(self, order_id):
         return self.db.get(order_id, None)
-
 ```
 
-### JavaScript (Node.js版)  实现 DDD
+### Implementing DDD in JavaScript (Node.js Version)
+
 ```javascript
-/* 用户界面层（UI Layer）*/
+/* User Interface Layer (UI Layer) */
 // UI.js
 const OrderService = require("./OrderService");
 
@@ -331,7 +334,7 @@ const service = new OrderService();
 service.createOrder("1001", "Alice", 250.5);
 console.log("Retrieved Order:", service.getOrder("1001"));
 
-/* 应用服务层（Application Layer）*/
+/* Application Service Layer (Application Layer) */
 // OrderService.js
 const Order = require("./Order");
 const OrderRepository = require("./OrderRepository");
@@ -353,7 +356,7 @@ class OrderService {
 
 module.exports = OrderService;
 
-/* 领域层（Domain Layer）*/
+/* Domain Layer */
 // Order.js
 class Order {
     constructor(id, customerName, amount) {
@@ -365,7 +368,7 @@ class Order {
 
 module.exports = Order;
 
-/* 基础设施层（Infrastructure Layer）*/
+/* Infrastructure Layer */
 // OrderRepository.js
 class OrderRepository {
     constructor() {
@@ -384,9 +387,10 @@ class OrderRepository {
 module.exports = OrderRepository;
 ```
 
-### JavaScript (前端版)  实现 DDD
+### Implementing DDD in JavaScript (Frontend Version)
+
 ```javascript
-/* 应用服务层（Application Layer）*/
+/* Application Service Layer */
 // OrderService.js
 class OrderService {
     constructor(repository) {
@@ -403,7 +407,7 @@ class OrderService {
     }
 }
 
-/* 领域层（Domain Layer）*/
+/* Domain Layer */
 // Order.js
 class Order {
     constructor(id, customerName, amount) {
@@ -413,12 +417,12 @@ class Order {
     }
 }
 
-/* 基础设施层（Infrastructure Layer）*/
+/* Infrastructure Layer */
 // OrderRepository.js
 class OrderRepository {
     constructor() {
-        this.apiUrl = ""; // 模拟无 API 的情况
-        // 模拟数据
+        this.apiUrl = ""; // Simulating absence of an API
+        // Mock data
         this.mockData = [
             new Order("1001", "Alice", 250.5),
             new Order("1002", "Bob", 150.0)
@@ -427,11 +431,11 @@ class OrderRepository {
 
     async save(order) {
         if (!this.apiUrl) {
-            // 如果 apiUrl 为空，直接将订单添加到模拟数据中
+            // If apiUrl is empty, directly add the order to mock data
             this.mockData.push(order);
-            return { success: true, message: "订单保存成功", data: order };
+            return { success: true, message: "Order saved successfully", data: order };
         }
-        // 否则，执行实际的 API 请求
+        // Otherwise, perform an actual API request
         try {
             const response = await fetch(this.apiUrl, {
                 method: "POST",
@@ -439,43 +443,43 @@ class OrderRepository {
                 body: JSON.stringify(order)
             });
             const data = await response.json();
-            return { success: true, message: "订单保存成功", data: data };
+            return { success: true, message: "Order saved successfully", data: data };
         } catch (error) {
-            console.error("保存订单失败:", error);
-            return { success: false, message: "保存订单失败", data: null };
+            console.error("Failed to save order:", error);
+            return { success: false, message: "Failed to save order", data: null };
         }
     }
 
     async getAll() {
         if (!this.apiUrl) {
-            // 如果 apiUrl 为空，返回模拟数据
+            // If apiUrl is empty, return mock data
             return this.mockData;
         }
-        // 否则，执行实际的 API 请求
+        // Otherwise, perform an actual API request
         try {
             const response = await fetch(this.apiUrl);
             const data = await response.json();
             return data || [];
         } catch (error) {
-            console.error("获取订单列表失败:", error);
+            console.error("Failed to retrieve order list:", error);
             return [];
         }
     }
 }
 
-/* 用户界面层（UI Layer）*/
+/* User Interface Layer */
 // UI.js
 class View {
     constructor(selector) {
         this.$ele = document.querySelector(selector);
         this.template = `
             <div>
-                <h2>订单管理</h2>
+                <h2>Order Management</h2>
                 <form id="orderForm">
-                    <input type="text" id="orderId" placeholder="订单 ID" required>
-                    <input type="text" id="customerName" placeholder="客户名称" required>
-                    <input type="number" id="amount" placeholder="金额" required>
-                    <button type="submit">提交订单</button>
+                    <input type="text" id="orderId" placeholder="Order ID" required>
+                    <input type="text" id="customerName" placeholder="Customer Name" required>
+                    <input type="number" id="amount" placeholder="Amount" required>
+                    <button type="submit">Submit Order</button>
                 </form>
                 <ul id="orderList"></ul>
             </div>
@@ -504,39 +508,37 @@ class View {
         const orders = await orderService.getAllOrders();
         const $orderList = this.$ele.querySelector("#orderList");
         $orderList.innerHTML = orders
-            .map(order => `<li>ID: ${order.id}, 客户: ${order.customerName}, 金额: ${order.amount}</li>`)
+            .map(order => `<li>ID: ${order.id}, Customer: ${order.customerName}, Amount: ${order.amount}</li>`)
             .join("");
     }
 }
 
-// **初始化**
+// **Initialization**
 const orderService = new OrderService(new OrderRepository());
 const app = new View("#app");
 app.init();
 app.updateOrderList();
 ```
 
+## Summary
+- **DDD is suitable for complex business systems**, emphasizing domain modeling and high cohesion with low coupling.
+- **MVX is suitable for frontend applications with clear UI structures**, focusing on the separation of UI and business logic.
+- **DDD can be implemented in various programming languages**, with the key being adherence to layered architecture principles.
 
-## 总结
-- **DDD 适用于复杂业务系统**，强调领域建模和高内聚低耦合。
-- **MVX 适用于 UI 结构清晰的前端应用**，重点在于 UI 与业务逻辑的分离。
-- **不同语言都可以实现 DDD**，关键是遵循分层架构原则。
+## Final Thoughts
+- **Should DDD be used?** Not every project is suitable for DDD; its adoption should be based on the project's specific context and requirements.
+- **What does 'suitable' mean?** It means that the development and maintenance processes are clear, reliable, and efficient for the development team.
 
-## 最后
-- **要用DDD吗？** 不是每个项目都适合DDD，是否采用DDD应当根据项目的实际情况来。
-- **什么叫适合？** 就是开发团队开发和维护起来最清晰、最靠谱、最轻松就是最适合的。
+## Source Code
 
-## 源码
+DDD is essentially a code organization strategy aimed at helping developers understand, construct, and maintain systems more efficiently. While different programming languages have their unique features, they can all implement clear, maintainable, and scalable codebases based on the DDD architecture.
 
-DDD本质上是一种代码组织策略，旨在帮助开发者更高效地理解、构建和维护系统。不同编程语言特点不同，但都能基于DDD架构构造出清晰、易维护、可扩展的代码。
+- [DDD Source Code Repository](https://github.com/microwind/design-patterns/tree/main/domain-driven-design)
+- [DDD in Go](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/go-web) — Implementation of DDD architecture in Go
+- [DDD in Java](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/java-web) — Implementation of DDD architecture in Java
+- [DDD in JavaScript (Node.js)](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/node-web) — Implementation of DDD architecture in JavaScript (Node.js)
+- [DDD in Python](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/python-web) — Implementation of DDD architecture in Python
+- [DDD in C](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/c) — Implementation of DDD architecture in C
+- [DDD in Rust](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/rust) — Implementation of DDD architecture in Rust
+- [DDD with Spring Boot](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/spring-ddd) — Implementation of DDD architecture using Spring Boot framework
 
-- [DDD源码仓库](https://github.com/microwind/design-patterns/tree/main/domain-driven-design)
-- [DDD Go语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/go-web) 原始Go语言体现DDD架构
-- [DDD Java语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/java-web) 原始Java语言体现DDD架构
-- [DDD JS语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/node-web) 原始JS语言体现DDD架构
-- [DDD python语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/python-web) 原始Python语言体现DDD架构
-- [DDD C语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/c) 原始C语言体现DDD架构
-- [DDD Rust语言版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/rust) 原始C语言体现DDD架构
-- [DDD Springboot框架版](https://github.com/microwind/design-patterns/tree/main/domain-driven-design/spring-ddd) 基于Springboot框架的DDD架构
-
-[英文版本](https://medium.com/@microwind/ddd-layered-architecture-overview-b1eb2026504d)
