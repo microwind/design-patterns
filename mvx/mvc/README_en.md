@@ -4,6 +4,8 @@
 
 Model-View-Controller (MVC) is a classic software architecture design pattern that decouples components to create a clear and maintainable system structure with good scalability. MVC is suitable for applications that require a clear separation of user interface, business logic, and data management. Over time, architectures like MVP, MVVM, and Domain-Driven Design (DDD) have evolved from MVC, aiming to simplify complex systems and enhance understanding.
 
+![](../../docs/mvc-ddd/mvc-ddd.png)
+
 ## MVC Structural Diagram Example
 
 Taking web backend development as an example:

@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+// 基础层负责实现领域层定义的接口（如 Repository 接口的具体实现），
+// 同时处理与外部技术（数据库、消息队列、事件总线等）的集成。
 public class MessageQueueService {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageQueueService.class);
