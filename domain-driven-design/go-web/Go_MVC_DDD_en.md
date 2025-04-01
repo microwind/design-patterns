@@ -4,6 +4,8 @@
 
 In the `Java` ecosystem, many systems have gradually shifted from MVC to DDD. However, in languages such as `Go`, `Python`, and `NodeJS`—where simplicity and efficiency are prioritized—MVC remains the mainstream architecture. Below, we explore the differences in directory structures between MVC and DDD using Go as an example.
 
+![](../../docs/mvc-ddd/mvc-ddd-en.png)
+
 ## MVC Diagram Structure
 ```c
 +------------------+
