@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%E9%9D%A2%E5%90%91%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B%E6%A6%82%E8%BF%B0">面向切面编程概述</h1>
+<p>面向切面编程(Aspect-Oriented Programming, AOP)，动态地将代码切入到类的指定方法或指定位置上的编程思想，通过分离横切关注点（cross-cutting concerns）来提高代码的模块化。横切关注点是指那些跨越多个模块的功能，例如日志记录、安全性、事务管理等。AOP 通过将这些关注点从核心业务逻辑中分离出来，使得代码更加清晰、易于维护。</p>
+<h2 id="%E7%BB%93%E6%9E%84%E5%9B%BE%E5%BD%A2%E7%A4%BA%E4%BE%8B">结构图形示例</h2>
+<pre class="hljs"><code><div>AOP 通过“切面”（Aspect）将这些关注点模块化，并在运行时将它们织入（weave）到核心逻辑中。
++-------------------+
+|    Core Business   |
+|      Logic         |
++-------------------+
+          |
+          |  (横切关注点)
+          v
++-------------------+
+|    Aspect         |
+|  (Logging, Security, etc.) |
++-------------------+
+</div></code></pre>
+<h2 id="%E4%BD%9C%E7%94%A8%E4%B8%8E%E4%BC%98%E7%BC%BA%E7%82%B9">作用与优缺点</h2>
+<p><strong>作用：</strong></p>
+<ul>
+<li>模块化横切关注点：将日志、安全性、事务管理等横切关注点从核心业务逻辑中分离出来。</li>
+<li>代码复用：通过切面，可以在多个地方复用相同的横切逻辑。</li>
+</ul>
+<p><strong>优点：</strong></p>
+<ul>
+<li>提高模块化：减少代码重复和依赖。</li>
+<li>增强可维护性：更容易管理和更新横切关注点。</li>
+<li>提高可重用性：切面可以在应用程序的不同部分中重用。</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>复杂性：可能会引入复杂性，尤其是对于新接触 AOP 的开发人员。</li>
+<li>性能开销：织入可能会引入一些性能开销。</li>
+<li>调试困难：由于关注点的分离，调试可能会更加困难。</li>
+</ul>
+<h2 id="%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A8%8B%E8%8C%83%E5%BC%8F%E7%9A%84%E5%AF%B9%E6%AF%94">与其他编程范式的对比</h2>
+<ul>
+<li>面向对象编程（OOP）：OOP 通过类和对象来组织代码，而 AOP 则通过切面来处理横切关注点。AOP 可以看作是 OOP 的补充，用于处理 OOP 难以模块化的横切关注点。</li>
+<li>函数式编程（FP）：FP 强调不可变数据和纯函数，而 AOP 则关注于横切关注点的模块化。两者可以结合使用，例如在函数式编程中使用 AOP 来处理日志记录等横切关注点。</li>
+<li>过程式编程（PP）：过程式编程通常将横切关注点直接嵌入到业务逻辑中，导致代码重复和难以维护。AOP 通过分离这些关注点，提高了代码的模块化。</li>
+</ul>
+<h2 id="%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">应用场景</h2>
+<ul>
+<li>日志记录：在多个模块中记录日志是一个典型的横切关注点，AOP 可以将其模块化。</li>
+<li>安全性：在多个方法或接口中检查用户权限，AOP 可以统一处理。</li>
+<li>事务管理：在数据库操作中管理事务，AOP 可以确保事务的一致性和完整性。</li>
+<li>性能监控：在多个方法中监控性能，AOP 可以统一收集和分析性能数据。</li>
+</ul>
+<h2 id="%E7%AE%80%E5%8D%95%E4%BE%8B%E5%AD%90">简单例子</h2>
+<pre class="hljs"><code><div><span class="hljs-comment">// C 语言本身不支持 AOP，但可以通过宏或函数指针模拟类似的功能。</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> LOG(fn) \
+    printf(<span class="hljs-meta-string">"Entering %s\n"</span>, #fn); \
+    fn(); \
+    printf(<span class="hljs-meta-string">"Exiting %s\n"</span>, #fn);</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">business_logic</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">"Business logic\n"</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+    LOG(business_logic);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-comment">// C# 可以使用 Castle DynamicProxy 实现 AOP 日志记录：</span>
+<span class="hljs-keyword">using</span> System;
+<span class="hljs-keyword">using</span> Castle.DynamicProxy;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">LoggerInterceptor</span> : <span class="hljs-title">IInterceptor</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Intercept</span>(<span class="hljs-params">IInvocation invocation</span>)</span>
+    {
+        Console.WriteLine(<span class="hljs-string">$"Before method <span class="hljs-subst">{invocation.Method.Name}</span>"</span>);
+        invocation.Proceed();
+        Console.WriteLine(<span class="hljs-string">$"After method <span class="hljs-subst">{invocation.Method.Name}</span>"</span>);
+    }
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">MyService</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoSomething</span>(<span class="hljs-params"></span>)</span>
+    {
+        Console.WriteLine(<span class="hljs-string">"Doing something..."</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title">Program</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"></span>)</span>
+    {
+        <span class="hljs-keyword">var</span> proxyGenerator = <span class="hljs-keyword">new</span> ProxyGenerator();
+        <span class="hljs-keyword">var</span> loggerInterceptor = <span class="hljs-keyword">new</span> LoggerInterceptor();
+        <span class="hljs-keyword">var</span> myServiceProxy = proxyGenerator.CreateClassProxy&lt;MyService&gt;(loggerInterceptor);
+        myServiceProxy.DoSomething();
+    }
+}
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-comment">// Java 中有成熟的 AOP 框架，如 Spring AOP 和 AspectJ。</span>
+<span class="hljs-keyword">import</span> org.aspectj.lang.annotation.Aspect;
+<span class="hljs-keyword">import</span> org.aspectj.lang.annotation.Before;
+<span class="hljs-keyword">import</span> org.aspectj.lang.annotation.After;
+
+<span class="hljs-meta">@Aspect</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LoggingAspect</span> </span>{
+
+    <span class="hljs-meta">@Before</span>(<span class="hljs-string">"execution(* com.example.BusinessLogic.*(..))"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">logBefore</span><span class="hljs-params">()</span> </span>{
+        System.out.println(<span class="hljs-string">"Before business logic"</span>);
+    }
+
+    <span class="hljs-meta">@After</span>(<span class="hljs-string">"execution(* com.example.BusinessLogic.*(..))"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">logAfter</span><span class="hljs-params">()</span> </span>{
+        System.out.println(<span class="hljs-string">"After business logic"</span>);
+    }
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BusinessLogic</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doSomething</span><span class="hljs-params">()</span> </span>{
+        System.out.println(<span class="hljs-string">"Doing business logic"</span>);
+    }
+}
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-comment">// Go 没有内置的 AOP 支持，但可以通过高阶函数和接口模拟 AOP。</span>
+<span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> <span class="hljs-string">"fmt"</span>
+
+<span class="hljs-keyword">type</span> Logger <span class="hljs-keyword">interface</span> {
+    Log(message <span class="hljs-keyword">string</span>)
+}
+
+<span class="hljs-keyword">type</span> SimpleLogger <span class="hljs-keyword">struct</span>{}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(l SimpleLogger)</span> <span class="hljs-title">Log</span><span class="hljs-params">(message <span class="hljs-keyword">string</span>)</span></span> {
+    fmt.Println(<span class="hljs-string">"日志:"</span>, message)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">performAction</span><span class="hljs-params">(logger Logger)</span></span> {
+    logger.Log(<span class="hljs-string">"执行操作"</span>)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    logger := SimpleLogger{}
+    performAction(logger)
+}
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-comment">// JavaScript 可以通过高阶函数或使用 AOP 库（如 aspect.js）实现 AOP。</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">logBefore</span>(<span class="hljs-params">fn</span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Before business logic"</span>);
+        fn();
+    };
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">logAfter</span>(<span class="hljs-params">fn</span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+        fn();
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"After business logic"</span>);
+    };
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">businessLogic</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Doing business logic"</span>);
+}
+
+<span class="hljs-keyword">const</span> wrappedLogic = logAfter(logBefore(businessLogic));
+wrappedLogic();
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-comment">// JavaScript 中可以使用 Proxy 对象实现简单的 AOP 日志记录：</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">LoggerInterceptor</span>(<span class="hljs-params">target</span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Proxy</span>(target, {
+        <span class="hljs-keyword">get</span>(target, property) {
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> target[property] === <span class="hljs-string">'function'</span>) {
+                <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">...args</span>) </span>{
+                    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Before method <span class="hljs-subst">${property}</span>`</span>);
+                    <span class="hljs-keyword">const</span> result = target[property].apply(target, args);
+                    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`After method <span class="hljs-subst">${property}</span>`</span>);
+                    <span class="hljs-keyword">return</span> result;
+                };
+            }
+            <span class="hljs-keyword">return</span> target[property];
+        }
+    });
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyService</span> </span>{
+    doSomething() {
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Doing something..."</span>);
+    }
+}
+
+<span class="hljs-keyword">const</span> myService = <span class="hljs-keyword">new</span> MyService();
+<span class="hljs-keyword">const</span> interceptedService = LoggerInterceptor(myService);
+interceptedService.doSomething();
+</div></code></pre>
+
+</body>
+</html>
