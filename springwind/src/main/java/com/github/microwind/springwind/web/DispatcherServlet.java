@@ -8,7 +8,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +35,7 @@ public class DispatcherServlet extends HttpServlet {
                 throw new ServletException("未配置configClass参数（需指定Spring配置类的全限定名）");
             }
 
-            // 2. 将字符串类名转换为Class对象（避免使用String.getClass()）
+            // 2. 将字符串类名转换为Class对象
             Class<?> configClass = Class.forName(configClassName);
 
             // 3. 初始化Spring容器（此时容器会扫描configClass所在包下的@Controller）
@@ -67,31 +69,30 @@ public class DispatcherServlet extends HttpServlet {
             // 1. 解析类级别@RequestMapping（拼接基础路径）
             String basePath = "";
             if (clazz.isAnnotationPresent(RequestMapping.class)) {
-                basePath = clazz.getAnnotation(RequestMapping.class).value();
-                // 处理路径格式（避免重复"/"，如basePath为""时不拼接）
-                if (!basePath.isEmpty() && !basePath.startsWith("/")) {
-                    basePath = "/" + basePath;
-                }
+                basePath = normalizePath(clazz.getAnnotation(RequestMapping.class).value());
             }
 
-            // 2. 解析方法级别@RequestMapping（使用getDeclaredMethods()获取当前类方法）
-            for (Method method : clazz.getDeclaredMethods()) { // 替换为getDeclaredMethods()
+            // 2. 解析方法级别@RequestMapping（使用getMethods()获取包括继承的公共方法）
+            for (Method method : clazz.getMethods()) {
                 if (method.isAnnotationPresent(RequestMapping.class)) {
                     RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 
                     // 处理方法路径格式
-                    String methodPath = requestMapping.value();
-                    if (methodPath.isEmpty() || !methodPath.startsWith("/")) {
-                        methodPath = "/" + methodPath;
-                    }
+                    String methodPath = normalizePath(requestMapping.value());
 
                     // 拼接完整路径（类路径 + 方法路径）
-                    String fullPath = basePath + methodPath;
-                    // 获取HTTP方法（如"GET"、"POST"）
-                    String httpMethod = requestMapping.method().toUpperCase(); // 统一大写，避免大小写问题
+                    String fullPath = combinePaths(basePath, methodPath);
+
+                    // 获取HTTP方法（如"GET"、"POST"），提供默认值
+                    String httpMethod = requestMapping.method().trim();
+                    if (httpMethod.isEmpty()) {
+                        httpMethod = "GET"; // 默认GET方法
+                    }
+                    httpMethod = httpMethod.toUpperCase(); // 统一大写
 
                     // 生成映射Key（格式：HTTP方法:完整路径）
                     String mappingKey = httpMethod + ":" + fullPath;
+
                     // 存储映射（避免重复Key覆盖）
                     if (handlerMappings.containsKey(mappingKey)) {
                         throw new RuntimeException("存在重复的请求映射：" + mappingKey);
@@ -103,29 +104,45 @@ public class DispatcherServlet extends HttpServlet {
         }
     }
 
-    private String getString(Method method, String basePath) {
-        RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-
-        // 处理方法路径格式（如"/info"）
-        String methodPath = requestMapping.value();
-        if (methodPath.isEmpty() || !methodPath.startsWith("/")) {
-            methodPath = "/" + methodPath;
+    /**
+     * 规范化路径，确保格式正确
+     */
+    private String normalizePath(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            return "";
         }
-
-        // 拼接完整路径（类路径 + 方法路径，如"/user/info"）
-        String fullPath = basePath + methodPath;
-        // 获取HTTP方法（如"GET"、"POST"）
-        String httpMethod = requestMapping.method().toUpperCase(); // 统一大写，避免大小写问题
-
-        // 生成映射Key（格式：HTTP方法:完整路径，如"GET:/user/info"）
-        String mappingKey = httpMethod + ":" + fullPath;
-        // 存储映射（避免重复Key覆盖）
-        if (handlerMappings.containsKey(mappingKey)) {
-            throw new RuntimeException("存在重复的请求映射：" + mappingKey);
+        path = path.trim();
+        // 确保以单个斜杠开头
+        if (!path.startsWith("/")) {
+            path = "/" + path;
         }
-        return mappingKey;
+        // 去除尾部斜杠（除非是根路径）
+        if (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
     }
 
+    /**
+     * 合并两个路径，处理中间可能出现的双斜杠问题
+     */
+    private String combinePaths(String path1, String path2) {
+        if (path1.isEmpty()) {
+            return path2;
+        }
+        if (path2.isEmpty()) {
+            return path1;
+        }
+
+        // 确保中间只有一个斜杠
+        if (path1.endsWith("/") && path2.startsWith("/")) {
+            return path1 + path2.substring(1);
+        } else if (!path1.endsWith("/") && !path2.startsWith("/")) {
+            return path1 + "/" + path2;
+        } else {
+            return path1 + path2;
+        }
+    }
 
     /**
      * 处理HTTP请求
@@ -144,27 +161,58 @@ public class DispatcherServlet extends HttpServlet {
         HandlerMapping handlerMapping = handlerMappings.get(key);
         if (handlerMapping != null) {
             try {
-                // 调用处理方法（注意：Controller方法参数需与invoke参数匹配）
-                // 若Controller方法无参数（如getUserInfo()），则invoke第二个参数传null或空数组
-                Object result;
-                Method targetMethod = handlerMapping.getMethod();
-                Class<?>[] paramTypes = targetMethod.getParameterTypes();
-                if (paramTypes.length == 0) {
-                    result = targetMethod.invoke(handlerMapping.getController());
-                } else {
-                    // 若方法有参数（如(HttpServletRequest, HttpServletResponse)），则传入req和resp
-                    result = targetMethod.invoke(handlerMapping.getController(), req, resp);
-                }
+                // 解析方法参数
+                Object[] methodArgs = resolveMethodParameters(handlerMapping.getMethod(), req, resp);
+
+                // 调用处理方法
+                Object result = handlerMapping.getMethod().invoke(handlerMapping.getController(), methodArgs);
 
                 // 处理返回结果
                 handleResult(result, req, resp);
+            } catch (InvocationTargetException e) {
+                Throwable targetException = e.getTargetException();
+                if (targetException instanceof ServletException) {
+                    throw (ServletException) targetException;
+                } else if (targetException instanceof IOException) {
+                    throw (IOException) targetException;
+                } else {
+                    throw new ServletException("Controller方法执行异常", targetException);
+                }
+            } catch (IllegalAccessException e) {
+                throw new ServletException("无法访问Controller方法", e);
+            } catch (IllegalArgumentException e) {
+                throw new ServletException("方法参数不匹配", e);
             } catch (Exception e) {
                 throw new ServletException("处理请求[" + key + "]失败", e);
             }
         } else {
             resp.setStatus(404);
+            resp.setContentType("text/html;charset=UTF-8");
             resp.getWriter().write("Not Found: " + key); // 输出未匹配的Key，便于调试
         }
+    }
+
+    /**
+     * 解析方法参数，支持多种参数类型
+     */
+    private Object[] resolveMethodParameters(Method method, HttpServletRequest req, HttpServletResponse resp) {
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Object[] args = new Object[paramTypes.length];
+
+        for (int i = 0; i < paramTypes.length; i++) {
+            if (paramTypes[i] == HttpServletRequest.class) {
+                args[i] = req;
+            } else if (paramTypes[i] == HttpServletResponse.class) {
+                args[i] = resp;
+            } else if (paramTypes[i] == HttpSession.class) {
+                args[i] = req.getSession();
+            } else {
+                // 可以扩展支持更多类型，如 @RequestParam 注解参数等
+                // 目前对于不支持的类型传入null，后续可以扩展
+                args[i] = null;
+            }
+        }
+        return args;
     }
 
     /**
@@ -180,31 +228,70 @@ public class DispatcherServlet extends HttpServlet {
     private void handleResult(Object result, HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
         resp.setCharacterEncoding("UTF-8"); // 避免中文乱码
-        if (result instanceof String) {
-            String viewName = (String) result;
-            if (viewName.startsWith("redirect:")) {
-                // 重定向：去掉"redirect:"前缀
-                String redirectUrl = viewName.substring("redirect:".length());
-                resp.sendRedirect(redirectUrl);
-            } else {
-                // 转发到JSP：路径格式为/WEB-INF/views/xxx.jsp
-                String jspPath = "/WEB-INF/views/" + viewName + ".jsp";
-                req.getRequestDispatcher(jspPath).forward(req, resp);
-            }
+
+        if (result == null) {
+            // 如果返回null，不进行任何处理
+            return;
+        } else if (result instanceof String) {
+            handleStringResult((String) result, req, resp);
         } else if (result instanceof Map) {
-            // 处理JSON响应（模拟JSON序列化，实际项目用JSON库）
-            resp.setContentType("application/json");
-            Map<?, ?> dataMap = (Map<?, ?>) result;
-            StringBuilder json = new StringBuilder("{");
-            for (Map.Entry<?, ?> entry : dataMap.entrySet()) {
-                json.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\",");
-            }
-            if (json.length() > 1) {
-                json.deleteCharAt(json.length() - 1); // 去掉最后一个逗号
-            }
-            json.append("}");
-            resp.getWriter().write(json.toString());
+            handleJsonResult((Map<?, ?>) result, resp);
+        } else {
+            // 其他类型，默认按字符串处理
+            resp.setContentType("text/plain;charset=UTF-8");
+            resp.getWriter().write(result.toString());
         }
+    }
+
+    /**
+     * 处理字符串类型的结果（视图跳转）
+     */
+    private void handleStringResult(String viewName, HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ServletException {
+        if (viewName.startsWith("redirect:")) {
+            // 重定向：去掉"redirect:"前缀
+            String redirectUrl = viewName.substring("redirect:".length());
+            resp.sendRedirect(redirectUrl);
+        } else {
+            // 转发到JSP：路径格式为/WEB-INF/views/xxx.jsp
+            String jspPath = "/WEB-INF/views/" + viewName + ".jsp";
+            req.getRequestDispatcher(jspPath).forward(req, resp);
+        }
+    }
+
+    /**
+     * 处理JSON类型的结果
+     */
+    private void handleJsonResult(Map<?, ?> dataMap, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+
+        StringBuilder json = new StringBuilder("{");
+        for (Map.Entry<?, ?> entry : dataMap.entrySet()) {
+            String key = escapeJsonString(String.valueOf(entry.getKey()));
+            String value = escapeJsonString(String.valueOf(entry.getValue()));
+            json.append("\"").append(key).append("\":\"").append(value).append("\",");
+        }
+        if (json.length() > 1) {
+            json.deleteCharAt(json.length() - 1); // 去掉最后一个逗号
+        }
+        json.append("}");
+        resp.getWriter().write(json.toString());
+    }
+
+    /**
+     * 转义JSON字符串中的特殊字符
+     */
+    private String escapeJsonString(String str) {
+        if (str == null) {
+            return "";
+        }
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     /**
