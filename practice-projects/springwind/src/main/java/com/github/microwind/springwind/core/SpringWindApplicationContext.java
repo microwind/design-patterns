@@ -10,27 +10,39 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.microwind.springwind.annotation.Autowired;
 import com.github.microwind.springwind.annotation.Component;
 import com.github.microwind.springwind.annotation.Controller;
 import com.github.microwind.springwind.annotation.Repository;
 import com.github.microwind.springwind.annotation.Service;
+import com.github.microwind.springwind.exception.BeanCreationException;
+import com.github.microwind.springwind.exception.BeanDefinitionException;
+import com.github.microwind.springwind.exception.BeanNotFoundException;
+import com.github.microwind.springwind.exception.CircularDependencyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SpringWind核心容器类 - IoC容器实现
  */
 public class SpringWindApplicationContext {
-    // Bean定义映射表
-    private final Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
-    // 单例Bean映射表
-    private final Map<String, Object> singletonObjects = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(SpringWindApplicationContext.class);
+
+    // Bean定义映射表（使用ConcurrentHashMap提升并发性能）
+    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    // 单例Bean映射表（一级缓存）
+    private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
+    // 早期单例Bean映射表（二级缓存，用于解决循环依赖）
+    private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
+    // 正在创建的Bean集合（用于检测循环依赖）
+    private final Set<String> singletonsCurrentlyInCreation = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // Bean后处理器列表
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+    // 构造器缓存（性能优化）
+    private final Map<Class<?>, Constructor<?>> constructorCache = new ConcurrentHashMap<>();
 
     public SpringWindApplicationContext(Class<?> configClass) {
         // 扫描包路径下的组件
@@ -47,17 +59,23 @@ public class SpringWindApplicationContext {
      * 扫描组件并注册Bean定义
      */
     private void scanComponents(Class<?> configClass) {
-        // 获取配置的包扫描路径（简化实现，实际应该从注解读取）
+        // 参数校验
+        if (configClass == null) {
+            throw new IllegalArgumentException("配置类不能为null");
+        }
+
+        // 获取配置的包扫描路径
         String basePackage = configClass.getPackage().getName();
+        logger.info("开始扫描包: {}", basePackage);
 
         try {
-            // 扫描类路径（简化实现，实际应该递归扫描包）
+            // 扫描类路径
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             String resourcePath = basePackage.replace('.', '/');
             java.net.URL resource = classLoader.getResource(resourcePath);
 
             if (resource == null) {
-                System.err.println("Warning: Cannot find resource for package: " + basePackage);
+                logger.warn("无法找到包资源: {}", basePackage);
                 return;
             }
 
@@ -69,14 +87,11 @@ public class SpringWindApplicationContext {
                 walk.filter(p -> p.toString().endsWith(".class"))
                         .forEach(p -> {
                             try {
-                                // 修复：正确生成包含子包的类全限定名（原逻辑仅处理直接子包，忽略多级子包）
-                                // 1. 获取类文件相对于扫描包的相对路径（含多级子包）
+                                // 生成类全限定名
                                 Path relativePath = path.relativize(p);
-                                // 2. 将路径分隔符替换为包分隔符，去掉.class后缀
                                 String className = relativePath.toString()
                                         .replace(".class", "")
                                         .replace('/', '.');
-                                // 3. 拼接基础包名，得到完整类全限定名
                                 className = basePackage + "." + className;
 
                                 Class<?> clazz = Class.forName(className);
@@ -88,34 +103,33 @@ public class SpringWindApplicationContext {
                                         clazz.isAnnotationPresent(Repository.class)) {
 
                                     registerBeanDefinition(clazz);
+                                    logger.debug("注册Bean: {}", clazz.getSimpleName());
                                 }
 
                                 // 注册BeanPostProcessor
-                                if (BeanPostProcessor.class.isAssignableFrom(clazz)) {
+                                if (BeanPostProcessor.class.isAssignableFrom(clazz) &&
+                                    !clazz.isInterface()) {
                                     try {
-                                        // 实例化BeanPostProcessor
                                         BeanPostProcessor processor = (BeanPostProcessor) clazz.getDeclaredConstructor().newInstance();
                                         beanPostProcessors.add(processor);
+                                        logger.debug("注册BeanPostProcessor: {}", clazz.getSimpleName());
                                     } catch (NoSuchMethodException e) {
-                                        // 如果没有默认构造函数，跳过
-                                        System.err.println("Warning: BeanPostProcessor " + clazz.getName() +
-                                                " must have a public no-args constructor");
+                                        logger.warn("BeanPostProcessor {} 必须有无参构造函数", clazz.getName());
                                     }
                                 }
 
                             } catch (ClassNotFoundException e) {
-                                System.err.println("Warning: Class not found: " + e.getMessage());
+                                logger.warn("无法加载类: {}", e.getMessage());
                             } catch (Exception e) {
-                                System.err.println("Error processing class: " + e.getMessage());
-                                e.printStackTrace();
+                                logger.error("处理类时出错: {}", e.getMessage(), e);
                             }
                         });
             }
+            logger.info("包扫描完成，共注册 {} 个Bean", beanDefinitionMap.size());
         } catch (URISyntaxException e) {
-            System.err.println("Invalid URI syntax: " + e.getMessage());
+            throw new BeanDefinitionException("无效的URI语法: " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Error scanning components: " + e.getMessage());
-            e.printStackTrace();
+            throw new BeanDefinitionException("扫描组件失败: " + e.getMessage(), e);
         }
     }
 
@@ -165,36 +179,71 @@ public class SpringWindApplicationContext {
     }
 
     /**
-     * 创建单例Bean实例
+     * 创建单例Bean实例（支持循环依赖检测）
      */
     private void createSingletonBeans() {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
             if ("singleton".equals(beanDefinition.getScope())) {
-                Object bean = createBeanInstance(beanDefinition.getBeanClass());
-                // 执行BeanPostProcessor前置处理（初始化前）
-                bean = applyBeanPostProcessorsBeforeInitialization(bean, beanDefinition.getBeanName());
-                beanDefinition.setBeanInstance(bean);
-                singletonObjects.put(beanDefinition.getBeanName(), bean);
+                String beanName = beanDefinition.getBeanName();
+
+                // 检测循环依赖
+                if (singletonsCurrentlyInCreation.contains(beanName)) {
+                    throw new CircularDependencyException(beanName, singletonsCurrentlyInCreation);
+                }
+
+                // 标记为正在创建
+                singletonsCurrentlyInCreation.add(beanName);
+
+                try {
+                    Object bean = createBeanInstance(beanDefinition.getBeanClass());
+                    // 将早期Bean放入二级缓存（用于解决循环依赖）
+                    earlySingletonObjects.put(beanName, bean);
+
+                    // 执行BeanPostProcessor前置处理
+                    bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
+                    beanDefinition.setBeanInstance(bean);
+                    singletonObjects.put(beanName, bean);
+
+                    logger.debug("创建单例Bean: {}", beanName);
+                } finally {
+                    // 创建完成，移出正在创建集合
+                    singletonsCurrentlyInCreation.remove(beanName);
+                    // 移出早期缓存
+                    earlySingletonObjects.remove(beanName);
+                }
             }
         }
     }
 
     /**
-     * 创建Bean实例（通过无参构造器）
+     * 创建Bean实例（使用缓存的构造器优化性能）
      * @param clazz Bean类
      * @return Bean实例
      */
     private Object createBeanInstance(Class<?> clazz) {
         try {
-            // 1. 获取类的无参构造器
-            Constructor<?> constructor = clazz.getDeclaredConstructor();
-            // 2. 强制允许反射访问（即使构造器是 private 或类是包权限）
-            constructor.setAccessible(true);
-            // 3. 创建Bean实例
+            // 从缓存获取构造器，如果没有则创建并缓存
+            Constructor<?> constructor = constructorCache.computeIfAbsent(clazz, c -> {
+                try {
+                    Constructor<?> ctor = c.getDeclaredConstructor();
+                    ctor.setAccessible(true);
+                    return ctor;
+                } catch (NoSuchMethodException e) {
+                    throw new BeanCreationException(c.getSimpleName(),
+                        "没有找到无参构造函数", e);
+                }
+            });
+
             return constructor.newInstance();
-        } catch (NoSuchMethodException | InstantiationException |
-                 IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("创建Bean实例失败: " + clazz.getSimpleName(), e);
+        } catch (InstantiationException e) {
+            throw new BeanCreationException(clazz.getSimpleName(),
+                "无法实例化Bean（可能是抽象类或接口）", e);
+        } catch (IllegalAccessException e) {
+            throw new BeanCreationException(clazz.getSimpleName(),
+                "无法访问构造函数", e);
+        } catch (InvocationTargetException e) {
+            throw new BeanCreationException(clazz.getSimpleName(),
+                "构造函数执行失败: " + e.getTargetException().getMessage(), e);
         }
     }
 
@@ -228,6 +277,10 @@ public class SpringWindApplicationContext {
      * @param bean Bean实例
      */
     private void doDependencyInjection(Object bean) {
+        if (bean == null) {
+            return;
+        }
+
         Class<?> clazz = bean.getClass();
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Autowired.class)) {
@@ -236,10 +289,18 @@ public class SpringWindApplicationContext {
                     Object dependency = getBean(field.getType());
                     if (dependency != null) {
                         field.set(bean, dependency);
+                        logger.debug("注入依赖: {} -> {}", clazz.getSimpleName(), field.getName());
+                    } else {
+                        Autowired autowired = field.getAnnotation(Autowired.class);
+                        // 如果required=true且依赖为null，抛出异常
+                        if (autowired.required()) {
+                            throw new BeanNotFoundException(field.getType());
+                        }
+                        logger.warn("未找到依赖 {} 的Bean (required=false)", field.getType().getSimpleName());
                     }
                 } catch (IllegalAccessException e) {
-                    System.err.println("Error injecting dependency for field: " + field.getName());
-                    e.printStackTrace();
+                    throw new BeanCreationException(clazz.getSimpleName(),
+                        "无法注入字段: " + field.getName(), e);
                 }
             }
         }
@@ -361,14 +422,19 @@ public class SpringWindApplicationContext {
     }
 
     /**
-     * 获取Bean实例
+     * 获取Bean实例（添加参数校验）
      * @param beanName Bean名称
      * @return Bean实例
      */
     public Object getBean(String beanName) {
+        // 参数校验
+        if (beanName == null || beanName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Bean名称不能为空");
+        }
+
         BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
         if (beanDefinition == null) {
-            throw new RuntimeException("未找到Bean定义: " + beanName);
+            throw new BeanNotFoundException(beanName);
         }
 
         if ("singleton".equals(beanDefinition.getScope())) {
@@ -382,16 +448,24 @@ public class SpringWindApplicationContext {
     }
 
     /**
-     * 根据类型获取Bean
+     * 根据类型获取Bean（添加参数校验）
      * @param requiredType Bean类型
      * @return Bean实例
      */
     public <T> T getBean(Class<T> requiredType) {
+        // 参数校验
+        if (requiredType == null) {
+            throw new IllegalArgumentException("Bean类型不能为null");
+        }
+
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
             if (requiredType.isAssignableFrom(beanDefinition.getBeanClass())) {
                 return (T) getBean(beanDefinition.getBeanName());
             }
         }
+
+        // 未找到Bean，返回null（调用方需要处理）
+        logger.debug("未找到类型为 {} 的Bean", requiredType.getName());
         return null;
     }
 

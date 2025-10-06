@@ -1,4 +1,7 @@
 package com.github.microwind.springwind.jdbc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,6 +11,8 @@ import java.util.List;
  * SpringWind JDBC模板类
  */
 public class JdbcTemplate {
+    private static final Logger logger = LoggerFactory.getLogger(JdbcTemplate.class);
+
     // 数据源
     private final DataSource dataSource;
 
@@ -100,18 +105,37 @@ public class JdbcTemplate {
     }
 
     /**
-     * 关闭资源
+     * 关闭资源（改进：每个资源独立关闭，避免一个失败影响其他）
      * @param conn 数据库连接
      * @param ps 预编译语句
      * @param rs 结果集
      */
     private void closeResources(Connection conn, PreparedStatement ps, ResultSet rs) {
-        try {
-            if (rs != null) rs.close();
-            if (ps != null) ps.close();
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        // 关闭ResultSet
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                logger.error("Failed to close ResultSet", e);
+            }
+        }
+
+        // 关闭PreparedStatement
+        if (ps != null) {
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                logger.error("Failed to close PreparedStatement", e);
+            }
+        }
+
+        // 关闭Connection
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                logger.error("Failed to close Connection", e);
+            }
         }
     }
 }
