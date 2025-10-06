@@ -4,6 +4,7 @@ package com.github.microwind.springwind.example.controller;
 import com.github.microwind.springwind.annotation.Controller;
 import com.github.microwind.springwind.annotation.RequestMapping;
 import com.github.microwind.springwind.annotation.Autowired;
+import com.github.microwind.springwind.annotation.RequestParam;
 import com.github.microwind.springwind.example.model.User;
 import com.github.microwind.springwind.example.service.UserService;
 
@@ -26,9 +27,21 @@ public class UserController {
         return "userDetail";
     }
 
+    @RequestMapping(value = "/hello", method = "GET")
+    public String hello(@RequestParam("name") String name,
+                        @RequestParam(value = "age", required = false, defaultValue = "18") int age) {
+        System.out.println("name=" + name + ", age=" + age);
+        return "redirect:/login";
+    }
+
+    @RequestMapping(value = "/check", method = "GET")
+    public String check(@RequestParam(value = "code", required = true) String code) {
+        return "redirect:/success";
+    }
+
     @RequestMapping(value = "/info", method = "GET")
     public String getUserInfo() {
-        return "userInfo";
+        return "userInfo"; // 假设视图解析器配置了前缀/WEB-INF/views/和后缀.jsp
     }
 
     @RequestMapping(value = "/logout", method = "POST")

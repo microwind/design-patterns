@@ -72,12 +72,12 @@
                 <scope>test</scope>
             </dependency>
             <!-- Spring Test（提供Servlet模拟对象） -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>5.3.23</version>
-                <scope>test</scope>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.springframework</groupId>-->
+<!--                <artifactId>spring-test</artifactId>-->
+<!--                <version>5.3.23</version>-->
+<!--                <scope>test</scope>-->
+<!--            </dependency>-->
         </dependencies>
 
         <build>
@@ -87,7 +87,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-                        <source>17</source>
+                        <source>1.8</source>
                         <target>1.8</target>
                         <compilerArgs>
                             <arg>-Xlint:unchecked</arg> <!-- 启用未检查转换警告 -->
