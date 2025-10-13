@@ -8,7 +8,7 @@ import com.github.microwind.springwind.annotation.RequestParam;
 import com.github.microwind.springwind.example.model.User;
 import com.github.microwind.springwind.example.service.UserService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 

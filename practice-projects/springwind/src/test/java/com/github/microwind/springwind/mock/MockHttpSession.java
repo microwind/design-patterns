@@ -1,18 +1,25 @@
 package com.github.microwind.springwind.mock;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
+
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 简易的 HttpSession 模拟实现，用于单元测试。
+ * 兼容 Jakarta Servlet 6（Tomcat 11+）
+ */
 public class MockHttpSession implements HttpSession {
+
     private final String id = UUID.randomUUID().toString();
     private final long creationTime = System.currentTimeMillis();
+    private long lastAccessedTime = creationTime;
     private final Map<String, Object> attributes = new HashMap<>();
-    private int maxInactiveInterval = 1800; // 30 minutes
+    private int maxInactiveInterval = 1800; // 30分钟
     private boolean invalidated = false;
 
     @Override
@@ -28,7 +35,8 @@ public class MockHttpSession implements HttpSession {
 
     @Override
     public long getLastAccessedTime() {
-        return System.currentTimeMillis();
+        checkValid();
+        return lastAccessedTime;
     }
 
     @Override
@@ -47,53 +55,33 @@ public class MockHttpSession implements HttpSession {
     }
 
     @Override
-    public HttpSessionContext getSessionContext() {
-        return null; // Deprecated
-    }
-
-    @Override
     public Object getAttribute(String name) {
         checkValid();
+        lastAccessedTime = System.currentTimeMillis();
         return attributes.get(name);
-    }
-
-    @Override
-    public Object getValue(String name) {
-        return getAttribute(name);
     }
 
     @Override
     public Enumeration<String> getAttributeNames() {
         checkValid();
-        return java.util.Collections.enumeration(attributes.keySet());
-    }
-
-    @Override
-    public String[] getValueNames() {
-        checkValid();
-        return attributes.keySet().toArray(new String[0]);
+        return Collections.enumeration(attributes.keySet());
     }
 
     @Override
     public void setAttribute(String name, Object value) {
         checkValid();
-        attributes.put(name, value);
-    }
-
-    @Override
-    public void putValue(String name, Object value) {
-        setAttribute(name, value);
+        lastAccessedTime = System.currentTimeMillis();
+        if (value == null) {
+            attributes.remove(name);
+        } else {
+            attributes.put(name, value);
+        }
     }
 
     @Override
     public void removeAttribute(String name) {
         checkValid();
         attributes.remove(name);
-    }
-
-    @Override
-    public void removeValue(String name) {
-        removeAttribute(name);
     }
 
     @Override
@@ -109,9 +97,11 @@ public class MockHttpSession implements HttpSession {
         return false;
     }
 
+    /**
+     * Jakarta Servlet 6+ 中的新方法，用于刷新 session ID。
+     */
     public String changeSessionId() {
-        // 在实际应用中应该生成新的ID，这里简化返回原ID
-        return id;
+        return id; // 模拟行为：不改变 ID
     }
 
     private void checkValid() {

@@ -15,8 +15,8 @@ import org.junit.runner.RunWith;
 import com.github.microwind.springwind.mock.MockHttpServletRequest;
 import com.github.microwind.springwind.mock.MockHttpServletResponse;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;

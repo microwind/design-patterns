@@ -1,7 +1,7 @@
 package com.github.microwind.springwind.mock;
 
-import javax.servlet.*;
-import javax.servlet.descriptor.JspConfigDescriptor;
+import jakarta.servlet.*;
+import jakarta.servlet.descriptor.JspConfigDescriptor;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -74,25 +74,7 @@ public class MockServletContext implements ServletContext {
     }
 
     @Override
-    public Servlet getServlet(String name) throws ServletException {
-        return null;
-    }
-
-    @Override
-    public Enumeration<Servlet> getServlets() {
-        return null;
-    }
-
-    @Override
-    public Enumeration<String> getServletNames() {
-        return null;
-    }
-
-    @Override
     public void log(String msg) {}
-
-    @Override
-    public void log(Exception exception, String msg) {}
 
     @Override
     public void log(String message, Throwable throwable) {}

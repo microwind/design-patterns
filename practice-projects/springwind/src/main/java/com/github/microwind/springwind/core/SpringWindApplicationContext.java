@@ -6,12 +6,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import com.github.microwind.springwind.annotation.Autowired;
 import com.github.microwind.springwind.annotation.Component;
@@ -59,19 +61,16 @@ public class SpringWindApplicationContext {
      * 扫描组件并注册Bean定义
      */
     private void scanComponents(Class<?> configClass) {
-        // 参数校验
         if (configClass == null) {
             throw new IllegalArgumentException("配置类不能为null");
         }
 
-        // 获取配置的包扫描路径
         String basePackage = configClass.getPackage().getName();
         logger.info("开始扫描包: {}", basePackage);
 
         try {
-            // 扫描类路径
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             String resourcePath = basePackage.replace('.', '/');
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             java.net.URL resource = classLoader.getResource(resourcePath);
 
             if (resource == null) {
@@ -79,62 +78,96 @@ public class SpringWindApplicationContext {
                 return;
             }
 
-            URI uri = resource.toURI();
-            Path path = Paths.get(uri);
+            String protocol = resource.getProtocol();
 
-            // 使用 try-with-resources 确保流被正确关闭
-            try (java.util.stream.Stream<Path> walk = Files.walk(path)) {
-                walk.filter(p -> p.toString().endsWith(".class"))
-                        .forEach(p -> {
-                            try {
-                                // 生成类全限定名
-                                Path relativePath = path.relativize(p);
-                                String className = relativePath.toString()
-                                        .replace(".class", "")
-                                        .replace('/', '.');
-                                className = basePackage + "." + className;
-
-                                Class<?> clazz = Class.forName(className);
-
-                                // 检查是否有@Component或其派生注解
-                                if (clazz.isAnnotationPresent(Component.class) ||
-                                        clazz.isAnnotationPresent(Controller.class) ||
-                                        clazz.isAnnotationPresent(Service.class) ||
-                                        clazz.isAnnotationPresent(Repository.class)) {
-
-                                    registerBeanDefinition(clazz);
-                                    logger.debug("注册Bean: {}", clazz.getSimpleName());
-                                }
-
-                                // 注册BeanPostProcessor
-                                if (BeanPostProcessor.class.isAssignableFrom(clazz) &&
-                                    !clazz.isInterface()) {
-                                    try {
-                                        BeanPostProcessor processor = (BeanPostProcessor) clazz.getDeclaredConstructor().newInstance();
-                                        beanPostProcessors.add(processor);
-                                        logger.debug("注册BeanPostProcessor: {}", clazz.getSimpleName());
-                                    } catch (NoSuchMethodException e) {
-                                        logger.warn("BeanPostProcessor {} 必须有无参构造函数", clazz.getName());
-                                    }
-                                }
-
-                            } catch (ClassNotFoundException e) {
-                                logger.warn("无法加载类: {}", e.getMessage());
-                            } catch (Exception e) {
-                                logger.error("处理类时出错: {}", e.getMessage(), e);
-                            }
-                        });
+            // 1. 运行在普通文件系统中（IDE 运行或 classes 目录）
+            if ("file".equals(protocol)) {
+                Path path = Paths.get(resource.toURI());
+                Files.walk(path)
+                        .filter(p -> p.toString().endsWith(".class"))
+                        .forEach(p -> processClassFile(basePackage, path, p));
             }
+            // 2. 运行在 jar 包中
+            else if ("jar".equals(protocol)) {
+                String path = resource.getPath();
+                String jarPath = path.substring(path.indexOf("file:"), path.indexOf("!"));
+                try (JarFile jarFile = new JarFile(new File(new URI(jarPath)))) {
+                    Enumeration<JarEntry> entries = jarFile.entries();
+                    while (entries.hasMoreElements()) {
+                        JarEntry entry = entries.nextElement();
+                        if (entry.getName().startsWith(resourcePath) && entry.getName().endsWith(".class")) {
+                            String className = entry.getName()
+                                    .replace("/", ".")
+                                    .replace(".class", "");
+                            processClassName(className);
+                        }
+                    }
+                }
+            }
+            // 3. 其他协议（不常见）
+            else {
+                logger.warn("不支持的资源协议: {}", protocol);
+            }
+
             logger.info("包扫描完成，共注册 {} 个Bean", beanDefinitionMap.size());
-        } catch (URISyntaxException e) {
-            throw new BeanDefinitionException("无效的URI语法: " + e.getMessage(), e);
         } catch (Exception e) {
             throw new BeanDefinitionException("扫描组件失败: " + e.getMessage(), e);
         }
     }
 
     /**
+     * 处理文件系统下的类文件
+     */
+    private void processClassFile(String basePackage, Path rootPath, Path classFilePath) {
+        try {
+            Path relativePath = rootPath.relativize(classFilePath);
+            String className = relativePath.toString()
+                    .replace(".class", "")
+                    .replace('/', '.')
+                    .replace('\\', '.');
+            className = basePackage + "." + className;
+            processClassName(className);
+        } catch (Exception e) {
+            logger.error("处理类文件出错: {}", classFilePath, e);
+        }
+    }
+
+    /**
+     * 根据类名加载并注册Bean
+     */
+    private void processClassName(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+
+            if (clazz.isAnnotationPresent(Component.class) ||
+                    clazz.isAnnotationPresent(Controller.class) ||
+                    clazz.isAnnotationPresent(Service.class) ||
+                    clazz.isAnnotationPresent(Repository.class)) {
+                registerBeanDefinition(clazz);
+                logger.debug("注册Bean: {}", clazz.getSimpleName());
+            }
+
+            // BeanPostProcessor 注册
+            if (BeanPostProcessor.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
+                try {
+                    BeanPostProcessor processor = (BeanPostProcessor) clazz.getDeclaredConstructor().newInstance();
+                    beanPostProcessors.add(processor);
+                    logger.debug("注册BeanPostProcessor: {}", clazz.getSimpleName());
+                } catch (NoSuchMethodException e) {
+                    logger.warn("BeanPostProcessor {} 必须有无参构造函数", clazz.getName());
+                }
+            }
+
+        } catch (ClassNotFoundException e) {
+            logger.warn("无法加载类: {}", e.getMessage());
+        } catch (Throwable e) {
+            logger.error("处理类时出错: {}", className, e);
+        }
+    }
+
+    /**
      * 注册Bean定义
+     * 
      * @param clazz Bean类
      */
     private void registerBeanDefinition(Class<?> clazz) {
@@ -156,6 +189,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 获取Bean名称
+     * 
      * @param clazz Bean类
      * @return Bean名称
      */
@@ -217,6 +251,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 创建Bean实例（使用缓存的构造器优化性能）
+     * 
      * @param clazz Bean类
      * @return Bean实例
      */
@@ -230,25 +265,26 @@ public class SpringWindApplicationContext {
                     return ctor;
                 } catch (NoSuchMethodException e) {
                     throw new BeanCreationException(c.getSimpleName(),
-                        "没有找到无参构造函数", e);
+                            "没有找到无参构造函数", e);
                 }
             });
 
             return constructor.newInstance();
         } catch (InstantiationException e) {
             throw new BeanCreationException(clazz.getSimpleName(),
-                "无法实例化Bean（可能是抽象类或接口）", e);
+                    "无法实例化Bean（可能是抽象类或接口）", e);
         } catch (IllegalAccessException e) {
             throw new BeanCreationException(clazz.getSimpleName(),
-                "无法访问构造函数", e);
+                    "无法访问构造函数", e);
         } catch (InvocationTargetException e) {
             throw new BeanCreationException(clazz.getSimpleName(),
-                "构造函数执行失败: " + e.getTargetException().getMessage(), e);
+                    "构造函数执行失败: " + e.getTargetException().getMessage(), e);
         }
     }
 
     /**
      * 创建Bean实例
+     * 
      * @param beanDefinition Bean定义
      * @return Bean实例
      */
@@ -256,8 +292,8 @@ public class SpringWindApplicationContext {
         try {
             // 使用 getDeclaredConstructor().newInstance() 替代过时的 newInstance()
             return beanDefinition.getBeanClass().getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException |
-                 NoSuchMethodException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+                | InvocationTargetException e) {
             throw new RuntimeException("创建Bean实例失败: " + beanDefinition.getBeanName(), e);
         }
     }
@@ -274,6 +310,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 执行依赖注入（字段注入）
+     * 
      * @param bean Bean实例
      */
     private void doDependencyInjection(Object bean) {
@@ -300,7 +337,7 @@ public class SpringWindApplicationContext {
                     }
                 } catch (IllegalAccessException e) {
                     throw new BeanCreationException(clazz.getSimpleName(),
-                        "无法注入字段: " + field.getName(), e);
+                            "无法注入字段: " + field.getName(), e);
                 }
             }
         }
@@ -331,7 +368,8 @@ public class SpringWindApplicationContext {
 
     /**
      * BeanPostProcessor前置处理：在Bean初始化方法（@PostConstruct）执行前调用
-     * @param bean Bean实例
+     * 
+     * @param bean     Bean实例
      * @param beanName Bean名称
      * @return 处理后的Bean实例（可能被包装）
      */
@@ -348,7 +386,8 @@ public class SpringWindApplicationContext {
 
     /**
      * BeanPostProcessor后置处理：在Bean初始化方法（@PostConstruct）执行后调用
-     * @param bean Bean实例
+     * 
+     * @param bean     Bean实例
      * @param beanName Bean名称
      * @return 处理后的Bean实例（可能被包装，如AOP代理）
      */
@@ -400,6 +439,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 根据类型获取所有Bean实例（辅助方法）
+     * 
      * @param type Bean类型
      * @return Bean名称与实例的映射表
      */
@@ -423,6 +463,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 获取Bean实例（添加参数校验）
+     * 
      * @param beanName Bean名称
      * @return Bean实例
      */
@@ -449,6 +490,7 @@ public class SpringWindApplicationContext {
 
     /**
      * 根据类型获取Bean（添加参数校验）
+     * 
      * @param requiredType Bean类型
      * @return Bean实例
      */

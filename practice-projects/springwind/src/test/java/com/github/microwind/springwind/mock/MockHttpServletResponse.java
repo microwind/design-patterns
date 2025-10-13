@@ -1,8 +1,8 @@
 package com.github.microwind.springwind.mock;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -63,11 +63,6 @@ public class MockHttpServletResponse implements HttpServletResponse {
     }
 
     @Override
-    public void setStatus(int sc, String sm) {
-        this.status = sc; // 忽略状态码描述，仅保留状态码
-    }
-
-    @Override
     public int getStatus() {
         return this.status;
     }
@@ -76,6 +71,11 @@ public class MockHttpServletResponse implements HttpServletResponse {
     public void sendRedirect(String location) throws IOException {
         this.redirectedUrl = location;
         this.status = 302; // 重定向默认302状态码
+    }
+
+    @Override
+    public void sendRedirect(String s, int i, boolean b) throws IOException {
+
     }
 
     /**
@@ -213,18 +213,6 @@ public class MockHttpServletResponse implements HttpServletResponse {
     @Override
     public String encodeRedirectURL(String url) {
         return url;
-    }
-
-    @Override
-    @Deprecated
-    public String encodeUrl(String url) {
-        return encodeURL(url);
-    }
-
-    @Override
-    @Deprecated
-    public String encodeRedirectUrl(String url) {
-        return encodeRedirectURL(url);
     }
 
     @Override

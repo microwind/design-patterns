@@ -198,12 +198,13 @@ Client          SpringWindContainer      BeanA         BeanB
 
 1. **编译项目**：
 ```bash
-$ mvn clean compile
+$ mvn clean compile -DskipTests=true
 ```
 
 2. **运行测试**：
 ```shell
-$ mvn test
+# $ mvn test
+$ mvn clean test -DskipTests=false
 ```
 
 3. **打包发布**:

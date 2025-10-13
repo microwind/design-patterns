@@ -1,7 +1,7 @@
 package com.github.microwind.springwind.mock;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import java.io.*;
 import java.security.Principal;
 import java.util.*;
@@ -116,6 +116,21 @@ public class MockHttpServletRequest implements HttpServletRequest {
     @Override
     public DispatcherType getDispatcherType() {
         return DispatcherType.REQUEST;
+    }
+
+    @Override
+    public String getRequestId() {
+        return "";
+    }
+
+    @Override
+    public String getProtocolRequestId() {
+        return "";
+    }
+
+    @Override
+    public ServletConnection getServletConnection() {
+        return null;
     }
 
     // --- 简化的属性实现 ---
@@ -278,11 +293,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
     }
 
     @Override
-    public String getRealPath(String path) {
-        return servletContext.getRealPath(path);
-    }
-
-    @Override
     public int getRemotePort() {
         return 0;
     }
@@ -365,11 +375,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public boolean isRequestedSessionIdFromURL() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequestedSessionIdFromUrl() {
         return false;
     }
 

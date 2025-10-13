@@ -1,6 +1,6 @@
 package com.github.microwind.springwind.mock;
 
-import javax.servlet.*;
+import jakarta.servlet.*;
 import java.io.IOException;
 
 /**

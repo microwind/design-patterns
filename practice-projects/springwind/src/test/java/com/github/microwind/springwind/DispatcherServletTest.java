@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import com.github.microwind.springwind.mock.MockHttpServletRequest;
 import com.github.microwind.springwind.mock.MockHttpServletResponse;
 
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
