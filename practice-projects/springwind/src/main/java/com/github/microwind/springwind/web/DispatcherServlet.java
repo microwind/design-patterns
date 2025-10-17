@@ -163,8 +163,18 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        // 关键：用getServletPath()获取请求路径（避免上下文路径干扰）
-        String path = req.getServletPath();
+        // 获取请求路径（优先使用 getPathInfo，如果为null则使用 getServletPath）
+        String path = req.getPathInfo();
+        if (path == null || path.isEmpty()) {
+            path = req.getServletPath();
+        }
+        if (path == null || path.isEmpty()) {
+            path = req.getRequestURI();
+            String contextPath = req.getContextPath();
+            if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
+                path = path.substring(contextPath.length());
+            }
+        }
         String httpMethod = req.getMethod().toUpperCase();
         String requestKey = httpMethod + ":" + path;
         System.out.println("当前请求Key：" + requestKey); // 调试日志：确认请求Key与映射匹配
@@ -315,6 +325,12 @@ public class DispatcherServlet extends HttpServlet {
 
     /**
      * 统一处理返回结果：根据结果类型分发到不同处理器
+     *
+     * 优先级顺序：
+     * 1. ViewResult - 允许应用完全控制响应
+     * 2. String - 兼容现有字符串返回方式
+     * 3. Map - 返回 JSON
+     * 4. 其他类型 - 返回文本
      */
     private void handleResult(Object result, HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
@@ -325,17 +341,33 @@ public class DispatcherServlet extends HttpServlet {
             System.out.println("result is null.");
             return;
         }
-        if (result instanceof String) {
-            // 字符串结果：转发或重定向
-            handleStringResult((String) result, req, resp);
-        } else if (result instanceof Map) {
-            // Map结果：返回JSON
-            handleJsonResult((Map<?, ?>) result, resp);
-        } else {
-            // 其他类型：默认返回文本
-            resp.setContentType("text/plain;charset=UTF-8");
-            resp.getWriter().write(result.toString());
+
+        // 1. 优先处理 ViewResult - 允许应用接管响应处理
+        if (result instanceof ViewResult) {
+            try {
+                ((ViewResult) result).render(req, resp);
+                System.out.println("ViewResult 响应：" + result.getClass().getSimpleName());
+            } catch (Exception e) {
+                throw new ServletException("渲染 ViewResult 失败: " + e.getMessage(), e);
+            }
+            return;
         }
+
+        // 2. 字符串结果：转发或重定向（兼容现有方式）
+        if (result instanceof String) {
+            handleStringResult((String) result, req, resp);
+            return;
+        }
+
+        // 3. Map结果：返回JSON
+        if (result instanceof Map) {
+            handleJsonResult((Map<?, ?>) result, resp);
+            return;
+        }
+
+        // 4. 其他类型：默认返回文本
+        resp.setContentType("text/plain;charset=UTF-8");
+        resp.getWriter().write(result.toString());
     }
 
     /**
@@ -357,7 +389,19 @@ public class DispatcherServlet extends HttpServlet {
             return;
         }
 
-        // 2. 处理内部转发（forward:前缀）
+        // 2. 处理 HTML 响应（html:前缀）
+        if (viewName.startsWith("html:")) {
+            String htmlContent = viewName.substring("html:".length());
+            resp.setContentType("text/html;charset=UTF-8");
+            PrintWriter writer = resp.getWriter();
+            writer.write(htmlContent);
+            writer.flush();
+            resp.flushBuffer();
+            System.out.println("HTML响应：" + (htmlContent.length() > 50 ? htmlContent.substring(0, 50) + "..." : htmlContent));
+            return;
+        }
+
+        // 3. 处理内部转发（forward:前缀）
         if (viewName.startsWith("forward:")) {
             String forwardPath = viewName.substring("forward:".length()).trim();
             if (forwardPath.isEmpty()) {
@@ -377,18 +421,18 @@ public class DispatcherServlet extends HttpServlet {
             return;
         }
 
-        // 规则：包含":"（如"user:123"）且不包含.jsp/WEB-INF → 视为文本响应
-        if (viewName.contains(":") && !viewName.contains(".jsp") && !viewName.contains("/WEB-INF/")) {
+        // 3. 处理纯文本响应（不包含路径分隔符的简单字符串）
+        if (!viewName.contains("/") && !viewName.contains("\\") && !viewName.endsWith(".jsp")) {
             resp.setContentType("text/plain;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
-            writer.write(viewName); // 直接返回完整字符串（无需前缀）
+            writer.write(viewName);
             writer.flush();
-            resp.flushBuffer(); // 确保Mock能捕获内容
+            resp.flushBuffer();
             System.out.println("文本响应：" + viewName);
             return;
         }
 
-        // 3. 处理JSP转发（原有逻辑不变）—— 仅对JSP路径生效
+        // 4. 处理JSP转发（原有逻辑不变）—— 仅对JSP路径生效
         String jspPath;
         if (viewName.contains("/WEB-INF/")) {
             jspPath = viewName;

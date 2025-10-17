@@ -46,6 +46,7 @@ public class TomcatServer {
         context.addServletMappingDecoded("/*", servletName);
 
         // 启动 Tomcat
+        tomcat.getConnector();
         tomcat.start();
         System.out.println("========================================");
         System.out.println("Tomcat服务器已启动");
@@ -68,6 +69,6 @@ public class TomcatServer {
 
     public static void main(String[] args) throws LifecycleException {
         TomcatServer server = new TomcatServer(8080);
-        server.start("com.github.microwind.userdemo.AppConfig");
+        server.start("com.github.microwind.userdemo.UserDemoApplication");
     }
 }
