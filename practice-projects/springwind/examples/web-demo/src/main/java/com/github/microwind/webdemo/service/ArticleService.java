@@ -30,4 +30,12 @@ public class ArticleService {
     public void saveArticle(Article article) {
         articleDao.save(article);
     }
+
+    public boolean updateArticle(Article article) {
+        return articleDao.update(article);
+    }
+
+    public boolean deleteArticle(Long id) {
+        return articleDao.delete(id);
+    }
 }

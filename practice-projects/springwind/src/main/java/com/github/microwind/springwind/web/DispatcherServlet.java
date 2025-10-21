@@ -11,159 +11,125 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * SpringWind DispatcherServlet - 前端控制器
  * 负责处理所有HTTP请求，将请求分发给对应的Controller处理
+ *
+ * 兼容特性：
+ * - 支持类级与方法级 @RequestMapping
+ * - 支持方法参数注入：HttpServletRequest/HttpServletResponse/HttpSession、@RequestParam 简单类型
+ * - 支持返回值类型：ViewResult / String / Map -> JSON / 其他 -> 文本
+ * - 支持 redirect:, forward:, html: 等字符串约定
+ * - 对路径做归一化处理，避免尾斜杠问题
  */
 public class DispatcherServlet extends HttpServlet {
-    private final Map<String, HandlerMapping> handlerMappings = new HashMap<>();
-    private SpringWindApplicationContext applicationContext;
+
+    private static final Logger log = Logger.getLogger(DispatcherServlet.class.getName());
 
     /**
-     * 初始化Spring容器和Handler映射
+     * 映射表：Key = "HTTP_METHOD:/normalized/path"，Value = HandlerMapping
+     * 例如: "GET:/home/index" -> HandlerMapping(controllerInstance, method)
      */
+    private final Map<String, HandlerMapping> handlerMappings = new HashMap<>();
+
+    private SpringWindApplicationContext applicationContext;
+
     @Override
     public void init() throws ServletException {
         try {
-            // 1. 获取配置类的全限定名（从ServletConfig中获取）
+            // 1. 获取配置类名（WebDemoApplication 传入的 configClass）
             String configClassName = getInitParameter("configClass");
             if (configClassName == null || configClassName.trim().isEmpty()) {
                 throw new ServletException("未配置configClass参数（需指定Spring配置类的全限定名）");
             }
 
-            // 2. 将字符串类名转换为Class对象（关键：避免之前的String.class错误）
-            Class<?> configClass = Class.forName(configClassName);
+            log.info("[DispatcherServlet] init with configClass=" + configClassName);
 
-            // 3. 初始化Spring容器（扫描configClass所在包下的@Controller）
+            // 2. 将字符串类名转换为Class对象并初始化 SpringWindApplicationContext
+            Class<?> configClass = Class.forName(configClassName);
             applicationContext = new SpringWindApplicationContext(configClass);
 
-            // 4. 初始化HandlerMapping（生成请求映射）
+            // 3. 初始化 handler 映射
             initHandlerMappings();
 
+            log.info("[DispatcherServlet] 初始化完成，已注册映射数量: " + handlerMappings.size());
         } catch (ClassNotFoundException e) {
             throw new ServletException("找不到配置类：" + getInitParameter("configClass"), e);
         } catch (Exception e) {
-            throw new ServletException("DispatcherServlet初始化失败", e);
+            throw new ServletException("DispatcherServlet 初始化失败", e);
         }
     }
 
     /**
-     * 初始化Handler映射
-     * 扫描所有Controller Bean，根据@RequestMapping注解构建Handler映射
+     * 扫描所有 @Controller Bean 并根据 @RequestMapping 构建映射表
      */
     private void initHandlerMappings() {
-        // 获取所有@Controller注解的Bean
+        // 从 SpringWindApplicationContext 获取被 @Controller 注解的 bean（name -> instance）
         Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(Controller.class);
-        if (controllers.isEmpty()) {
-            throw new RuntimeException("未扫描到任何@Controller注解的Bean，请检查包扫描范围");
+
+        if (controllers == null || controllers.isEmpty()) {
+            // 选择抛出异常以便尽早发现问题（如果希望容错可改为返回）
+            throw new RuntimeException("未扫描到任何 @Controller 注解的 Bean，请检查包扫描范围和配置类");
         }
 
         for (Map.Entry<String, Object> entry : controllers.entrySet()) {
             Object controller = entry.getValue();
             Class<?> clazz = controller.getClass();
 
-            // 1. 解析类级别@RequestMapping（拼接基础路径）
+            // 解析类级别 @RequestMapping（作为 base path）
             String basePath = "";
             if (clazz.isAnnotationPresent(RequestMapping.class)) {
-                basePath = normalizePath(clazz.getAnnotation(RequestMapping.class).value());
+                RequestMapping classMapping = clazz.getAnnotation(RequestMapping.class);
+                basePath = classMapping.value();
             }
+            basePath = normalizePath(basePath);
 
-            // 2. 解析方法级别@RequestMapping（仅处理当前类及父类的public方法，带@RequestMapping的才生成映射）
+            // 遍历 public 方法（包含继承的方法）
             for (Method method : clazz.getMethods()) {
-                if (method.isAnnotationPresent(RequestMapping.class)) {
-                    RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-
-                    // 处理方法路径格式（规范化）
-                    String methodPath = normalizePath(requestMapping.value());
-
-                    // 拼接完整路径（类路径 + 方法路径，避免双斜杠）
-                    String fullPath = combinePaths(basePath, methodPath);
-
-                    // 生成映射Key（HTTP方法:完整路径，统一大写）
-                    String mappingKey = getMappingKey(requestMapping, fullPath);
-                    handlerMappings.put(mappingKey, new HandlerMapping(controller, method));
-                    System.out.println("生成请求映射：" + mappingKey); // 调试日志：确认映射生成
+                if (!method.isAnnotationPresent(RequestMapping.class)) {
+                    continue;
                 }
+                RequestMapping methodMapping = method.getAnnotation(RequestMapping.class);
+                String methodPath = normalizePath(methodMapping.value());
+                String fullPath = combinePaths(basePath, methodPath);
+
+                // 解析HTTP方法（若未指定，默认GET）
+                String httpMethod = methodMapping.method() == null ? "" : methodMapping.method().trim();
+                if (httpMethod.isEmpty()) httpMethod = "GET";
+                httpMethod = httpMethod.toUpperCase(Locale.ROOT);
+
+                String mappingKey = httpMethod + ":" + normalizePath(fullPath);
+
+                // 检查重复映射
+                if (handlerMappings.containsKey(mappingKey)) {
+                    throw new RuntimeException("存在重复的请求映射：" + mappingKey);
+                }
+
+                handlerMappings.put(mappingKey, new HandlerMapping(controller, method));
+                log.info("[DispatcherServlet] 生成请求映射：" + mappingKey + " -> " +
+                        clazz.getName() + "#" + method.getName());
             }
         }
     }
 
     /**
-     * 生成请求映射Key（格式：HTTP方法:完整路径）
-     * 处理默认HTTP方法（未指定时默认GET），避免重复映射
-     */
-    private String getMappingKey(RequestMapping requestMapping, String fullPath) {
-        String httpMethod = requestMapping.method().trim();
-        // 未指定HTTP方法时，默认GET
-        if (httpMethod.isEmpty()) {
-            httpMethod = "GET";
-        }
-        httpMethod = httpMethod.toUpperCase(); // 统一大写，避免大小写不匹配
-
-        // 生成映射Key
-        String mappingKey = httpMethod + ":" + fullPath;
-
-        // 避免重复映射（重复时抛异常，提前发现问题）
-        if (handlerMappings.containsKey(mappingKey)) {
-            throw new RuntimeException("存在重复的请求映射：" + mappingKey);
-        }
-        return mappingKey;
-    }
-
-    /**
-     * 规范化路径：确保以单个斜杠开头，无尾部斜杠（根路径除外）
-     */
-    private String normalizePath(String path) {
-        if (path == null || path.trim().isEmpty()) {
-            return "";
-        }
-        path = path.trim();
-        // 确保以单个斜杠开头
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-        // 去除尾部斜杠（根路径"/"除外）
-        if (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        return path;
-    }
-
-    /**
-     * 合并两个路径：处理中间可能的双斜杠问题（如"/user" + "/info" → "/user/info"）
-     */
-    private String combinePaths(String path1, String path2) {
-        if (path1.isEmpty()) {
-            return path2;
-        }
-        if (path2.isEmpty()) {
-            return path1;
-        }
-
-        // 处理中间斜杠：避免双斜杠或无斜杠
-        if (path1.endsWith("/") && path2.startsWith("/")) {
-            return path1 + path2.substring(1); // 去掉path2的开头斜杠
-        } else if (!path1.endsWith("/") && !path2.startsWith("/")) {
-            return path1 + "/" + path2; // 中间加斜杠
-        } else {
-            return path1 + path2; // 已有单个斜杠，直接拼接
-        }
-    }
-
-    /**
-     * 处理HTTP请求：匹配HandlerMapping → 解析参数 → 调用Controller → 处理结果
+     * service 方法：匹配 Handler -> 解析参数 -> 调用 Controller -> 处理返回结果
      */
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        // 获取请求路径（优先使用 getPathInfo，如果为null则使用 getServletPath）
+
+        // 获取请求路径（兼容 servletPath/pathInfo/requestURI），并进行归一化
         String path = req.getPathInfo();
         if (path == null || path.isEmpty()) {
             path = req.getServletPath();
@@ -175,348 +141,347 @@ public class DispatcherServlet extends HttpServlet {
                 path = path.substring(contextPath.length());
             }
         }
-        String httpMethod = req.getMethod().toUpperCase();
-        String requestKey = httpMethod + ":" + path;
-        System.out.println("当前请求Key：" + requestKey); // 调试日志：确认请求Key与映射匹配
+        path = normalizePath(path);
 
-        // 查找对应的HandlerMapping
+        String httpMethod = req.getMethod().toUpperCase(Locale.ROOT);
+        String requestKey = httpMethod + ":" + path;
+
+        log.fine("[DispatcherServlet] 当前请求Key：" + requestKey);
+
         HandlerMapping handlerMapping = handlerMappings.get(requestKey);
         if (handlerMapping != null) {
             try {
-                // 1. 解析方法参数（无参方法返回空数组，避免参数不匹配）
+                // 1. 解析方法参数（支持 HttpServletRequest/HttpServletResponse/HttpSession 和 @RequestParam）
                 Object[] methodArgs = resolveMethodParameters(handlerMapping.getMethod(), req, resp);
-                System.out.println("解析到的参数数量：" + methodArgs.length); // 调试日志：确认无参方法返回0
+                log.fine("[DispatcherServlet] 解析到的参数数量：" + methodArgs.length);
 
-                // 2. 反射调用Controller方法（获取返回结果）
+                // 2. 反射调用 Controller 方法
                 Object result = handlerMapping.getMethod().invoke(handlerMapping.getController(), methodArgs);
-                System.out.println("Controller返回类型：" + (result == null ? "null" : result.getClass().getName())); // 调试日志：确认返回Map
+                log.fine("[DispatcherServlet] Controller 返回类型：" +
+                        (result == null ? "null" : result.getClass().getName()));
 
-                // 3. 处理返回结果（转发/重定向/JSON）
+                // 3. 处理返回结果
                 handleResult(result, req, resp);
 
             } catch (InvocationTargetException e) {
-                // 捕获Controller方法内部抛出的异常
-                Throwable targetException = e.getTargetException();
-                // 【修改1：显式获取Writer并强制刷新，确保内容写入】
-                resp.setCharacterEncoding("UTF-8");
-                resp.setContentType("text/plain;charset=UTF-8");
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                String errorMsg = "Controller方法执行异常：" + targetException.getMessage();
-                // 强制写入并刷新
-                PrintWriter writer = resp.getWriter();
-                writer.write(errorMsg);
-                writer.flush(); // 关键：避免内容留在缓冲区
-                System.out.println("异常响应：" + errorMsg); // 调试日志
+                // Controller 方法内部抛出的异常
+                Throwable target = e.getTargetException();
+                log.log(Level.SEVERE, "Controller 方法执行异常", target);
+                writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Controller方法执行异常：" + (target == null ? e.getMessage() : target.getMessage()));
                 return;
-
             } catch (IllegalAccessException e) {
-                // 【修改2：同样处理权限异常】
-                resp.setCharacterEncoding("UTF-8");
-                resp.setContentType("text/plain;charset=UTF-8");
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                String errorMsg = "无法访问Controller方法（请确保方法为public）：" + e.getMessage();
-                PrintWriter writer = resp.getWriter();
-                writer.write(errorMsg);
-                writer.flush();
-                System.out.println("异常响应：" + errorMsg);
+                log.log(Level.WARNING, "无法访问Controller方法", e);
+                writeError(resp, HttpServletResponse.SC_FORBIDDEN,
+                        "无法访问Controller方法（请确保方法为public）：" + e.getMessage());
                 return;
-
             } catch (IllegalArgumentException e) {
-                // 【修改3：参数异常处理】
-                resp.setCharacterEncoding("UTF-8");
-                resp.setContentType("text/plain;charset=UTF-8");
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                String errorMsg = "方法参数不匹配：" + e.getMessage();
-                PrintWriter writer = resp.getWriter();
-                writer.write(errorMsg);
-                writer.flush();
-                System.out.println("异常响应：" + errorMsg);
+                log.log(Level.WARNING, "方法参数不匹配", e);
+                writeError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "方法参数不匹配：" + e.getMessage());
                 return;
-
             } catch (Exception e) {
-                // 【修改4：其他异常处理】
-                resp.setCharacterEncoding("UTF-8");
-                resp.setContentType("text/plain;charset=UTF-8");
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                String errorMsg = "处理请求[" + requestKey + "]失败：" + e.getMessage();
-                PrintWriter writer = resp.getWriter();
-                writer.write(errorMsg);
-                writer.flush();
-                System.out.println("异常响应：" + errorMsg);
+                log.log(Level.SEVERE, "处理请求失败", e);
+                writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "处理请求[" + requestKey + "]失败：" + e.getMessage());
                 return;
             }
         } else {
-            // 未找到映射：返回404
-            resp.setStatus(404);
+            // 未找到映射：返回 404 明确提示
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.setContentType("text/html;charset=UTF-8");
-            resp.getWriter().write("Not Found: " + requestKey);
+            PrintWriter writer = resp.getWriter();
+            writer.write("Not Found: " + requestKey);
+            writer.flush();
         }
     }
 
     /**
-     * 解析方法参数：支持HttpServletRequest/HttpServletResponse/HttpSession，无参返回空数组
+     * 解析方法参数：支持 HttpServletRequest, HttpServletResponse, HttpSession, @RequestParam
+     * - 无参方法返回空数组
      */
     private Object[] resolveMethodParameters(Method method, HttpServletRequest req, HttpServletResponse resp) {
         Class<?>[] paramTypes = method.getParameterTypes();
-        java.lang.annotation.Annotation[][] paramAnnotations = method.getParameterAnnotations();
+        Annotation[][] paramAnnotations = method.getParameterAnnotations();
         Object[] args = new Object[paramTypes.length];
 
         for (int i = 0; i < paramTypes.length; i++) {
             Class<?> paramType = paramTypes[i];
 
-            // 1. 支持Servlet原生对象
-            if (paramType == HttpServletRequest.class) {
+            // 支持 Servlet 原生对象
+            if (HttpServletRequest.class.isAssignableFrom(paramType)) {
                 args[i] = req;
                 continue;
             }
-            if (paramType == HttpServletResponse.class) {
+            if (HttpServletResponse.class.isAssignableFrom(paramType)) {
                 args[i] = resp;
                 continue;
             }
-            if (paramType == HttpSession.class) {
+            if (HttpSession.class.isAssignableFrom(paramType)) {
                 args[i] = req.getSession();
                 continue;
             }
 
-            // 2. 检查是否有@RequestParam
-            RequestParam requestParam = null;
-            for (java.lang.annotation.Annotation annotation : paramAnnotations[i]) {
-                if (annotation instanceof RequestParam) {
-                    requestParam = (RequestParam) annotation;
+            // 检查 @RequestParam 注解
+            RequestParam rp = null;
+            for (Annotation a : paramAnnotations[i]) {
+                if (a instanceof RequestParam) {
+                    rp = (RequestParam) a;
                     break;
                 }
             }
 
-            if (requestParam != null) {
-                // 获取参数名与默认值
-                String paramName = requestParam.value();
-                String defaultValue = requestParam.defaultValue();
-                boolean required = requestParam.required();
+            if (rp != null) {
+                String paramName = rp.value();
+                String defaultValue = rp.defaultValue();
+                boolean required = rp.required();
 
                 String paramValue = req.getParameter(paramName);
                 if (paramValue == null || paramValue.isEmpty()) {
-                    if (required && defaultValue.isEmpty()) {
+                    if (required && (defaultValue == null || defaultValue.isEmpty())) {
                         throw new IllegalArgumentException("缺少必须的请求参数：" + paramName);
                     }
                     paramValue = defaultValue;
                 }
 
-                // 简单类型转换
                 args[i] = convertType(paramValue, paramType);
             } else {
+                // 不支持的复杂类型，传 null（或可扩展支持 Body -> 对象绑定）
                 args[i] = null;
-                System.out.println("不支持的参数类型：" + paramType.getName() + "，暂传null");
+                log.fine("[DispatcherServlet] 不支持的参数类型：" + paramType.getName() + "，暂传null");
             }
         }
         return args;
     }
 
-    /** 简单类型转换（String→int/long/boolean等） */
+    /** 简单类型转换 */
     private Object convertType(String value, Class<?> targetType) {
         if (value == null) return null;
-        if (targetType == String.class) return value;
-        if (targetType == int.class || targetType == Integer.class) return Integer.parseInt(value);
-        if (targetType == long.class || targetType == Long.class) return Long.parseLong(value);
-        if (targetType == boolean.class || targetType == Boolean.class) return Boolean.parseBoolean(value);
-        if (targetType == double.class || targetType == Double.class) return Double.parseDouble(value);
-        return value; // 其他类型暂不支持
+        try {
+            if (targetType == String.class) return value;
+            if (targetType == int.class || targetType == Integer.class) return Integer.parseInt(value);
+            if (targetType == long.class || targetType == Long.class) return Long.parseLong(value);
+            if (targetType == boolean.class || targetType == Boolean.class) return Boolean.parseBoolean(value);
+            if (targetType == double.class || targetType == Double.class) return Double.parseDouble(value);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "参数转换失败: value=" + value + ", target=" + targetType.getName(), e);
+        }
+        return null;
     }
-
 
     /**
      * 统一处理返回结果：根据结果类型分发到不同处理器
      *
      * 优先级顺序：
      * 1. ViewResult - 允许应用完全控制响应
-     * 2. String - 兼容现有字符串返回方式
+     * 2. String - 兼容现有字符串返回方式（包括 redirect:/ forward:/ html:）
      * 3. Map - 返回 JSON
      * 4. 其他类型 - 返回文本
      */
     private void handleResult(Object result, HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
-        resp.setCharacterEncoding("UTF-8"); // 全局设置字符编码，避免中文乱码
+
+        resp.setCharacterEncoding("UTF-8");
 
         if (result == null) {
-            // 返回null：不处理（避免后续分支错误）
-            System.out.println("result is null.");
+            // 返回null：检查响应是否已提交
+            // 如果已提交，说明Controller方法内部已手动处理响应（如通过ResponseUtils），不应覆盖
+            // 如果未提交，说明真的没有内容，返回204
+            if (resp.isCommitted()) {
+                log.fine("[DispatcherServlet] result is null, response already committed by controller");
+                return;
+            }
+            // 响应未提交，返回204表示没有内容
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            log.fine("[DispatcherServlet] result is null, return 204 No Content");
             return;
         }
 
-        // 1. 优先处理 ViewResult - 允许应用接管响应处理
+        // 1. ViewResult（应用完全控制响应）
         if (result instanceof ViewResult) {
             try {
                 ((ViewResult) result).render(req, resp);
-                System.out.println("ViewResult 响应：" + result.getClass().getSimpleName());
+                log.fine("[DispatcherServlet] ViewResult 响应：" + result.getClass().getSimpleName());
             } catch (Exception e) {
                 throw new ServletException("渲染 ViewResult 失败: " + e.getMessage(), e);
             }
             return;
         }
 
-        // 2. 字符串结果：转发或重定向（兼容现有方式）
+        // 2. String 逻辑处理
         if (result instanceof String) {
             handleStringResult((String) result, req, resp);
             return;
         }
 
-        // 3. Map结果：返回JSON
+        // 3. Map -> JSON
         if (result instanceof Map) {
             handleJsonResult((Map<?, ?>) result, resp);
             return;
         }
 
-        // 4. 其他类型：默认返回文本
+        // 4. 其他类型 -> 文本
         resp.setContentType("text/plain;charset=UTF-8");
-        resp.getWriter().write(result.toString());
+        PrintWriter writer = resp.getWriter();
+        writer.write(result.toString());
+        writer.flush();
     }
 
     /**
-     * 处理字符串结果：重定向（redirect:前缀）或JSP转发
+     * 处理字符串结果：redirect: / forward: / html: / 纯文本 / jsp
      */
     private void handleStringResult(String viewName, HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
-        if (viewName == null || viewName.trim().isEmpty()) {
-            return;
-        }
+        if (viewName == null || viewName.trim().isEmpty()) return;
         viewName = viewName.trim();
 
-        // 1. 处理重定向（redirect:前缀）
+        // redirect:
         if (viewName.startsWith("redirect:")) {
             String redirectUrl = viewName.substring("redirect:".length()).trim();
-            resp.setStatus(302);
+            resp.setStatus(HttpServletResponse.SC_FOUND);
             resp.sendRedirect(redirectUrl);
-            System.out.println("重定向到：" + redirectUrl);
+            log.fine("[DispatcherServlet] 重定向到：" + redirectUrl);
             return;
         }
 
-        // 2. 处理 HTML 响应（html:前缀）
+        // html:
         if (viewName.startsWith("html:")) {
-            String htmlContent = viewName.substring("html:".length());
+            String html = viewName.substring("html:".length());
             resp.setContentType("text/html;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
-            writer.write(htmlContent);
+            writer.write(html);
             writer.flush();
             resp.flushBuffer();
-            System.out.println("HTML响应：" + (htmlContent.length() > 50 ? htmlContent.substring(0, 50) + "..." : htmlContent));
+            log.fine("[DispatcherServlet] HTML 响应，长度: " + (html == null ? 0 : html.length()));
             return;
         }
 
-        // 3. 处理内部转发（forward:前缀）
+        // forward:
         if (viewName.startsWith("forward:")) {
             String forwardPath = viewName.substring("forward:".length()).trim();
             if (forwardPath.isEmpty()) {
-                throw new ServletException("forward:指令后路径不能为空");
+                throw new ServletException("forward: 指令后路径不能为空");
             }
             req.setAttribute("forwardPath", forwardPath);
             RequestDispatcher dispatcher = req.getRequestDispatcher(forwardPath);
-
             if (dispatcher != null) {
-                resp.setStatus(200);
+                resp.setStatus(HttpServletResponse.SC_OK);
                 dispatcher.forward(req, resp);
-                System.out.println("内部转发到：" + forwardPath);
+                log.fine("[DispatcherServlet] 内部转发到：" + forwardPath);
             } else {
-                resp.setStatus(404);
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.getWriter().write("Forward path not found: " + forwardPath);
             }
             return;
         }
 
-        // 3. 处理纯文本响应（不包含路径分隔符的简单字符串）
+        // 区分"视图名称"和"纯文本响应"
+        // 视图名称特征：纯字母/下划线/连字符组成（可能有点号），如 "userInfo", "admin.userList"
+        // 纯文本特征：包含特殊字符（冒号/空格/数字开头等），如 "user:123:张三", "success", "123"
+        boolean looksLikeViewName = !viewName.contains("/") &&
+                                    !viewName.contains("\\") &&
+                                    !viewName.endsWith(".jsp") &&
+                                    !viewName.contains(":") &&  // 排除 "user:123:张三"
+                                    !viewName.contains(" ") &&  // 排除包含空格的文本
+                                    viewName.matches("[a-zA-Z][a-zA-Z0-9_.]*");  // 必须以字母开头，只包含字母数字下划线点
+
+        if (looksLikeViewName) {
+            // 视图名称 → JSP路径解析
+            String jspPath = "/WEB-INF/views/" + viewName + ".jsp";
+            req.setAttribute("forwardPath", jspPath);
+            RequestDispatcher dispatcher = req.getRequestDispatcher(jspPath);
+            resp.setStatus(HttpServletResponse.SC_OK);
+            if (dispatcher != null) {
+                dispatcher.forward(req, resp);
+                log.fine("[DispatcherServlet] JSP 转发到（视图名称解析）：" + jspPath);
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("View not found: " + jspPath);
+                log.warning("[DispatcherServlet] 无法获取 RequestDispatcher: " + jspPath);
+            }
+            return;
+        }
+
+        // 纯文本响应（不符合视图名称特征的简单字符串）
         if (!viewName.contains("/") && !viewName.contains("\\") && !viewName.endsWith(".jsp")) {
             resp.setContentType("text/plain;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
             writer.write(viewName);
             writer.flush();
             resp.flushBuffer();
-            System.out.println("文本响应：" + viewName);
+            log.fine("[DispatcherServlet] 文本响应：" + viewName);
             return;
         }
 
-        // 4. 处理JSP转发（原有逻辑不变）—— 仅对JSP路径生效
+        // JSP 转发（包含路径或.jsp后缀的字符串）
         String jspPath;
         if (viewName.contains("/WEB-INF/")) {
             jspPath = viewName;
         } else if (viewName.endsWith(".jsp")) {
-            jspPath = "/WEB-INF/views/" + viewName;
+            jspPath = viewName;
         } else {
             jspPath = "/WEB-INF/views/" + viewName + ".jsp";
         }
         req.setAttribute("forwardPath", jspPath);
         RequestDispatcher dispatcher = req.getRequestDispatcher(jspPath);
-
+        // 在测试环境或开发环境中，dispatcher 永远不为 null（由 Mock 或容器提供）
+        // 直接调用 forward，让容器或 Mock 处理
+        resp.setStatus(HttpServletResponse.SC_OK);
         if (dispatcher != null) {
-            resp.setStatus(200);
             dispatcher.forward(req, resp);
+            log.fine("[DispatcherServlet] JSP 转发到：" + jspPath);
         } else {
-            resp.setStatus(404);
+            // 容器无法提供 dispatcher（非常罕见），返回错误
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write("View not found: " + jspPath);
+            log.warning("[DispatcherServlet] 无法获取 RequestDispatcher: " + jspPath);
         }
     }
 
     /**
-     * 处理Map结果：返回JSON格式（确保Content-Type正确设置）
+     * 处理 JSON 返回（Map -> JSON）
      */
     private void handleJsonResult(Map<?, ?> dataMap, HttpServletResponse resp) throws IOException {
-        // 1. 基础配置：设置Content-Type和字符编码（确保与测试预期一致）
         resp.setContentType("application/json;charset=UTF-8");
         resp.setCharacterEncoding("UTF-8");
 
-        // 2. 处理空Map（避免生成"{}"以外的错误格式）
         if (dataMap == null || dataMap.isEmpty()) {
             resp.getWriter().write("{}");
-            resp.flushBuffer(); // 强制提交，确保内容写入
-            System.out.println("JSON响应：{}");
+            resp.flushBuffer();
+            log.fine("[DispatcherServlet] JSON 响应：{}");
             return;
         }
 
-        // 3. 正确序列化JSON：区分值类型（字符串/数字/布尔）
         StringBuilder json = new StringBuilder("{");
         for (Map.Entry<?, ?> entry : dataMap.entrySet()) {
-            // 3.1 处理Key：转义字符串，加双引号
             String key = escapeJsonString(String.valueOf(entry.getKey()));
             json.append("\"").append(key).append("\":");
-
-            // 3.2 处理Value：区分类型（字符串加引号，数字/布尔不加引号）
             Object value = entry.getValue();
             if (value == null) {
-                json.append("null"); // null值不加引号
+                json.append("null");
             } else if (value instanceof String) {
-                // 字符串类型：转义后加双引号
-                String strValue = escapeJsonString(String.valueOf(value));
-                json.append("\"").append(strValue).append("\"");
+                json.append("\"").append(escapeJsonString(String.valueOf(value))).append("\"");
             } else if (value instanceof Number || value instanceof Boolean) {
-                // 数字/布尔类型：直接拼接（不加引号）
                 json.append(value);
             } else {
-                // 其他类型（如日期）：转为字符串后加引号
-                String otherValue = escapeJsonString(String.valueOf(value));
-                json.append("\"").append(otherValue).append("\"");
+                json.append("\"").append(escapeJsonString(String.valueOf(value))).append("\"");
             }
-
-            // 3.3 加逗号（最后一个会在后续移除）
             json.append(",");
         }
 
-        // 4. 移除最后一个多余的逗号（避免JSON格式错误）
         if (json.length() > 1 && json.charAt(json.length() - 1) == ',') {
             json.deleteCharAt(json.length() - 1);
         }
         json.append("}");
 
-        // 5. 写入响应体并强制提交（确保Mock能获取到内容）
         String jsonStr = json.toString();
         resp.getWriter().write(jsonStr);
-        resp.flushBuffer(); // 关键：强制提交响应，避免内容留在缓冲区
-
-        // 调试日志：验证生成的JSON
-        System.out.println("生成的JSON响应：" + jsonStr);
+        resp.flushBuffer();
+        log.fine("[DispatcherServlet] 生成的JSON响应：" + jsonStr);
     }
 
-    // 保留原有的字符串转义方法（确保特殊字符正确处理）
     private String escapeJsonString(String str) {
-        if (str == null) {
-            return "";
-        }
+        if (str == null) return "";
         return str.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\b", "\\b")
@@ -527,13 +492,81 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 销毁Servlet：关闭Spring容器，释放资源
+     * 统一错误返回（JSON格式）
      */
+    private void writeError(HttpServletResponse resp, int status, String message) throws IOException {
+        resp.setStatus(status);
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        String body = "{\"error\":\"" + escapeJsonString(message) + "\"}";
+        resp.getWriter().write(body);
+        resp.getWriter().flush();
+        resp.flushBuffer();
+        log.warning("[DispatcherServlet] 错误响应: status=" + status + " message=" + message);
+    }
+
+    /** 规范化路径：去重重复斜杠，确保以 / 开头，去尾部 /（根路径除外） */
+    private String normalizePath(String path) {
+        if (path == null || path.trim().isEmpty()) return "/";
+        path = path.trim().replaceAll("/+", "/");
+        if (!path.startsWith("/")) path = "/" + path;
+        if (path.length() > 1 && path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return path;
+    }
+
+    /** 合并 base 和 sub 路径并归一化 */
+    private String combinePaths(String basePath, String methodPath) {
+        if (basePath == null) basePath = "";
+        if (methodPath == null) methodPath = "";
+        basePath = basePath.trim();
+        methodPath = methodPath.trim();
+
+        if (basePath.isEmpty()) {
+            return normalizePath(methodPath);
+        }
+        if (methodPath.isEmpty()) {
+            return normalizePath(basePath);
+        }
+        // 保证只有单个斜杠连接
+        if (basePath.endsWith("/") && methodPath.startsWith("/")) {
+            return normalizePath(basePath + methodPath.substring(1));
+        } else if (!basePath.endsWith("/") && !methodPath.startsWith("/")) {
+            return normalizePath(basePath + "/" + methodPath);
+        } else {
+            return normalizePath(basePath + methodPath);
+        }
+    }
+
+    /**
+     * HandlerMapping 封装
+     */
+    private static class HandlerMapping {
+        private final Object controller;
+        private final Method method;
+
+        public HandlerMapping(Object controller, Method method) {
+            this.controller = controller;
+            this.method = method;
+        }
+
+        public Object getController() {
+            return controller;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+    }
+
     @Override
     public void destroy() {
         if (applicationContext != null) {
-            applicationContext.close();
-            System.out.println("SpringWindApplicationContext已关闭");
+            try {
+                applicationContext.close();
+                log.info("[DispatcherServlet] SpringWindApplicationContext 已关闭");
+            } catch (Exception e) {
+                log.log(Level.WARNING, "关闭 applicationContext 时异常", e);
+            }
         }
     }
 }

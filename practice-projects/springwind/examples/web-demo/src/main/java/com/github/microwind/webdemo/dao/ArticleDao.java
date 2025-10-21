@@ -102,4 +102,18 @@ public class ArticleDao {
             }
         }
     }
+
+    public boolean update(Article article) {
+        for (int i = 0; i < articles.size(); i++) {
+            if (articles.get(i).getId().equals(article.getId())) {
+                articles.set(i, article);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean delete(Long id) {
+        return articles.removeIf(a -> a.getId().equals(id));
+    }
 }

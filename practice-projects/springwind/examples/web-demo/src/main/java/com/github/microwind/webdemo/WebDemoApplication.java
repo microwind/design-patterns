@@ -56,35 +56,35 @@ public class WebDemoApplication {
         // 测试1: 访问首页
         System.out.println("========== 测试1: 访问首页 ==========");
         HomeController homeController = app.getBean(HomeController.class);
-        homeController.index();
+        homeController.index(null, null);
         System.out.println();
 
         // 测试2: 访问产品中心
         System.out.println("========== 测试2: 访问产品中心 ==========");
         ProductController productController = app.getBean(ProductController.class);
-        productController.list();
+        productController.list(null, null);
         System.out.println();
 
         // 测试3: 访问新闻资讯
         System.out.println("========== 测试3: 访问新闻资讯 ==========");
         NewsController newsController = app.getBean(NewsController.class);
-        newsController.list();
+        newsController.list(null, null);
         System.out.println();
 
         // 测试4: 后台管理 - 查看栏目
         System.out.println("========== 测试4: 后台管理 - 查看栏目 ==========");
         AdminController adminController = app.getBean(AdminController.class);
-        adminController.listColumns();
+        adminController.listColumns(null, null);
         System.out.println();
 
         // 测试5: 后台管理 - 创建栏目
         System.out.println("========== 测试5: 后台管理 - 创建栏目 ==========");
-        adminController.createColumn();
+        adminController.createColumn(null, null);
         System.out.println();
 
         // 测试6: 后台管理 - 发布文章
         System.out.println("========== 测试6: 后台管理 - 发布文章 ==========");
-        adminController.publishArticle();
+        adminController.publishArticle(null, null);
         System.out.println();
 
         System.out.println("========== 演示完成 ==========");

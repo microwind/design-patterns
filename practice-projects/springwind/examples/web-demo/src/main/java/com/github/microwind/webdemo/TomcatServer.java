@@ -44,6 +44,7 @@ public class TomcatServer {
         context.addServletMappingDecoded("/*", servletName);
 
         // 启动Tomcat
+        tomcat.getConnector(); // 重要：初始化Connector，让Tomcat真正监听端口
         tomcat.start();
         System.out.println("========================================");
         System.out.println("Tomcat服务器已启动");

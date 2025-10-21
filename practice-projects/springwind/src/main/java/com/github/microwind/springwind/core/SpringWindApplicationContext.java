@@ -70,13 +70,29 @@ public class SpringWindApplicationContext {
 
         try {
             String resourcePath = basePackage.replace('.', '/');
+
+            // 尝试多个类加载器，确保在 Web 环境下也能正常工作
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            java.net.URL resource = classLoader.getResource(resourcePath);
+            java.net.URL resource = classLoader != null ? classLoader.getResource(resourcePath) : null;
+
+            // 如果线程上下文类加载器找不到，尝试使用配置类的类加载器
+            if (resource == null) {
+                classLoader = configClass.getClassLoader();
+                resource = classLoader.getResource(resourcePath);
+            }
+
+            // 如果还是找不到，尝试使用当前类的类加载器
+            if (resource == null) {
+                classLoader = SpringWindApplicationContext.class.getClassLoader();
+                resource = classLoader.getResource(resourcePath);
+            }
 
             if (resource == null) {
-                logger.warn("无法找到包资源: {}", basePackage);
+                logger.warn("无法找到包资源: {} (已尝试多个类加载器)", basePackage);
                 return;
             }
+
+            logger.debug("使用类加载器: {}, 找到资源: {}", classLoader.getClass().getName(), resource);
 
             String protocol = resource.getProtocol();
 
