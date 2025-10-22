@@ -25,8 +25,12 @@ public class HomeController {
 
     @RequestMapping("")
     public void index(HttpServletRequest request, HttpServletResponse response) {
-        ResponseUtils.sendResponse(response, HttpServletResponse.SC_OK,
-                "欢迎访问春风公司官网", null, null);
+        try {
+            ResponseUtils.sendJsonResponse(response, HttpServletResponse.SC_OK,
+                    "欢迎访问春风公司官网", null, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -53,7 +57,7 @@ public class HomeController {
             homeData.put("description", "春风公司成立于2010年，是一家专注于云计算和大数据领域的创新型企业。");
             homeData.put("recentArticles", recentArticles.stream().limit(3).collect(Collectors.toList()));
 
-            ResponseUtils.sendResponse(response, HttpServletResponse.SC_OK,
+            ResponseUtils.sendJsonResponse(response, HttpServletResponse.SC_OK,
                     "首页数据获取成功", homeData, null);
         } catch (Exception e) {
             try {
