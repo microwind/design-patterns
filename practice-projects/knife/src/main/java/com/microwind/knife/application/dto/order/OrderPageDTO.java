@@ -23,7 +23,7 @@ public class OrderPageDTO {
 
     // 自定义构造函数：从 Page<Order> 提取数据（代替手动 Getter）
     public OrderPageDTO(Page<Order> page) {
-        this.content = page.getContent();
+         this.content = page.getContent();
         this.currentPage = page.getNumber();
         this.totalPages = page.getTotalPages();
         this.totalItems = page.getTotalElements();

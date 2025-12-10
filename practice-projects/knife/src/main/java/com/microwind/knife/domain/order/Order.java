@@ -26,7 +26,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore  // 默认不序列化订单项，避免循环引用
-    @JsonBackReference
     private List<OrderItem> items = new ArrayList<>();           // 订单项列表
 
     @Id
@@ -56,11 +55,8 @@ public class Order {
     @Getter
     @Setter
     @Column(name = "status")
-    private String statusDb; // 原始数据库值
-
-    @Transient
     @Enumerated(EnumType.STRING)
-    private OrderStatus status; // 实际使用的枚举
+    private OrderStatus status;
 
     // 创建时间
     @Column(name = "created_at", updatable = false)
@@ -128,20 +124,6 @@ public class Order {
                 default -> false;
             };
         }
-    }
-
-    public OrderStatus getStatus() {
-        try {
-            return statusDb == null ? OrderStatus.CREATED : OrderStatus.valueOf(statusDb);
-        } catch (IllegalArgumentException e) {
-            // 数据库值不匹配时返回默认 CREATED 或 null
-            return OrderStatus.CREATED;
-        }
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-        this.statusDb = status == null ? null : status.name();
     }
 
     @PrePersist

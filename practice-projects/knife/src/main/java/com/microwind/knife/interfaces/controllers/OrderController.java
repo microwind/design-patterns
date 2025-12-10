@@ -1,11 +1,12 @@
 package com.microwind.knife.interfaces.controllers;
 
-import com.microwind.knife.common.ApiResponse;
-import com.microwind.knife.domain.order.Order;
 import com.microwind.knife.application.dto.order.OrderPageDTO;
 import com.microwind.knife.application.dto.order.OrderWithItemsPageDTO;
 import com.microwind.knife.application.services.OrderService;
+import com.microwind.knife.common.ApiResponse;
+import com.microwind.knife.domain.order.Order;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -79,10 +80,25 @@ public class OrderController {
         orderService.deleteOrder(orderNo);
     }
 
+
+    public Order.OrderStatus parseOrderStatus(String statusStr) throws BadRequestException {
+        try {
+            return Order.OrderStatus.valueOf(statusStr);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("无效的订单状态：" + statusStr);
+        }
+    }
+
     // 更新订单状态接口
     @PatchMapping("/{orderNo}/status")
-    public Order updateStatus(@PathVariable String orderNo, @RequestBody Map<String, String> body) {
-        Order.OrderStatus status = Order.OrderStatus.valueOf(body.get("status"));
-        return orderService.updateOrderStatus(orderNo, status);
+    public ApiResponse<Object> updateStatus(@PathVariable String orderNo, @RequestBody Map<String, String> body) {
+        Order.OrderStatus status;
+        try {
+            // 安全解析
+            status = parseOrderStatus(body.get("status"));
+            return ApiResponse.success(orderService.updateOrderStatus(orderNo, status), "订单状态更新成功。");
+        } catch (BadRequestException ex) {
+            return ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        }
     }
 }
