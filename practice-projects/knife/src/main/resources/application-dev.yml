@@ -1,0 +1,32 @@
+spring:
+  # server config
+  server:
+    port: 8080
+    env: development
+
+  # local Cache (commented out)
+  # datasource:
+  #   url: jdbc:h2:mem:orderdb
+  #   driverClassName: org.h2.Driver
+  #   username: sa
+  #   password:
+
+  # H2 (commented out)
+  # h2:
+  #   console:
+  #     enabled: true
+  #     path: /h2-console
+
+  # MySQL config - Order database
+  order:
+    datasource:
+      jdbc-url: jdbc:mysql://localhost:3306/order_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+      username: order_admin
+      password: order798
+
+  # MySQL config - User database
+  user:
+    datasource:
+      jdbc-url: jdbc:mysql://localhost:3306/frog?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+      username: frog_admin
+      password: frog798

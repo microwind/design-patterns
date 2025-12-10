@@ -1,0 +1,24 @@
+# 签名配置文件 - 存储账号、秘钥、权限和接口盐值
+sign:
+  # 应用配置
+  apps:
+    - appKey: sign-caller1
+      appSecret: secret_key_abc123_sign_caller1
+      description: "签名调用方1"
+      permissions:
+        - /sign/dynamic-salt
+        - /sign/sign-generate
+        - /admin/admin-sign-submit
+
+  # 接口盐值配置
+  interface-salts:
+    /admin/admin-sign-submit: "admin_submit_salt_xyz789"
+    /sign/dynamic-salt: "dynamic_salt_salt_def456"
+    /sign/sign-generate: "sign_generate_salt_ghi012"
+
+  # 签名配置
+  validation:
+    # 动态盐值有效期（毫秒）
+    dynamic-salt-ttl: 300000  # 5分钟
+    # 签名有效期（毫秒）
+    sign-ttl: 60000  # 1分钟

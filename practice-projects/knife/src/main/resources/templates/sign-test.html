@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD模式签名提交示例</title>
+    <style>
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; }
+        .step { margin: 30px 0; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        .success { color: #3c763d; background: #dff0d8; }
+        .error { color: #a94442; background: #f2dede; }
+        button { padding: 8px 16px; background: #428bca; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #999; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>签名提交流程演示</h2>
+
+    <!-- 步骤1：生成动态盐值 -->
+    <div class="step">
+        <h3>1. 生成动态盐值</h3>
+        <input type="text" id="appKey" placeholder="输入appKey" value="APP001">
+        <input type="text" id="submitPath" placeholder="提交接口路径" value="/v1/submit">
+        <button onclick="generateDynamicSalt()">生成动态盐值</button>
+        <div id="saltResult" class="result"></div>
+    </div>
+
+    <!-- 步骤2：生成签名 -->
+    <div class="step">
+        <h3>2. 生成签名</h3>
+        <button onclick="generateSign()" id="signBtn" disabled>生成签名</button>
+        <div id="signResult" class="result"></div>
+    </div>
+
+    <!-- 步骤3：提交数据 -->
+    <div class="step">
+        <h3>3. 提交数据</h3>
+        <input type="text" id="submitData" placeholder="输入提交数据" value='{"name":"张三","phone":"13800138000"}'>
+        <button onclick="submitData()" id="submitBtn" disabled>提交数据</button>
+        <div id="submitResult" class="result"></div>
+    </div>
+</div>
+
+<script>
+    // 全局变量存储中间结果
+    let dynamicSaltInfo = null; // 动态盐值信息
+    let signInfo = null;       // 签名信息
+
+    // 步骤1：根据用户身份和调用接口获取动态盐值
+    async function generateDynamicSalt() {
+        const appKey = document.getElementById('appKey').value;
+        const path = document.getElementById('submitPath').value;
+        const saltResultEl = document.getElementById('saltResult');
+
+        try {
+            const headers = {
+                'Content-Type': 'application/json'
+                appKey: appKey,
+                path: path
+            };
+            const response = await fetch('/sign/dynamic-salt', {
+                method: 'POST',
+                headers: headers
+            });
+
+            if (!response.ok) throw new Error('生成动态盐值失败');
+            dynamicSaltInfo = await response.json();
+
+            saltResultEl.className = 'result success';
+            saltResultEl.innerHTML = `
+                接口路径：${dynamicSaltInfo.path}<br>
+                动态盐值：${dynamicSaltInfo.dynamicSalt}<br>
+                生成时间：${new Date(dynamicSaltInfo.dynamicSaltTime).toLocaleString()}
+            `;
+            // 启用生成签名按钮
+            document.getElementById('signBtn').disabled = false;
+        } catch (err) {
+            saltResultEl.className = 'result error';
+            saltResultEl.textContent = '错误：' + err.message;
+        }
+    }
+
+    // 步骤2：生成签名
+    async function generateSign() {
+        if (!dynamicSaltInfo) return alert('请先生成动态盐值');
+        const signResultEl = document.getElementById('signResult');
+
+        try {
+            const request = {
+                appKey: document.getElementById('appKey').value,
+                path: dynamicSaltInfo.path,
+                dynamicSalt: dynamicSaltInfo.dynamicSalt,
+                dynamicSaltTime: dynamicSaltInfo.dynamicSaltTime
+            };
+
+            const response = await fetch('/sign/sign-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            });
+
+            if (!response.ok) throw new Error('生成签名失败');
+            signInfo = await response.json();
+
+            signResultEl.className = 'result success';
+            signResultEl.innerHTML = `
+                接口路径：${signInfo.path}<br>
+                签名值：${signInfo.sign}<br>
+                签名时间：${new Date(signInfo.timestamp).toLocaleString()}
+            `;
+            // 启用提交按钮
+            document.getElementById('submitBtn').disabled = false;
+        } catch (err) {
+            signResultEl.className = 'result error';
+            signResultEl.textContent = '错误：' + err.message;
+        }
+    }
+
+    // 步骤3：提交数据
+    async function submitData() {
+        if (!signInfo) return alert('请先生成签名');
+        const submitResultEl = document.getElementById('submitResult');
+        const data = JSON.parse(document.getElementById('submitData').value);
+
+        try {
+            // 请求header封装
+            const headers = {
+                'Content-Type': 'application/json',
+                appKey: document.getElementById('appKey').value,
+                path: signInfo.path,
+                sign: signInfo.sign,
+                time: signInfo.time
+            };
+
+            // 签名提交测试
+            const response = await fetch('/sign/submit-test', {
+                method: 'POST',
+                headers: headers,
+                body: data
+            });
+
+            if (!response.ok) throw new Error('提交失败');
+            const result = await response.json();
+
+            submitResultEl.className = 'result success';
+            submitResultEl.textContent = result.result;
+        } catch (err) {
+            submitResultEl.className = 'result error';
+            submitResultEl.textContent = '错误：' + err.message;
+        }
+    }
+</script>
+</body>
+</html>

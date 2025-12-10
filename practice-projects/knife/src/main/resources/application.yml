@@ -1,0 +1,94 @@
+# default Environment
+spring:
+  profiles:
+    active: dev
+
+  # Thymeleaf config
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
+  # Spring Boot level
+  logging:
+    level:
+      root: INFO
+      org.springframework: DEBUG
+
+    file:
+      name: logs/app.log
+      path: logs
+
+  # H2 config (commented out)
+  # datasource:
+  #   url: jdbc:h2:mem:orderdb
+  #   driverClassName: org.h2.Driver
+  #   username: sa
+  #   password:
+  #   #spring.h2.console.enabled: true
+  #   #spring.h2.console.path: /h2-console
+
+  # "always" means that schema.sql will be executed during startup.
+  sql:
+    # init:
+      # mode: always
+      # schema-locations: classpath:schema.sql
+
+  # JPA config
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: validate
+
+#  jackson:
+#    date-format: "yyyy-MM-dd HH:mm:ss"
+#    time-zone: Asia/Shanghai
+
+  # MySQL - Order database (Primary)
+  order:
+    datasource:
+      jdbc-url: ${spring.order.datasource.jdbc-url}
+      username: ${spring.order.datasource.username}
+      password: ${spring.order.datasource.password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SELECT 1
+      pool-name: OrderDB-Pool
+
+  # MySQL - User database (Secondary)
+  user:
+    datasource:
+      jdbc-url: ${spring.user.datasource.jdbc-url}
+      username: ${spring.user.datasource.username}
+      password: ${spring.user.datasource.password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SELECT 1
+      pool-name: OrderDB-Pool
+
+  wechat:
+    mp:
+      app-id: 你的公众号APPID
+      app-secret: 你的公众号APPSECRET
+      token: 你的令牌（用于服务器配置）
+      aes-key: 消息加解密密钥
+      domain: 你的域名
+  catv:
+    config-file: classpath:dedicated-ip-ranges.yml
