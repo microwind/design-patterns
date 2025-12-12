@@ -5,10 +5,7 @@ import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -22,37 +19,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Order数据源配置 - 主数据源
- * 用于订单相关的数据库操作
+ * ApiAuth PostgreSQL数据源配置
+ * 用于API验证相关的数据库操作
  */
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = {"com.microwind.knife.domain.repository"}, // JPA Repository包路径，排除 apiauth 子包
-        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.microwind\\.knife\\.domain\\.repository\\.apiauth\\..*"),
-        entityManagerFactoryRef = "orderEntityManagerFactory",
-        transactionManagerRef = "orderTransactionManager"
+        basePackages = "com.microwind.knife.domain.repository.apiauth", // API Sign Repository包路径
+        entityManagerFactoryRef = "apiAuthEntityManagerFactory",
+        transactionManagerRef = "apiAuthTransactionManager"
 )
-public class OrderDataSourceConfig {
+public class ApiAuthDataSourceConfig {
 
-    @Value("${spring.order.datasource.jdbc-url}")
+    @Value("${spring.apiauth.datasource.jdbc-url}")
     private String jdbcUrl;
 
-    @Value("${spring.order.datasource.username}")
+    @Value("${spring.apiauth.datasource.username}")
     private String username;
 
-    @Value("${spring.order.datasource.password}")
+    @Value("${spring.apiauth.datasource.password}")
     private String password;
 
-    @Value("${spring.order.datasource.driver-class-name}")
+    @Value("${spring.apiauth.datasource.driver-class-name}")
     private String driverClassName;
 
     /**
-     * Order数据源 (主数据源)
+     * API Sign数据源 (PostgreSQL)
      */
-    @Bean(name = "orderDataSource")
-    @Primary
-    public DataSource orderDataSource() {
+    @Bean(name = "apiAuthDataSource")
+    public DataSource apiAuthDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setUsername(username);
@@ -60,38 +55,37 @@ public class OrderDataSourceConfig {
         dataSource.setDriverClassName(driverClassName);
 
         // 连接池配置
-        dataSource.setMinimumIdle(5);
-        dataSource.setMaximumPoolSize(20);
+        dataSource.setMinimumIdle(3);
+        dataSource.setMaximumPoolSize(10);
         dataSource.setConnectionTimeout(30000);
         dataSource.setIdleTimeout(600000);
         dataSource.setMaxLifetime(1800000);
         dataSource.setAutoCommit(true);
         dataSource.setConnectionInitSql("SELECT 1");
-        dataSource.setPoolName("OrderDB-Pool");
+        dataSource.setPoolName("ApiAuthDB-Pool");
 
         return dataSource;
     }
 
     /**
-     * Order数据源的EntityManagerFactory
-     * 管理Order和OrderItem实体
+     * API Sign数据源的EntityManagerFactory
+     * 管理ApiAuth, ApiInfo, ApiUsers, ApiDynamicSaltLog实体
      */
-    @Bean(name = "orderEntityManagerFactory")
-    @Primary
-    public LocalContainerEntityManagerFactoryBean orderEntityManagerFactory(
-            @Qualifier("orderDataSource") DataSource dataSource) {
+    @Bean(name = "apiAuthEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean apiAuthEntityManagerFactory(
+            @Qualifier("apiAuthDataSource") DataSource dataSource) {
 
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan("com.microwind.knife.domain.order"); // Order实体包路径
-        em.setPersistenceUnitName("orderPU");
+        em.setPackagesToScan("com.microwind.knife.domain.apiauth"); // API Sign实体包路径
+        em.setPersistenceUnitName("apiAuthPU");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "validate"); // 改回validate，因为已经明确指定列名
-        properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        properties.put("hibernate.hbm2ddl.auto", "validate");
+        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put("hibernate.show_sql", true);
         properties.put("hibernate.format_sql", true);
         em.setJpaPropertyMap(properties);
@@ -100,21 +94,19 @@ public class OrderDataSourceConfig {
     }
 
     /**
-     * Order数据源的事务管理器
+     * API Sign数据源的事务管理器
      */
-    @Bean(name = "orderTransactionManager")
-    @Primary
-    public PlatformTransactionManager orderTransactionManager(
-            @Qualifier("orderEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+    @Bean(name = "apiAuthTransactionManager")
+    public PlatformTransactionManager apiAuthTransactionManager(
+            @Qualifier("apiAuthEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
 
     /**
-     * Order数据源的JdbcTemplate (主JdbcTemplate)
+     * API Sign数据源的JdbcTemplate
      */
-    @Bean(name = "orderJdbcTemplate")
-    @Primary
-    public JdbcTemplate orderJdbcTemplate(@Qualifier("orderDataSource") DataSource dataSource) {
+    @Bean(name = "apiAuthJdbcTemplate")
+    public JdbcTemplate apiAuthJdbcTemplate(@Qualifier("apiAuthDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 }

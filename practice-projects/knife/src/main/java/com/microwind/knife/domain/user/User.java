@@ -41,21 +41,26 @@ public class User {
     @Column(name = "email", nullable = true)
     private String email; // 用户邮箱
 
+    @Getter
+    @Setter
+    @Column(name = "address", nullable = true)
+    private String address; // 用户地址
+
     @Column(name = "created_time", updatable = false)
-    private LocalDateTime createdAt; // 创建时间
+    private LocalDateTime createdTime; // 创建时间
 
     @Column(name = "updated_time", nullable = false)
-    private LocalDateTime updatedAt; // 更新时间
+    private LocalDateTime updatedTime; // 更新时间
 
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now; // 确保创建时同时初始化 updatedAt
+        this.createdTime = now;
+        this.updatedTime = now; // 确保创建时同时初始化 updatedAt
     }
 
     @PreUpdate // 必须添加此注解
     public void onUpdate() { // 建议改为 public 访问级别
-        this.updatedAt = LocalDateTime.now();
+        this.updatedTime = LocalDateTime.now();
     }
 }

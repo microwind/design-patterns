@@ -31,4 +31,9 @@ spring:
       username: frog_admin
       password: frog798
 
-
+  # PostgreSQL config - apiauth database
+  apiauth:
+    datasource:
+      jdbc-url: jdbc:postgresql://localhost:5432/apiauth
+      username: postgres
+      password: lego798

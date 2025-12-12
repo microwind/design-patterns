@@ -17,16 +17,24 @@ spring:
   #     enabled: true
   #     path: /h2-console
 
-  # MySQL config - Order database
+  # MySQL config - orders database
   order:
     datasource:
       jdbc-url: jdbc:mysql://localhost:3306/order_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
       username: order_admin
       password: order798
 
-  # MySQL config - User database
+  # MySQL config - users database
   user:
     datasource:
       jdbc-url: jdbc:mysql://localhost:3306/frog?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
       username: frog_admin
       password: frog798
+
+  # PostgreSQL config - apiauth database
+  apiauth:
+    datasource:
+      jdbc-url: jdbc:postgresql://localhost:5432/apiauth
+      username: postgres
+      password: lego798
+

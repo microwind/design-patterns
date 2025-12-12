@@ -1,6 +1,6 @@
 package com.microwind.knife.application.services.sign;
 
-import com.microwind.knife.application.config.SignConfig;
+import com.microwind.knife.application.config.ApiAuthConfig;
 import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
@@ -10,18 +10,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SignService {
     private final SignDomainService signDomainService;
-    private final SignConfig signConfig;
+    private final ApiAuthConfig signConfig;
 
     // 生成签名（含权限和盐值校验）
     public Sign generate(String appKey, String path, String dynamicSalt, Long saltGenerateTime) {
         // 1. 校验appKey是否存在
-        SignConfig.AppConfig appConfig = signConfig.getAppByKey(appKey);
+        ApiAuthConfig.AppConfig appConfig = signConfig.getAppByKey(appKey);
         if (appConfig == null) {
             throw new IllegalArgumentException("无效的appKey：" + appKey);
         }
 
         // 2. 校验是否有权访问签名接口和提交接口
-        String signGeneratePath = "/sign/sign-generate";
+        String signGeneratePath = "/apiauth/apiauth-generate";
         if (!signConfig.hasPermission(appKey, signGeneratePath)
                 || !signConfig.hasPermission(appKey, path)) {
             throw new SecurityException("appKey无接口访问权限");

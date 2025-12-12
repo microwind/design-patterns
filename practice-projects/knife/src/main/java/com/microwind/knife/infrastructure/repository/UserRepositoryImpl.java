@@ -8,6 +8,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 基础设施层 - 基于 JdbcTemplate 的用户仓储实现
@@ -31,6 +35,7 @@ public class UserRepositoryImpl implements UserRepository {
     private static final String COL_NAME = "name";
     private static final String COL_EMAIL = "email";
     private static final String COL_PHONE = "phone";
+    private static final String COL_ADDRESS = "address";
     private static final String COL_CREATED_TIME = "created_time";
     private static final String COL_UPDATED_TIME = "updated_time";
 
@@ -41,6 +46,47 @@ public class UserRepositoryImpl implements UserRepository {
     public UserRepositoryImpl(@Qualifier("userJdbcTemplate") JdbcTemplate jdbcTemplate) {
         System.out.println("initialize UserRepositoryImpl with userDataSource: " + jdbcTemplate.getDataSource());
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    private String camelToSnake(String prop) {
+        return prop.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    /**
+     * 构建 ORDER BY 子句
+     */
+    private String buildOrderBy(Sort sort) {
+        if (sort == null || sort.isUnsorted()) {
+            return "";
+        }
+
+        // 白名单字段（按数据库字段写）
+        Set<String> allowed = Set.of(
+                COL_ID,
+                COL_NAME,
+                COL_CREATED_TIME,
+                COL_UPDATED_TIME,
+                COL_EMAIL,
+                COL_PHONE
+        );
+
+        String orderBy = sort.stream()
+                .map(order -> {
+                    // 支持驼峰 createdAt → created_at
+                    String property = camelToSnake(order.getProperty());
+
+                    // 白名单校验（避免 SQL 注入）
+                    if (!allowed.contains(property)) {
+                        return null;
+                    }
+
+                    String direction = order.getDirection().isAscending() ? "ASC" : "DESC";
+                    return property + " " + direction;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(", "));
+
+        return orderBy.isEmpty() ? "" : "ORDER BY " + orderBy;
     }
 
     /**
@@ -86,9 +132,15 @@ public class UserRepositoryImpl implements UserRepository {
         int pageNumber = pageable.getPageNumber();
         int offset = pageNumber * pageSize;
 
+        // 提取排序 SQL
+        String orderBySql = buildOrderBy(pageable.getSort());
+
+        // 数据查询 SQL
         String dataSql = String.format(
-                "SELECT * FROM %s LIMIT ? OFFSET ?", TABLE_USERS
+                "SELECT * FROM %s %s LIMIT ? OFFSET ?",
+                TABLE_USERS, orderBySql
         );
+
         List<User> users = jdbcTemplate.query(dataSql, userRowMapper(), pageSize, offset);
 
         String countSql = String.format("SELECT COUNT(*) FROM %s", TABLE_USERS);
@@ -169,8 +221,9 @@ public class UserRepositoryImpl implements UserRepository {
             user.setName(rs.getString(COL_NAME));
             user.setPhone(rs.getString(COL_PHONE));
             user.setEmail(rs.getString(COL_EMAIL));
-            user.setCreatedAt(rs.getObject(COL_CREATED_TIME, LocalDateTime.class));
-            user.setUpdatedAt(rs.getObject(COL_UPDATED_TIME, LocalDateTime.class));
+            user.setAddress(rs.getString(COL_ADDRESS));
+            user.setCreatedTime(rs.getObject(COL_CREATED_TIME, LocalDateTime.class));
+            user.setUpdatedTime(rs.getObject(COL_UPDATED_TIME, LocalDateTime.class));
             return user;
         };
     }

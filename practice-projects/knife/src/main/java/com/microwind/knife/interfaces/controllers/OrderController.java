@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,19 +31,15 @@ public class OrderController {
 
     // 查询全部订单接口
     @GetMapping("")
-    public OrderPageDTO getAllOrders(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<Order> orderPages = orderService.getAllOrders(PageRequest.of(page, size));
+    public OrderPageDTO getAllOrders(Pageable pageable) {
+        Page<Order> orderPages = orderService.getAllOrders(pageable);
         return new OrderPageDTO(orderPages);
     }
 
     // 查询全部订单接口（包含订单项）
     @GetMapping("/with-items")
-    public OrderWithItemsPageDTO getAllOrdersWithItems(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<Order> orderPages = orderService.getAllOrdersWithItems(PageRequest.of(page, size));
+    public OrderWithItemsPageDTO getAllOrdersWithItems(Pageable pageable) {
+        Page<Order> orderPages = orderService.getAllOrdersWithItems(pageable);
         return new OrderWithItemsPageDTO(orderPages);
     }
 

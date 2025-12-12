@@ -1,4 +1,4 @@
-package com.microwind.knife.application.dto.sign;
+package com.microwind.knife.application.dto.apiauth;
 import lombok.Data;
 
 // 动态盐值请求DTO

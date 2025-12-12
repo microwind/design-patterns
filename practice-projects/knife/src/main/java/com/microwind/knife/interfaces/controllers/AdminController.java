@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
 
@@ -22,14 +22,14 @@ public class AdminController {
     }
 
     // 携带sign访问admin路径的测试
-    @PostMapping("/admin-sign-submit")
+    @PostMapping("/admin-apiauth-submit")
     public ResponseEntity<String> signSubmit(
             @RequestHeader("X-App-Key") String appKey,
             @RequestHeader("X-Sign") String sign,
             @RequestHeader("X-Sign-Time") Long signTime,
             @RequestBody Order order) {
 
-        String path = "/admin/admin-sign-submit";
+        String path = "/admin/admin-apiauth-submit";
 
         try {
             // 执行权限、时效和签名校验

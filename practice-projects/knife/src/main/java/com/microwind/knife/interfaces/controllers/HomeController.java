@@ -9,7 +9,7 @@ public class HomeController {
     @GetMapping("/")
     public String home() {
         return """
-                <h1>Welcome to Springboot MVC example.</h1>\
+                <h1>Welcome to Springboot DDD example.</h1>\
                 <pre>\
                 测试
                 <code>\

@@ -15,7 +15,9 @@ public interface OrderRepository {
     Optional<Order> findByOrderId(Long orderId);  // 根据订单号查询
     Optional<Order> findByOrderNo(String orderNo);  // 根据订单号查询
     List<Order> findByUserId(Long userId);         // 根据用户ID查询订单
+    Page<Order> findAll(Pageable pageable);
     Page<Order> findAllOrders(Pageable pageable);  // 分页查询所有订单
+    Page<Order> findAllOrdersWithItems(Pageable pageable); // 分页查询带上订单具体内容
     int updateOrderStatus(String orderNo, Order.OrderStatus status); // 更新订单状态
     Order save(Order order);  // 保存订单（插入或更新）
     void delete(Order order);  // 删除订单

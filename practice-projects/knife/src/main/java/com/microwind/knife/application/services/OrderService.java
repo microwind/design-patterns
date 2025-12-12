@@ -4,6 +4,7 @@ import com.microwind.knife.application.dto.order.OrderMapper;
 import com.microwind.knife.domain.order.Order;
 import com.microwind.knife.domain.order.OrderDomainService;
 import com.microwind.knife.domain.repository.OrderJpaRepository;
+import com.microwind.knife.domain.repository.OrderRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,10 +21,10 @@ public class OrderService {
     // OrderRepository接口有多种实现，可任选其一
 
     // 1. 采用Spring Data Jpa模式，代码更加简单，数据可持久化
-    private final OrderJpaRepository orderRepository;
+//    private final OrderJpaRepository orderRepository;
 
     // 2. 采用Spring jdbcTemplate模式，纯SQL，性能更好
-//    private final OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     private final OrderMapper orderMapper;
     private final OrderDomainService orderDomainService;

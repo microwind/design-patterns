@@ -185,6 +185,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.8</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <version>6.1.0</version>
@@ -387,6 +393,7 @@
     <junit-jupiter.version>5.11.4</junit-jupiter.version>
     <spring-security.version>6.4.3</spring-security.version>
     <servlet-api.version>4.0.1</servlet-api.version>
+    <postgresql.version>42.7.8</postgresql.version>
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <h2.database.version>2.2.224</h2.database.version>

@@ -2,13 +2,13 @@
 sign:
   # 应用配置
   apps:
-    - appKey: sign-caller1
+    - appKey: apiauth-caller1
       appSecret: secret_key_abc123_sign_caller1
       description: "签名调用方1"
       permissions:
-        - /sign/dynamic-salt
-        - /sign/sign-generate
-        - /admin/admin-sign-submit
+        - /apiauth/dynamic-salt
+        - /apiauth/apiauth-generate
+        - /admin/admin-apiauth-submit
 
   # 接口盐值配置
   interface-salts:

@@ -35,6 +35,7 @@
     <!-- 中间件版本 -->
     <h2.database.version>2.2.224</h2.database.version>
     <mysql.connector.version>9.2.0</mysql.connector.version>
+    <postgresql.version>42.7.8</postgresql.version>
     <tomcat.version>11.0.5</tomcat.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <jakarta-api.version>6.1.0</jakarta-api.version>
@@ -113,7 +114,12 @@
       <version>${mysql.connector.version}</version>
       <scope>runtime</scope>
     </dependency>
-
+  <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+  <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+  </dependency>
     <!-- Web 中间件，采用新版jakarta.servlet -->
     <dependency>
       <groupId>jakarta.servlet</groupId>

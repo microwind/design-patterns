@@ -56,14 +56,14 @@ public class SignatureUtil {
     /**
      * 构造签名原始字符串
      * 规则：
-     * 1. 排除 sign 字段（会修改传入的 params）
+     * 1. 排除 apiauth 字段（会修改传入的 params）
      * 2. 空串 ("") 和 null 不参与签名
      * 3. 字典序排序（ASCII 升序）
      * 4. 拼接为：key1=value1&key2=value2&...&key=密钥
      */
     private static String buildOriginStr(Map<String, Object> params, String key) {
-        // 排除 sign 字段
-        params.remove("sign");
+        // 排除 apiauth 字段
+        params.remove("apiauth");
 
         // 按字典序（ASCII 升序）排序
         List<String> keys = new ArrayList<>(params.keySet());
@@ -172,10 +172,10 @@ public class SignatureUtil {
         String secret = "W6BZElooSgFOxRFRvnes";
 
         // ===============================
-        // 2. 计算 sign
+        // 2. 计算 apiauth
         // ===============================
         String sign = sm3Sign(requestParams3, secret);
-        requestParams3.put("sign", sign);
+        requestParams3.put("apiauth", sign);
 
         // ===============================
         // 3. 输出 JSON
@@ -190,7 +190,7 @@ public class SignatureUtil {
         }
 
         String signStr = "amount=1&behavior=1&businessCode=tvallinone&encryptType=1&mobile=19299999999&nonstr=526434&partnerCode=GDSW&partnerOrderNo=2025102801&partnerOrderTime=1764834817870&partnerProductId=127540&partnerProductName=基本包&partnerProductPrice=10000&partnerProductType=1&partnerUserId=760043077516&productNo=xn_1445253726877229069&timestamp=1764834817871&key=W6BZElooSgFOxRFRvnes";
-        System.out.println("requestParams3 sign：" + SmUtil.sm3(signStr));
+        System.out.println("requestParams3 apiauth：" + SmUtil.sm3(signStr));
 
     }
 }

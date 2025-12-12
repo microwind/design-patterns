@@ -3,10 +3,7 @@ package com.microwind.knife.domain.order;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 聚合根（Aggregate Root）管理整个聚合的生命周期：
 // Order 是聚合根，OrderItem 是子聚合。
@@ -36,6 +33,8 @@ public class OrderItem {
     @ManyToOne
     @JoinColumn(name = "order_id")
     @JsonIgnore  // 避免序列化时的循环引用
-    @JsonBackReference
     private Order order;      // 关联的订单（聚合根）
+
+    @Column(name = "order_id", insertable = false, updatable = false)
+    private Long orderId;
 }

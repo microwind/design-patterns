@@ -10,9 +10,9 @@ import java.util.Map;
 
 @Data
 @Configuration
-@PropertySource(value = "classpath:sign-config.yml", factory = YamlPropertySourceFactory.class)
-@ConfigurationProperties(prefix = "sign")
-public class SignConfig {
+@PropertySource(value = "classpath:apiauth-config.yml", factory = YamlPropertySourceFactory.class)
+@ConfigurationProperties(prefix = "apiauth")
+public class ApiAuthConfig {
 
     private List<AppConfig> apps;
     private Map<String, String> interfaceSalts;

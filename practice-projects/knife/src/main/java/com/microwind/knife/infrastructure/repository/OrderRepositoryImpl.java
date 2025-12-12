@@ -1,6 +1,7 @@
 package com.microwind.knife.infrastructure.repository;
 
 import com.microwind.knife.domain.order.Order;
+import com.microwind.knife.domain.order.OrderItem;
 import com.microwind.knife.domain.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -8,14 +9,15 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 基础设施层 - 基于 JdbcTemplate 的订单仓储实现
@@ -27,6 +29,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     // 表名及列名常量，便于维护
     private static final String TABLE_ORDERS = "orders";
+    private static final String TABLE_ORDER_ITEM = "order_item";
     private static final String COL_ORDER_ID = "order_id";
     private static final String COL_ORDER_NO = "order_no";
     private static final String COL_USER_ID = "user_id";
@@ -43,6 +46,47 @@ public class OrderRepositoryImpl implements OrderRepository {
     public OrderRepositoryImpl(@Qualifier("orderJdbcTemplate") JdbcTemplate jdbcTemplate) {
         System.out.println("initialize OrderRepositoryImpl with orderDataSource: " + jdbcTemplate.getDataSource());
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    private String camelToSnake(String prop) {
+        return prop.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    /**
+     * 构建 ORDER BY 子句
+     */
+    private String buildOrderBy(Sort sort) {
+        if (sort == null || sort.isUnsorted()) {
+            return "";
+        }
+
+        // 白名单字段（按数据库字段写）
+        Set<String> allowed = Set.of(
+                "id",
+                "order_id",
+                "created_at",
+                "updated_at",
+                "status",
+                "amount"
+        );
+
+        String orderBy = sort.stream()
+                .map(order -> {
+                    // 支持驼峰 createdAt → created_at
+                    String property = camelToSnake(order.getProperty());
+
+                    // 白名单校验（避免 SQL 注入）
+                    if (!allowed.contains(property)) {
+                        return null;
+                    }
+
+                    String direction = order.getDirection().isAscending() ? "ASC" : "DESC";
+                    return property + " " + direction;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(", "));
+
+        return orderBy.isEmpty() ? "" : "ORDER BY " + orderBy;
     }
 
     /**
@@ -91,6 +135,16 @@ public class OrderRepositoryImpl implements OrderRepository {
      * 分页查询所有订单
      * 注意：COUNT(*) 在大数据量时可能较慢，可考虑分页优化策略
      */
+    @Transactional(readOnly = true)
+    public Page<Order> findAll(Pageable pageable) {
+        // 直接调用查询所有订单方法
+        return findAllOrders(pageable);
+    }
+
+    /**
+     * 分页查询所有订单
+     * 注意：COUNT(*) 在大数据量时可能较慢，可考虑分页优化策略
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<Order> findAllOrders(Pageable pageable) {
@@ -99,11 +153,63 @@ public class OrderRepositoryImpl implements OrderRepository {
         int pageNumber = pageable.getPageNumber();
         int offset = pageNumber * pageSize;
 
+        // 提取排序 SQL
+        String orderBySql = buildOrderBy(pageable.getSort());
+
+        // 数据查询 SQL
         String dataSql = String.format(
-                "SELECT * FROM %s LIMIT ? OFFSET ?", TABLE_ORDERS
+                "SELECT * FROM %s %s LIMIT ? OFFSET ?",
+                TABLE_ORDERS, orderBySql
         );
+
         List<Order> orders = jdbcTemplate.query(dataSql, orderRowMapper(), pageSize, offset);
 
+        String countSql = String.format("SELECT COUNT(*) FROM %s", TABLE_ORDERS);
+        Integer total = jdbcTemplate.queryForObject(countSql, Integer.class);
+
+        return new PageImpl<>(orders, pageable, total != null ? total : 0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Order> findAllOrdersWithItems(Pageable pageable) {
+
+        int pageSize = pageable.getPageSize();
+        int pageNumber = pageable.getPageNumber();
+        int offset = pageNumber * pageSize;
+
+        // 提取排序 SQL
+        String orderBySql = buildOrderBy(pageable.getSort());
+
+        // 1. 查询订单主表（分页）
+        String orderSql = String.format(
+                "SELECT * FROM %s %s LIMIT ? OFFSET ?", TABLE_ORDERS, orderBySql);
+        List<Order> orders = jdbcTemplate.query(orderSql, orderRowMapper(), pageSize, offset);
+        if (orders.isEmpty()) {
+            return new PageImpl<>(orders, pageable, 0);
+        }
+
+        // 2. 取出订单ID列表用于一次性查询所有 items
+        List<Long> orderIds = orders.stream().map(Order::getOrderId).toList();
+//        String inSql = orderIds.stream().map(orderId -> "?").reduce((a, b) -> a + "," + b).orElse("");
+        String inSql = String.join(",", Collections.nCopies(orderIds.size(), "?"));
+
+        // 3. 查询所有订单项
+        String itemsSql = String.format(
+                "SELECT * FROM %s WHERE `order_id` IN (%s)", TABLE_ORDER_ITEM, inSql);
+
+        List<OrderItem> allItems = jdbcTemplate.query(itemsSql, orderItemRowMapper(), orderIds.toArray());
+
+        // 4. items 按 orderId 分组
+        Map<Long, List<OrderItem>> itemsMap = allItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getOrderId));
+
+        // 5. 将 items 设置到对应 order
+        orders.forEach(order ->
+                order.setItems(itemsMap.getOrDefault(order.getOrderId(), List.of()))
+        );
+
+        // 6. 查询总数（COUNT）
         String countSql = String.format("SELECT COUNT(*) FROM %s", TABLE_ORDERS);
         Integer total = jdbcTemplate.queryForObject(countSql, Integer.class);
 
@@ -206,6 +312,19 @@ public class OrderRepositoryImpl implements OrderRepository {
             order.setCreatedAt(rs.getObject(COL_CREATED_AT, LocalDateTime.class));
             order.setUpdatedAt(rs.getObject(COL_UPDATED_AT, LocalDateTime.class));
             return order;
+        };
+    }
+
+    private RowMapper<OrderItem> orderItemRowMapper() {
+        return (rs, rowNum) -> {
+            OrderItem item = new OrderItem();
+
+            item.setOrderItemId(rs.getLong("order_item_id"));
+            item.setPrice(rs.getDouble("price"));
+            item.setProduct(rs.getString("product"));
+            item.setQuantity(rs.getInt("quantity"));
+            item.setOrderId(rs.getLong("order_id"));
+            return item;
         };
     }
 }

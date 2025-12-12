@@ -8,6 +8,7 @@ import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,10 +68,8 @@ public class UserController {
 
     // 查询全部用户接口
     @GetMapping("")
-    public UserPageDTO getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<User> userPages = userService.getAllUsers(PageRequest.of(page, size));
+    public UserPageDTO getAllUsers(Pageable pageable) {
+        Page<User> userPages = userService.getAllUsers(pageable);
         return new UserPageDTO(userPages);
     }
 }

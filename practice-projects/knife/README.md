@@ -263,7 +263,7 @@ public class Order {
     private int id;
     private List<OrderItem> items;
     private String status;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public Order(int id, List<OrderItem> items) {

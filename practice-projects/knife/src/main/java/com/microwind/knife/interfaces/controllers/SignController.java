@@ -1,5 +1,5 @@
 package com.microwind.knife.interfaces.controllers;
-import com.microwind.knife.application.dto.sign.*;
+import com.microwind.knife.application.dto.apiauth.*;
 import com.microwind.knife.application.services.sign.DynamicSaltService;
 import com.microwind.knife.application.services.sign.SignService;
 import com.microwind.knife.application.services.sign.SignVerifyService;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/sign")
+@RequestMapping("/apiauth")
 @RequiredArgsConstructor
 public class SignController {
     private final DynamicSaltService dynamicSaltService;
@@ -25,14 +25,14 @@ public class SignController {
     public ResponseEntity<DynamicSaltResponseDTO> generateDynamicSalt(@RequestBody DynamicSaltRequestDTO request) {
         DynamicSalt salt = dynamicSaltService.generate(request.getAppKey(), request.getPath());
         DynamicSaltResponseDTO response = new DynamicSaltResponseDTO();
-        response.setPath(salt.getPath());
-        response.setDynamicSalt(salt.getSaltValue());
-        response.setDynamicSaltTime(salt.getGenerateTime());
+        response.setPath(salt.path());
+        response.setDynamicSalt(salt.saltValue());
+        response.setDynamicSaltTime(salt.generateTime());
         return ResponseEntity.ok(response);
     }
 
     // 签名生成接口
-    @PostMapping("/sign-generate")
+    @PostMapping("/apiauth-generate")
     public ResponseEntity<SignResponseDTO> generateSign(@RequestBody SignRequestDTO request) {
         Sign sign = signService.generate(
                 request.getAppKey(),
@@ -41,9 +41,9 @@ public class SignController {
                 request.getDynamicSaltTime()
         );
         SignResponseDTO response = new SignResponseDTO();
-        response.setPath(sign.getPath());
-        response.setSign(sign.getSignValue());
-        response.setTime(sign.getTimestamp());
+        response.setPath(sign.path());
+        response.setSign(sign.signValue());
+        response.setTime(sign.timestamp());
         return ResponseEntity.ok(response);
     }
 

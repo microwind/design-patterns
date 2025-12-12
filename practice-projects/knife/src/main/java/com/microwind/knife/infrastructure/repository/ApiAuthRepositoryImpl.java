@@ -1,19 +1,11 @@
 package com.microwind.knife.infrastructure.repository;
 
-import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.repository.AppAuthRepository;
-import com.microwind.knife.domain.sign.AppAuth;
+import com.microwind.knife.domain.sign.ApiAuth;
 import org.springframework.context.annotation.Primary;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,7 +14,7 @@ import java.util.Optional;
  */
 @Repository
 @Primary
-public class AppAuthRepositoryImpl implements AppAuthRepository {
+public class ApiAuthRepositoryImpl implements AppAuthRepository {
 
     // 表名及列名常量，便于维护
     private static final String TABLE_AUTH = "authorization";
@@ -36,13 +28,13 @@ public class AppAuthRepositoryImpl implements AppAuthRepository {
     private final JdbcTemplate jdbcTemplate;
 
     // 显式构造器注入，替代 @Resource 和 Lombok
-    public AppAuthRepositoryImpl(JdbcTemplate jdbcTemplate) {
+    public ApiAuthRepositoryImpl(JdbcTemplate jdbcTemplate) {
         System.out.println("initialize UserRepositoryImpl" + jdbcTemplate.getDataSource());
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public Optional<AppAuth> findByAppKey(String appKey) {
+    public Optional<ApiAuth> findByAppKey(String appKey) {
         return Optional.empty();
     }
 }

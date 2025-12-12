@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class AppAuth {
+public class ApiUser {
     private String appKey;           // 调用方身份
     private String appSecret;        // 调用方秘钥
     private List<String> permitPaths; // 允许访问的接口路径

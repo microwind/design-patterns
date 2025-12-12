@@ -1,6 +1,6 @@
 package com.microwind.knife.application.services.sign;
 
-import com.microwind.knife.application.config.SignConfig;
+import com.microwind.knife.application.config.ApiAuthConfig;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SignValidationService {
-    private final SignConfig signConfig;
+    private final ApiAuthConfig apiAuthConfig;
     private final SignDomainService signDomainService;
 
     /**
@@ -29,28 +29,28 @@ public class SignValidationService {
         log.info("开始验证签名 - appKey: {}, path: {}, signTime: {}", appKey, path, signTime);
 
         // 1. 校验appKey是否存在
-        SignConfig.AppConfig appConfig = signConfig.getAppByKey(appKey);
+        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appKey);
         if (appConfig == null) {
             log.error("无效的appKey: {}", appKey);
             throw new SecurityException("无效的appKey：" + appKey);
         }
 
         // 2. 校验权限 - 检查是否有访问该接口的权限
-        if (!signConfig.hasPermission(appKey, path)) {
+        if (!apiAuthConfig.hasPermission(appKey, path)) {
             log.error("appKey {} 无权限访问接口: {}", appKey, path);
             throw new SecurityException("无权限访问该接口");
         }
 
         // 3. 校验时效性
         long currentTime = System.currentTimeMillis();
-        long signTtl = signConfig.getValidation().getSignTtl();
+        long signTtl = apiAuthConfig.getValidation().getSignTtl();
         if (currentTime - signTime > signTtl) {
             log.error("签名已过期 - 当前时间: {}, 签名时间: {}, 有效期: {}ms", currentTime, signTime, signTtl);
             throw new SecurityException("签名已过期");
         }
 
         // 4. 校验签名
-        String interfaceSalt = signConfig.getInterfaceSalt(path);
+        String interfaceSalt = apiAuthConfig.getInterfaceSalt(path);
         if (interfaceSalt == null) {
             log.error("未配置接口盐值 - path: {}", path);
             throw new SecurityException("未配置接口盐值");
@@ -79,13 +79,13 @@ public class SignValidationService {
      */
     public boolean validateDynamicSaltPermission(String appKey, String targetPath) {
         // 1. 校验appKey是否存在
-        SignConfig.AppConfig appConfig = signConfig.getAppByKey(appKey);
+        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appKey);
         if (appConfig == null) {
             throw new SecurityException("无效的appKey：" + appKey);
         }
 
         // 2. 校验是否有访问目标接口的权限
-        if (!signConfig.hasPermission(appKey, targetPath)) {
+        if (!apiAuthConfig.hasPermission(appKey, targetPath)) {
             throw new SecurityException("无权限访问目标接口");
         }
 

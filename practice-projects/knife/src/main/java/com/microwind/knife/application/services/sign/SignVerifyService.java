@@ -1,7 +1,7 @@
 package com.microwind.knife.application.services.sign;
 
 import com.microwind.knife.domain.repository.AppAuthRepository;
-import com.microwind.knife.domain.sign.AppAuth;
+import com.microwind.knife.domain.sign.ApiAuth;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ public class SignVerifyService {
     // 提交数据（含签名校验）
     public String submit(String appKey, String path, String signValue, Long signTimestamp, Map<String, Object> data) {
         // 1. 校验appKey权限
-        AppAuth appAuth = appAuthRepository.findByAppKey(appKey)
+        ApiAuth appAuth = appAuthRepository.findByAppKey(appKey)
                 .orElseThrow(() -> new IllegalArgumentException("无效的appKey：" + appKey));
         // 2. 校验提交接口权限
         if (!appAuth.getPermitPaths().contains(path)) {

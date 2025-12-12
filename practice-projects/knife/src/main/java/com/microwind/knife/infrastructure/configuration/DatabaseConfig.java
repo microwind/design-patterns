@@ -43,18 +43,33 @@ public class DatabaseConfig implements InitializingBean {
     @Value("${spring.user.datasource.password}")
     private String userPassword;
 
+    // ApiAuth数据源配置
+    @Value("${spring.apiauth.datasource.jdbc-url}")
+    private String apiAuthUrl;
+
+    @Value("${spring.apiauth.datasource.username}")
+    private String apiAuthUsername;
+
+    @Value("${spring.apiauth.datasource.password}")
+    private String apiAuthPassword;
+
     private final DataSource orderDataSource;
     private final DataSource userDataSource;
+    private final DataSource apiAuthDataSource;
 
     public DatabaseConfig(
             @Qualifier("orderDataSource") DataSource orderDataSource,
-            @Qualifier("userDataSource") DataSource userDataSource) {
+            @Qualifier("userDataSource") DataSource userDataSource,
+            @Qualifier("apiAuthDataSource") DataSource apiAuthDataSource
+    ) {
         this.orderDataSource = orderDataSource;
         this.userDataSource = userDataSource;
+        this.apiAuthDataSource = apiAuthDataSource;
     }
 
+
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         logger.info("========== Order Database (Primary) ==========");
         logger.info("Database URL: {}", orderUrl);
         logger.info("Database Username: {}", orderUsername);
@@ -67,6 +82,13 @@ public class DatabaseConfig implements InitializingBean {
         logger.info("Database Password: {}", maskPassword(userPassword));
         logger.info("DataSource Type: {}", userDataSource.getClass().getSimpleName());
         logger.info("===============================================");
+
+        logger.info("========== ApiAuth Database (Third) ==========");
+        logger.info("Database URL: {}", apiAuthUrl);
+        logger.info("Database Username: {}", apiAuthUsername);
+        logger.info("Database Password: {}", maskPassword(apiAuthPassword));
+        logger.info("DataSource Type: {}", apiAuthDataSource.getClass().getSimpleName());
+        logger.info("===============================================");
     }
 
     /**
@@ -76,6 +98,6 @@ public class DatabaseConfig implements InitializingBean {
         if (password == null || password.length() <= 2) {
             return "***";
         }
-        return password.substring(0, 1) + "***" + password.substring(password.length() - 1);
+        return password.charAt(0) + "***" + password.substring(password.length() - 1);
     }
 }

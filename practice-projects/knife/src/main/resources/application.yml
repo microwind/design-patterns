@@ -81,7 +81,24 @@ spring:
       auto-commit: true
       transaction-isolation: TRANSACTION_READ_COMMITTED
       connection-init-sql: SELECT 1
-      pool-name: OrderDB-Pool
+      pool-name: UserDB-Pool
+
+  # PostgreSQL - API Auth database (Third)
+  apiauth:
+    datasource:
+      jdbc-url: ${spring.apiauth.datasource.jdbc-url}
+      username: ${spring.apiauth.datasource.username}
+      password: ${spring.apiauth.datasource.password}
+      driver-class-name: org.postgresql.Driver
+      minimum-idle: 3
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SELECT 1
+      pool-name: ApiAuthDB-Pool
 
   wechat:
     mp:
