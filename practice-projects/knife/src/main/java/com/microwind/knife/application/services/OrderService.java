@@ -21,10 +21,10 @@ public class OrderService {
     // OrderRepository接口有多种实现，可任选其一
 
     // 1. 采用Spring Data Jpa模式，代码更加简单，数据可持久化
-//    private final OrderJpaRepository orderRepository;
+    private final OrderJpaRepository orderRepository;
 
     // 2. 采用Spring jdbcTemplate模式，纯SQL，性能更好
-    private final OrderRepository orderRepository;
+//    private final OrderRepository orderRepository;
 
     private final OrderMapper orderMapper;
     private final OrderDomainService orderDomainService;
@@ -98,9 +98,9 @@ public class OrderService {
     // 获取所有订单
     public Page<Order> getAllOrders(Pageable pageable) {
         // 使用默认JPA查询方法
-        return orderRepository.findAll(pageable);
+//        return orderRepository.findAll(pageable);
         // 使用JPA自定义方法，两者均可
-//        return orderRepository.findAllOrders(pageable);
+        return orderRepository.findAllOrders(pageable);
     }
 
     // 获取所有订单（包含订单项）

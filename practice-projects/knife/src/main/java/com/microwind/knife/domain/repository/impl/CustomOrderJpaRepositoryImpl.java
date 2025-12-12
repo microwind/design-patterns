@@ -5,10 +5,12 @@ import com.microwind.knife.domain.order.Order;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,6 +18,7 @@ import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 自定义订单仓储实现（基于JPA）
@@ -106,13 +109,17 @@ public class CustomOrderJpaRepositoryImpl implements CustomOrderJpaRepository {
 
     /**
      * 分页查询订单（大数据量时COUNT查询可能较慢）
+     * 支持动态排序
      */
     @Override
     @Transactional(readOnly = true)
     public Page<Order> findAllOrders(Pageable pageable) {
+        // 构建带排序的查询
+        String jpql = FIND_ALL_JPQL + buildOrderByClause(pageable.getSort());
+
         // 分页数据查询
-        List<Order> orders = entityManager
-                .createQuery(FIND_ALL_JPQL, Order.class)
+        TypedQuery<Order> query = entityManager.createQuery(jpql, Order.class);
+        List<Order> orders = query
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
@@ -128,13 +135,17 @@ public class CustomOrderJpaRepositoryImpl implements CustomOrderJpaRepository {
     /**
      * 分页查询订单（包含订单项，使用LEFT JOIN FETCH避免N+1问题）
      * 注意：使用DISTINCT避免因JOIN导致的重复记录
+     * 支持动态排序
      */
     @Override
     @Transactional(readOnly = true)
     public Page<Order> findAllOrdersWithItems(Pageable pageable) {
+        // 构建带排序的查询
+        String jpql = FIND_ALL_WITH_ITEMS_JPQL + buildOrderByClause(pageable.getSort());
+
         // 分页数据查询（包含订单项）
-        List<Order> orders = entityManager
-                .createQuery(FIND_ALL_WITH_ITEMS_JPQL, Order.class)
+        TypedQuery<Order> query = entityManager.createQuery(jpql, Order.class);
+        List<Order> orders = query
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
@@ -145,6 +156,23 @@ public class CustomOrderJpaRepositoryImpl implements CustomOrderJpaRepository {
                 .getSingleResult();
 
         return new PageImpl<>(orders, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * 构建 ORDER BY 子句
+     * @param sort 排序对象
+     * @return ORDER BY 子句字符串，如果没有排序则返回空字符串
+     */
+    private String buildOrderByClause(Sort sort) {
+        if (sort.isUnsorted()) {
+            return "";
+        }
+
+        String orderByClause = sort.stream()
+                .map(order -> "o." + order.getProperty() + " " + order.getDirection().name())
+                .collect(Collectors.joining(", "));
+
+        return " ORDER BY " + orderByClause;
     }
 
     /**
