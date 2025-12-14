@@ -1,7 +1,7 @@
 package com.microwind.knife.application.services.apiauth;
 
 import com.microwind.knife.domain.apiauth.ApiDynamicSaltLog;
-import com.microwind.knife.domain.repository.apiauth.ApiDynamicSaltLogRepository;
+import com.microwind.knife.domain.repository.apiauth.ApiDynamicSaltLogJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,20 +16,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ApiDynamicSaltLogService {
 
-    private final ApiDynamicSaltLogRepository saltLogRepository;
+    private final ApiDynamicSaltLogJpaRepository saltLogJpaRepository;
 
     /**
      * 验证并消费动态盐值
      */
     @Transactional
     public boolean validateAndConsumeSalt(String appCode, String apiPath, String dynamicSalt) {
-        Optional<ApiDynamicSaltLog> saltOpt = saltLogRepository.findValidSalt(
+        Optional<ApiDynamicSaltLog> saltOpt = saltLogJpaRepository.findValidSalt(
                 appCode, apiPath, dynamicSalt, LocalDateTime.now()
         );
 
         if (saltOpt.isPresent()) {
             // 标记为已使用
-            saltLogRepository.markAsUsed(saltOpt.get().getId());
+            saltLogJpaRepository.markAsUsed(saltOpt.get().getId());
             return true;
         }
         return false;
@@ -51,7 +51,7 @@ public class ApiDynamicSaltLogService {
                 .expireTime(expireTime)
                 .used((short) 0)
                 .build();
-        return saltLogRepository.save(saltLog);
+        return saltLogJpaRepository.save(saltLog);
     }
 
     /**
@@ -59,6 +59,6 @@ public class ApiDynamicSaltLogService {
      */
     @Transactional
     public int cleanExpiredSalts() {
-        return saltLogRepository.deleteExpiredSalts(LocalDateTime.now());
+        return saltLogJpaRepository.deleteExpiredSalts(LocalDateTime.now());
     }
 }

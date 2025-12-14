@@ -5,6 +5,9 @@ import com.microwind.knife.application.dto.order.OrderWithItemsPageDTO;
 import com.microwind.knife.application.services.OrderService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.order.Order;
+import com.microwind.knife.interfaces.request.order.CreateOrderRequest;
+import com.microwind.knife.interfaces.request.order.UpdateOrderRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
@@ -25,8 +28,8 @@ public class OrderController {
     // 创建订单
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Order createOrder(@RequestBody Order order) {
-        return orderService.createOrder(order);
+    public Order createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        return orderService.createOrder(request);
     }
 
     // 查询全部订单接口
@@ -65,9 +68,13 @@ public class OrderController {
     }
 
     // 更新接口
-    @PutMapping("/{orderNo}")
-    public Order updateOrder(@PathVariable String orderNo, @RequestBody Order order) {
-        return orderService.updateOrder(orderNo, order);
+//    @PutMapping("/{orderNo}")
+    @RequestMapping(
+            value = "/{orderNo}",
+            method = {RequestMethod.PATCH, RequestMethod.PUT, RequestMethod.POST}
+    )
+    public Order updateOrder(@PathVariable String orderNo, @RequestBody UpdateOrderRequest request) {
+        return orderService.updateOrder(orderNo, request);
     }
 
     // 删除接口
@@ -77,25 +84,21 @@ public class OrderController {
         orderService.deleteOrder(orderNo);
     }
 
-
-    public Order.OrderStatus parseOrderStatus(String statusStr) throws BadRequestException {
-        try {
-            return Order.OrderStatus.valueOf(statusStr);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("无效的订单状态：" + statusStr);
-        }
-    }
-
     // 更新订单状态接口
     @PatchMapping("/{orderNo}/status")
-    public ApiResponse<Object> updateStatus(@PathVariable String orderNo, @RequestBody Map<String, String> body) {
-        Order.OrderStatus status;
+    public ApiResponse<Object> updateStatus(@PathVariable String orderNo, @RequestBody UpdateOrderRequest request) {
         try {
-            // 安全解析
-            status = parseOrderStatus(body.get("status"));
-            return ApiResponse.success(orderService.updateOrderStatus(orderNo, status), "订单状态更新成功。");
-        } catch (BadRequestException ex) {
-            return ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+            int result = orderService.updateOrderStatus(orderNo, request);
+            if (result > 0) {
+                return ApiResponse.success(new Object() {
+                }, "订单：" + orderNo + " 的状态更新为：" + request.getStatus());
+            } else {
+                return ApiResponse.failure(500, "订单：" + orderNo + " 状态更新失败");
+            }
+        } catch (IllegalArgumentException ex) {
+            return ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), "无效的订单状态：" + ex.getMessage());
+        } catch (Exception ex) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }
     }
 }

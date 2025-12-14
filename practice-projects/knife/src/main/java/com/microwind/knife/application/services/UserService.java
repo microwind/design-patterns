@@ -5,6 +5,8 @@ import com.microwind.knife.domain.user.User;
 import com.microwind.knife.domain.user.UserDomainService;
 import com.microwind.knife.domain.repository.UserRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
+import com.microwind.knife.interfaces.request.user.CreateUserRequest;
+import com.microwind.knife.interfaces.request.user.UpdateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,16 +18,15 @@ import java.util.Optional;
  @Service
 @RequiredArgsConstructor
 public class UserService {
-    // UserRepository接口有多种实现，可任选其一
-    // 1. 采用Spring Data Jpa模式，代码更加简单，数据可持久化
-    // private final UserJpaRepository userRepository;
-    // 2. 采用Spring jdbcTemplate模式，纯SQL，性能更好
+    // 采用Spring jdbcTemplate模式，纯SQL，性能更好
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserDomainService userDomainService;
 
     // 创建用户
-    public User createUser(User user) {
+    public User createUser(CreateUserRequest request) {
+        // 将Request转换为User实体
+        User user = userMapper.toEntity(request);
         return userRepository.save(user);
     }
 
@@ -41,14 +42,14 @@ public class UserService {
 
     // 更新用户
     @Transactional
-    public User updateUser(Integer userId, User user) {
-        User existingOrder = userRepository.findById(userId)
+    public User updateUser(Integer userId, UpdateUserRequest request) {
+        User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with userId: " + userId));
-        if (existingOrder.getId() != null) {
-            user.setId(userId);
-            return userRepository.save(user);
-        }
-        return null;
+
+        // 使用Mapper更新实体（仅更新非null字段）
+        userMapper.updateEntityFromRequest(request, existingUser);
+
+        return userRepository.save(existingUser);
     }
     
     // 删除用户

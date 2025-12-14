@@ -1,7 +1,7 @@
 package com.microwind.knife.application.services.apiauth;
 
 import com.microwind.knife.domain.apiauth.ApiAuth;
-import com.microwind.knife.domain.repository.apiauth.ApiAuthRepository;
+import com.microwind.knife.domain.repository.apiauth.ApiAuthJpaRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiAuthService {
 
-    private final ApiAuthRepository apiAuthRepository;
+    private final ApiAuthJpaRepository apiAuthJpaRepository;
 
     /**
      * 检查权限是否有效
      */
     public boolean checkAuth(String appCode, String apiPath) {
-        return apiAuthRepository.findValidAuth(appCode, apiPath, LocalDateTime.now()).isPresent();
+        return apiAuthJpaRepository.findValidAuth(appCode, apiPath, LocalDateTime.now()).isPresent();
     }
 
     /**
@@ -31,14 +31,14 @@ public class ApiAuthService {
      */
     @Transactional
     public ApiAuth createAuth(ApiAuth apiAuth) {
-        return apiAuthRepository.save(apiAuth);
+        return apiAuthJpaRepository.save(apiAuth);
     }
 
     /**
      * 根据ID查询
      */
     public ApiAuth getById(Long id) {
-        return apiAuthRepository.findById(id)
+        return apiAuthJpaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiAuth not found with id: " + id));
     }
 
@@ -46,7 +46,7 @@ public class ApiAuthService {
      * 查询所有权限
      */
     public List<ApiAuth> getAllAuths() {
-        return apiAuthRepository.findAll();
+        return apiAuthJpaRepository.findAll();
     }
 
     /**
@@ -67,7 +67,7 @@ public class ApiAuthService {
         if (apiAuth.getExpireTime() != null) {
             existingAuth.setExpireTime(apiAuth.getExpireTime());
         }
-        return apiAuthRepository.save(existingAuth);
+        return apiAuthJpaRepository.save(existingAuth);
     }
 
     /**
@@ -76,6 +76,6 @@ public class ApiAuthService {
     @Transactional
     public void deleteAuth(Long id) {
         ApiAuth apiAuth = getById(id);
-        apiAuthRepository.delete(apiAuth);
+        apiAuthJpaRepository.delete(apiAuth);
     }
 }

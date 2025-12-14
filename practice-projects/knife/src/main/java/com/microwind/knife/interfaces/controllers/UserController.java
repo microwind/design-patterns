@@ -5,6 +5,8 @@ import com.microwind.knife.domain.user.User;
 import com.microwind.knife.application.dto.user.UserPageDTO;
 import com.microwind.knife.application.services.UserService;
 import com.microwind.knife.exception.ResourceNotFoundException;
+import com.microwind.knife.interfaces.request.user.CreateUserRequest;
+import com.microwind.knife.interfaces.request.user.UpdateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,8 +25,8 @@ public class UserController {
     // 创建用户
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public User createUser(@RequestBody CreateUserRequest request) {
+        return userService.createUser(request);
     }
 
     // 根据用户ID查询
@@ -42,8 +44,8 @@ public class UserController {
 
     // 更新接口
     @PutMapping("/{userId}")
-    public User updateUser(@PathVariable Integer userId, @RequestBody User user) {
-        return userService.updateUser(userId, user);
+    public User updateUser(@PathVariable Integer userId, @RequestBody UpdateUserRequest request) {
+        return userService.updateUser(userId, request);
     }
 
     // POST删除接口，返回JSON

@@ -45,7 +45,9 @@ spring:
     hibernate:
       ddl-auto: validate
 
-#  jackson:
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
 #    date-format: "yyyy-MM-dd HH:mm:ss"
 #    time-zone: Asia/Shanghai
 

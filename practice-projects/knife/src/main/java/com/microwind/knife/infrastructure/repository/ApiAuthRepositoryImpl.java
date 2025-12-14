@@ -1,6 +1,6 @@
 package com.microwind.knife.infrastructure.repository;
 
-import com.microwind.knife.domain.repository.AppAuthRepository;
+import com.microwind.knife.domain.repository.ApiAuthRepository;
 import com.microwind.knife.domain.sign.ApiAuth;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 @Repository
 @Primary
-public class ApiAuthRepositoryImpl implements AppAuthRepository {
+public class ApiAuthRepositoryImpl implements ApiAuthRepository {
 
     // 表名及列名常量，便于维护
     private static final String TABLE_AUTH = "authorization";

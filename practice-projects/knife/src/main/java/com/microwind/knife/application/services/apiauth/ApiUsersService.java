@@ -1,7 +1,7 @@
 package com.microwind.knife.application.services.apiauth;
 
 import com.microwind.knife.domain.apiauth.ApiUsers;
-import com.microwind.knife.domain.repository.apiauth.ApiUsersRepository;
+import com.microwind.knife.domain.repository.apiauth.ApiUsersJpaRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiUsersService {
 
-    private final ApiUsersRepository apiUsersRepository;
+    private final ApiUsersJpaRepository apiUsersJpaRepository;
 
     /**
      * 根据appCode查询用户
      */
     public ApiUsers getByAppCode(String appCode) {
-        return apiUsersRepository.findByAppCode(appCode)
+        return apiUsersJpaRepository.findByAppCode(appCode)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiUsers not found with appCode: " + appCode));
     }
 
@@ -31,14 +31,14 @@ public class ApiUsersService {
      * 验证用户是否有效
      */
     public boolean validateUser(String appCode) {
-        return apiUsersRepository.findValidUser(appCode, LocalDateTime.now()).isPresent();
+        return apiUsersJpaRepository.findValidUser(appCode, LocalDateTime.now()).isPresent();
     }
 
     /**
      * 获取有效用户信息（用于签名验证）
      */
     public ApiUsers getValidUser(String appCode) {
-        return apiUsersRepository.findValidUser(appCode, LocalDateTime.now())
+        return apiUsersJpaRepository.findValidUser(appCode, LocalDateTime.now())
                 .orElseThrow(() -> new ResourceNotFoundException("Valid ApiUsers not found with appCode: " + appCode));
     }
 
@@ -47,14 +47,14 @@ public class ApiUsersService {
      */
     @Transactional
     public ApiUsers createApiUser(ApiUsers apiUsers) {
-        return apiUsersRepository.save(apiUsers);
+        return apiUsersJpaRepository.save(apiUsers);
     }
 
     /**
      * 根据ID查询
      */
     public ApiUsers getById(Long id) {
-        return apiUsersRepository.findById(id)
+        return apiUsersJpaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiUsers not found with id: " + id));
     }
 
@@ -62,7 +62,7 @@ public class ApiUsersService {
      * 查询所有用户
      */
     public List<ApiUsers> getAllUsers() {
-        return apiUsersRepository.findAll();
+        return apiUsersJpaRepository.findAll();
     }
 
     /**
@@ -89,7 +89,7 @@ public class ApiUsersService {
         if (apiUsers.getExpireTime() != null) {
             existingUser.setExpireTime(apiUsers.getExpireTime());
         }
-        return apiUsersRepository.save(existingUser);
+        return apiUsersJpaRepository.save(existingUser);
     }
 
     /**
@@ -98,6 +98,6 @@ public class ApiUsersService {
     @Transactional
     public void deleteApiUser(Long id) {
         ApiUsers apiUsers = getById(id);
-        apiUsersRepository.delete(apiUsers);
+        apiUsersJpaRepository.delete(apiUsers);
     }
 }

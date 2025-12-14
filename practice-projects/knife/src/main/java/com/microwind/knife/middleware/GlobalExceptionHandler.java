@@ -1,12 +1,16 @@
 package com.microwind.knife.middleware;
 
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.microwind.knife.exception.ResourceNotFoundException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -14,6 +18,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 全局异常处理控制器建议继承 ResponseEntityExceptionHandler
@@ -162,6 +168,59 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.NOT_FOUND,
                 "404 Not Found",
                 "The resource was not found.",
+                ex
+        );
+    }
+
+    /**
+     * 重写父类方法：处理JSON反序列化异常（如未识别的字段）
+     */
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        String message = "请求数据格式错误";
+
+        // 检查是否是未识别字段的异常
+        Throwable cause = ex.getCause();
+        if (cause instanceof UnrecognizedPropertyException) {
+            UnrecognizedPropertyException upe = (UnrecognizedPropertyException) cause;
+            String fieldName = upe.getPropertyName();
+            message = String.format("无效的字段：'%s'。该字段不允许更新或不存在。", fieldName);
+        }
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid Request Data",
+                message,
+                ex
+        );
+    }
+
+    /**
+     * 重写父类方法：处理字段验证异常
+     */
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation Failed",
+                errors,
                 ex
         );
     }

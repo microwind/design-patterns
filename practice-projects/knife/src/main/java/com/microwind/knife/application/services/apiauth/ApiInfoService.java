@@ -1,7 +1,7 @@
 package com.microwind.knife.application.services.apiauth;
 
 import com.microwind.knife.domain.apiauth.ApiInfo;
-import com.microwind.knife.domain.repository.apiauth.ApiInfoRepository;
+import com.microwind.knife.domain.repository.apiauth.ApiInfoJpaRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiInfoService {
 
-    private final ApiInfoRepository apiInfoRepository;
+    private final ApiInfoJpaRepository apiInfoJpaRepository;
 
     /**
      * 根据apiPath查询接口信息
      */
     public ApiInfo getByApiPath(String apiPath) {
-        return apiInfoRepository.findByApiPath(apiPath)
+        return apiInfoJpaRepository.findByApiPath(apiPath)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiInfo not found with apiPath: " + apiPath));
     }
 
@@ -31,14 +31,14 @@ public class ApiInfoService {
      */
     @Transactional
     public ApiInfo createApiInfo(ApiInfo apiInfo) {
-        return apiInfoRepository.save(apiInfo);
+        return apiInfoJpaRepository.save(apiInfo);
     }
 
     /**
      * 根据ID查询
      */
     public ApiInfo getById(Long id) {
-        return apiInfoRepository.findById(id)
+        return apiInfoJpaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiInfo not found with id: " + id));
     }
 
@@ -46,14 +46,14 @@ public class ApiInfoService {
      * 查询所有API信息
      */
     public List<ApiInfo> getAllApiInfos() {
-        return apiInfoRepository.findAll();
+        return apiInfoJpaRepository.findAll();
     }
 
     /**
      * 查询需要签名的API列表
      */
     public List<ApiInfo> getSignRequiredApis() {
-        return apiInfoRepository.findSignRequiredApis();
+        return apiInfoJpaRepository.findSignRequiredApis();
     }
 
     /**
@@ -83,7 +83,7 @@ public class ApiInfoService {
         if (apiInfo.getDescription() != null) {
             existingApiInfo.setDescription(apiInfo.getDescription());
         }
-        return apiInfoRepository.save(existingApiInfo);
+        return apiInfoJpaRepository.save(existingApiInfo);
     }
 
     /**
@@ -92,6 +92,6 @@ public class ApiInfoService {
     @Transactional
     public void deleteApiInfo(Long id) {
         ApiInfo apiInfo = getById(id);
-        apiInfoRepository.delete(apiInfo);
+        apiInfoJpaRepository.delete(apiInfo);
     }
 }

@@ -6,6 +6,8 @@ import com.microwind.knife.domain.order.OrderDomainService;
 import com.microwind.knife.domain.repository.OrderJpaRepository;
 import com.microwind.knife.domain.repository.OrderRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
+import com.microwind.knife.interfaces.request.order.CreateOrderRequest;
+import com.microwind.knife.interfaces.request.order.UpdateOrderRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +32,10 @@ public class OrderService {
     private final OrderDomainService orderDomainService;
 
     // 创建订单
-    public Order createOrder(Order order) {
+    public Order createOrder(CreateOrderRequest request) {
+        // 将Request转换为Order实体
+        Order order = orderMapper.toEntity(request);
+
         // 业务逻辑，例如生成订单编号等
         if (order.getOrderNo() == null || order.getOrderNo().isEmpty()) {
             String orderNo = "ORD-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
@@ -52,39 +57,49 @@ public class OrderService {
     public List<Order> getUserOrders(Long userId) {
         return orderRepository.findByUserId(userId);
     }
+    @Transactional
+    public Order updateOrderStatus1(String orderNo, UpdateOrderRequest request) {
+        Order order = getByOrderNo(orderNo);
+
+        // 只允许更新 status（Mapper 只做转换）
+        if (request.getStatus() != null) {
+            order.setStatus(
+                    Order.OrderStatus.valueOf(request.getStatus())
+            );
+        }
+        // JPA 脏检查自动 update
+        return order;
+    }
 
     // 更新订单状态
-    public Order updateOrderStatus(String orderNo, Order.OrderStatus status) {
-        Order order = getByOrderNo(orderNo);
-        order.setStatus(status);
-        // 1. 方式1，先查并全量写入
-        // return orderRepository.save(order);
+    public int updateOrderStatus(String orderNo, UpdateOrderRequest request) {
+        if (request.getStatus() == null) {
+            return 0;
+        }
+        Order.OrderStatus status;
+        try {
+            status = Order.OrderStatus.valueOf(request.getStatus());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("无效的订单状态：" + request.getStatus());
+        }
 
-        // 2. 方式2，仅更新状态，效率更高
+        // 命令式更新（CQRS 风格）
         int rowCount = orderRepository.updateOrderStatus(orderNo, status);
         if (rowCount > 0) {
-            return order;
+            return rowCount;
         }
-        throw new ResourceNotFoundException("Order with orderNo " + orderNo + " not found or status update failed.");
+        throw new ResourceNotFoundException("没找到订单号：" + orderNo + "。");
     }
 
     // 更新订单
     @Transactional
-    public Order updateOrder(String orderNo, Order order) {
+    public Order updateOrder(String orderNo, UpdateOrderRequest request) {
         Order existingOrder = orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with orderNo: " + orderNo));
-        if (order.getUserId() != null) {
-            existingOrder.setUserId(order.getUserId());
-        }
-        if (order.getAmount() != null) {
-            existingOrder.setAmount(order.getAmount());
-        }
-        if (order.getStatus() != null) {
-            existingOrder.setStatus(order.getStatus());
-        }
-        if (order.getOrderName() != null) {
-            existingOrder.setOrderName(order.getOrderName());
-        }
+
+        // 使用Mapper更新实体
+        orderMapper.updateEntityFromRequest(request, existingOrder);
+
         return orderRepository.save(existingOrder);
     }
 

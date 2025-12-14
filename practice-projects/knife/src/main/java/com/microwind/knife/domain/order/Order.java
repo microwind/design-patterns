@@ -34,8 +34,6 @@ public class Order {
     private Long orderId;
 
     // 订单编号
-    @Getter
-    @Setter
     @Column(name = "order_no", nullable = false)
     private String orderNo;
 
@@ -52,8 +50,6 @@ public class Order {
     private String orderName;
 
     // 订单状态
-    @Getter
-    @Setter
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private OrderStatus status;

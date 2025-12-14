@@ -1,6 +1,6 @@
 package com.microwind.knife.application.services.sign;
 
-import com.microwind.knife.domain.repository.AppAuthRepository;
+import com.microwind.knife.domain.repository.ApiAuthRepository;
 import com.microwind.knife.domain.sign.ApiAuth;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +12,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SignVerifyService {
     private final SignDomainService securityDomainService;
-    private final AppAuthRepository appAuthRepository;
+    private final ApiAuthRepository apiAuthRepository;
     private final Map<String, String> interfaceSaltMap;
     private static final long TIMESTAMP_VALID_DURATION = 10 * 60 * 1000;
 
     // 提交数据（含签名校验）
     public String submit(String appKey, String path, String signValue, Long signTimestamp, Map<String, Object> data) {
         // 1. 校验appKey权限
-        ApiAuth appAuth = appAuthRepository.findByAppKey(appKey)
+        ApiAuth appAuth = apiAuthRepository.findByAppKey(appKey)
                 .orElseThrow(() -> new IllegalArgumentException("无效的appKey：" + appKey));
         // 2. 校验提交接口权限
         if (!appAuth.getPermitPaths().contains(path)) {

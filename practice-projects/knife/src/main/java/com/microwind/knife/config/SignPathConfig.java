@@ -1,6 +1,6 @@
 package com.microwind.knife.config;
 import com.microwind.knife.domain.sign.ApiAuth;
-import com.microwind.knife.domain.repository.AppAuthRepository;
+import com.microwind.knife.domain.repository.ApiAuthRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,7 +21,7 @@ public class SignPathConfig {
 
     // 应用权限配置（应来自数据库或缓存）
     @Bean
-    public AppAuthRepository appAuthRepository() {
+    public ApiAuthRepository appAuthRepository() {
         // 允许访问的接口和禁止访问的接口
         ApiAuth app001Auth = new ApiAuth(
                 "APP001",
