@@ -1,0 +1,18 @@
+package com.microwind.knife.interfaces.vo.user;
+
+import lombok.*;
+
+/**
+ * 创建用户请求DTO
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateUserRequest {
+    private String name;     // 用户姓名
+    private String phone;    // 用户手机
+    private String email;    // 用户邮箱
+    private String address;  // 用户地址
+}
+
