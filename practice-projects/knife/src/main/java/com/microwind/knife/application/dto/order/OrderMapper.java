@@ -1,8 +1,8 @@
 package com.microwind.knife.application.dto.order;
 
 import com.microwind.knife.domain.order.Order;
-import com.microwind.knife.interfaces.request.order.CreateOrderRequest;
-import com.microwind.knife.interfaces.request.order.UpdateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.CreateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.UpdateOrderRequest;
 
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -38,7 +38,7 @@ public interface OrderMapper {
         try {
             return Order.OrderStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("无效的订单状态：" + status);
+            return null;
         }
     }
 

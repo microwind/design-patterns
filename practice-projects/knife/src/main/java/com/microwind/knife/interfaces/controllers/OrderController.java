@@ -5,8 +5,9 @@ import com.microwind.knife.application.dto.order.OrderWithItemsPageDTO;
 import com.microwind.knife.application.services.OrderService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.order.Order;
-import com.microwind.knife.interfaces.request.order.CreateOrderRequest;
-import com.microwind.knife.interfaces.request.order.UpdateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.CreateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.UpdateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.UpdateOrderStatusResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -86,12 +87,12 @@ public class OrderController {
 
     // 更新订单状态接口
     @PatchMapping("/{orderNo}/status")
-    public ApiResponse<Object> updateStatus(@PathVariable String orderNo, @RequestBody UpdateOrderRequest request) {
+    public ApiResponse<UpdateOrderStatusResponse> updateStatus(@PathVariable String orderNo, @RequestBody UpdateOrderRequest request) {
         try {
             int result = orderService.updateOrderStatus(orderNo, request);
             if (result > 0) {
-                return ApiResponse.success(new Object() {
-                }, "订单：" + orderNo + " 的状态更新为：" + request.getStatus());
+                UpdateOrderStatusResponse response = new UpdateOrderStatusResponse(orderNo, request.getStatus());
+                return ApiResponse.success(response, "订单：" + orderNo + " 的状态更新为：" + request.getStatus());
             } else {
                 return ApiResponse.failure(500, "订单：" + orderNo + " 状态更新失败");
             }

@@ -8,6 +8,9 @@ import org.springframework.context.annotation.PropertySource;
 import java.util.List;
 import java.util.Map;
 
+/*
+* 通过配置文件来鉴权，此种方式废弃
+*/
 @Data
 @Configuration
 @PropertySource(value = "classpath:apiauth-config.yml", factory = YamlPropertySourceFactory.class)
@@ -52,6 +55,7 @@ public class ApiAuthConfig {
         if (interfaceSalts == null) {
             return null;
         }
+        path = path.replaceAll("/", "");
         return interfaceSalts.get(path);
     }
 

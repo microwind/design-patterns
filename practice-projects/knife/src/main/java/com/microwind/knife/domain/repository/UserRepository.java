@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-// User仓库接口文件，定义在Domain层，具体实现可以有多种方式，放在Infrastructure，体现依赖倒置
+// User仓库接口文件，interface定义在Domain层，具体实现impl放在Infrastructure，体现依赖倒置
 // JdbcTemplate：优点是灵活、可控性强、缺点是ORM 性能损耗，但代码冗余、需手动处理对象映射和事务。
 public interface UserRepository {
     Optional<User> findById(Integer userId);  // 根据用户ID查询

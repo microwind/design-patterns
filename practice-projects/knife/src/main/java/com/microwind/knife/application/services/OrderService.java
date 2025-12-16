@@ -3,12 +3,12 @@ package com.microwind.knife.application.services;
 import com.microwind.knife.application.dto.order.OrderMapper;
 import com.microwind.knife.domain.order.Order;
 import com.microwind.knife.domain.order.OrderDomainService;
-import com.microwind.knife.domain.repository.OrderJpaRepository;
-import com.microwind.knife.domain.repository.OrderRepository;
+import com.microwind.knife.domain.repository.order.OrderJpaRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
-import com.microwind.knife.interfaces.request.order.CreateOrderRequest;
-import com.microwind.knife.interfaces.request.order.UpdateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.CreateOrderRequest;
+import com.microwind.knife.interfaces.vo.order.UpdateOrderRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -53,25 +54,27 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with orderNo: " + orderNo));
     }
 
-    // 查询用户订单列表
+
     public List<Order> getUserOrders(Long userId) {
         return orderRepository.findByUserId(userId);
     }
+
+    // 查询用户订单列表，基于JPA 脏检查自动更新
     @Transactional
-    public Order updateOrderStatus1(String orderNo, UpdateOrderRequest request) {
+    public int updateOrderStatus1(String orderNo, UpdateOrderRequest request) {
         Order order = getByOrderNo(orderNo);
 
         // 只允许更新 status（Mapper 只做转换）
         if (request.getStatus() != null) {
+            // 基于 JPA 持久化上下文的脏检查机制，事务提交时自动 flush 更新数据库
             order.setStatus(
-                    Order.OrderStatus.valueOf(request.getStatus())
+                Order.OrderStatus.valueOf(request.getStatus())
             );
         }
-        // JPA 脏检查自动 update
-        return order;
+        return 1;
     }
 
-    // 更新订单状态
+    // 更新订单状态，根据status更新指定字段
     public int updateOrderStatus(String orderNo, UpdateOrderRequest request) {
         if (request.getStatus() == null) {
             return 0;
@@ -80,6 +83,11 @@ public class OrderService {
         try {
             status = Order.OrderStatus.valueOf(request.getStatus());
         } catch (IllegalArgumentException e) {
+            log.error(
+                    "[OrderService#updateOrderStatus] failed, orderNo={}",
+                    orderNo,
+                    e
+            );
             throw new IllegalArgumentException("无效的订单状态：" + request.getStatus());
         }
 

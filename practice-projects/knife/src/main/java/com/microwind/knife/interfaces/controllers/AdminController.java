@@ -1,12 +1,16 @@
 package com.microwind.knife.interfaces.controllers;
 
 import com.microwind.knife.application.services.sign.SignValidationService;
+import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.order.Order;
+import com.microwind.knife.interfaces.vo.EmptyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -17,19 +21,22 @@ public class AdminController {
     private final SignValidationService signValidationService;
 
     @GetMapping
-    public String adminHome() {
-        return "Welcome to the Admin Dashboard";
+    public ApiResponse<EmptyResponse> adminHome() {
+        return ApiResponse.success(new EmptyResponse(),"Welcome to Admin");
     }
 
     // 携带sign访问admin路径的测试
-    @PostMapping("/admin-apiauth-submit")
+    @RequestMapping(
+            value = "/admin-sign-submit",
+            method = {RequestMethod.GET, RequestMethod.POST}
+    )
     public ResponseEntity<String> signSubmit(
-            @RequestHeader("X-App-Key") String appKey,
-            @RequestHeader("X-Sign") String sign,
-            @RequestHeader("X-Sign-Time") Long signTime,
+            @RequestHeader(value = "X-App-Key", required = false) String appKey,
+            @RequestHeader(value = "X-Sign", required = false) String sign,
+            @RequestHeader(value = "X-Sign-Time", required = false) Long signTime,
             @RequestBody Order order) {
 
-        String path = "/admin/admin-apiauth-submit";
+        String path = "/api/admin/admin-sign-submit";
 
         try {
             // 执行权限、时效和签名校验

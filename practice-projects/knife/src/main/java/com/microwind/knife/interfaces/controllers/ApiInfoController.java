@@ -63,7 +63,11 @@ public class ApiInfoController {
     /**
      * 更新API信息
      */
-    @PutMapping("/{id}")
+//    @PutMapping("/{id}")
+    @RequestMapping(
+            value = "/{id}",
+            method = {RequestMethod.PUT, RequestMethod.POST}
+    )
     public ApiResponse<ApiInfo> updateApiInfo(@PathVariable Long id, @RequestBody ApiInfo apiInfo) {
         return ApiResponse.success(apiInfoService.updateApiInfo(id, apiInfo), "API信息更新成功");
     }

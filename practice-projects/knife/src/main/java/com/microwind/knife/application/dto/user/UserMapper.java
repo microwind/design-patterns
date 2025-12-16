@@ -1,8 +1,8 @@
 package com.microwind.knife.application.dto.user;
 
 import com.microwind.knife.domain.user.User;
-import com.microwind.knife.interfaces.request.user.CreateUserRequest;
-import com.microwind.knife.interfaces.request.user.UpdateUserRequest;
+import com.microwind.knife.interfaces.vo.user.CreateUserRequest;
+import com.microwind.knife.interfaces.vo.user.UpdateUserRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

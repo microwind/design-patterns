@@ -28,8 +28,11 @@ import java.util.Map;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = {"com.microwind.knife.domain.repository"}, // JPA Repository包路径，排除 apiauth 子包
-        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.microwind\\.knife\\.domain\\.repository\\.apiauth\\..*"),
+        basePackages = {
+            "com.microwind.knife.domain.repository.order",
+//            "com.microwind.knife.infrastructure.repository"
+        },
+        // excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.microwind\\.knife\\.domain\\.repository\\.apiauth\\..*"),
         entityManagerFactoryRef = "orderEntityManagerFactory",
         transactionManagerRef = "orderTransactionManager"
 )

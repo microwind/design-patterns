@@ -25,7 +25,7 @@ import java.util.Map;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.microwind.knife.domain.repository.apiauth", // API Sign Repository包路径
+        basePackages = "com.microwind.knife.domain.repository.apiauth", // ApiAuth Repository包路径
         entityManagerFactoryRef = "apiAuthEntityManagerFactory",
         transactionManagerRef = "apiAuthTransactionManager"
 )
