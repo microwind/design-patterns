@@ -24,16 +24,16 @@ public class SignPageController {
     }
 
     // 签名页面 - 下发动态盐值
-    @GetMapping("/demo-page")
+    @GetMapping("/sign-page")
     public String demoPage(Model model) {
         // 为/admin/admin-apiauth-submit接口生成动态盐值
-        String appKey = "apiauth-caller1";
+        String appCode = "apiauth-caller1";
         String targetPath = "/api/admin/admin-sign-submit";
 
         try {
-            DynamicSalt dynamicSalt = dynamicSaltService.generate(appKey, targetPath);
+            DynamicSalt dynamicSalt = dynamicSaltService.generate(appCode, targetPath);
             // 将动态盐值信息传递给前端页面
-            model.addAttribute("appKey", appKey);
+            model.addAttribute("appCode", appCode);
             model.addAttribute("path", dynamicSalt.path());
             model.addAttribute("dynamicSalt", dynamicSalt.saltValue());
             model.addAttribute("dynamicSaltTime", dynamicSalt.generateTime());

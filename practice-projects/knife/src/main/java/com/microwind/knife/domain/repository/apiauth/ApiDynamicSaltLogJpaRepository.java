@@ -29,14 +29,14 @@ public interface ApiDynamicSaltLogJpaRepository extends JpaRepository<ApiDynamic
     /**
      * 标记盐值为已使用
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE ApiDynamicSaltLog s SET s.used = 1 WHERE s.id = :id")
     int markAsUsed(@Param("id") Long id);
 
     /**
      * 删除过期的盐值记录
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM ApiDynamicSaltLog s WHERE s.expireTime < :now")
     int deleteExpiredSalts(@Param("now") LocalDateTime now);
 }

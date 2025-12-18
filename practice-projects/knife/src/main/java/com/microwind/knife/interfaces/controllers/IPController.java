@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/ip")
+@RequestMapping("/api/ip")
 public class IPController {
 
     @Autowired
@@ -15,7 +15,7 @@ public class IPController {
 
     /**
      * 查询 IP 地理位置
-     * 示例：GET /v1/ip/location?ip=1.2.3.4
+     * 示例：GET /api/ip/location?ip=172.1.1.1
      */
     @GetMapping("/location")
     public ApiResponse<IPRegion> getLocation(@RequestParam String ip) {

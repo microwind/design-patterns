@@ -13,18 +13,18 @@ public class SignService {
     private final ApiAuthConfig signConfig;
 
     // 生成签名（含权限和盐值校验）
-    public Sign generate(String appKey, String path, String dynamicSalt, Long saltGenerateTime) {
-        // 1. 校验appKey是否存在
-        ApiAuthConfig.AppConfig appConfig = signConfig.getAppByKey(appKey);
+    public Sign generate(String appCode, String path, String dynamicSalt, Long saltGenerateTime) {
+        // 1. 校验appCode是否存在
+        ApiAuthConfig.AppConfig appConfig = signConfig.getAppByKey(appCode);
         if (appConfig == null) {
-            throw new IllegalArgumentException("无效的appKey：" + appKey);
+            throw new IllegalArgumentException("无效的appCode：" + appCode);
         }
 
         // 2. 校验是否有权访问签名接口和提交接口
         String signGeneratePath = "/apiauth/apiauth-generate";
-        if (!signConfig.hasPermission(appKey, signGeneratePath)
-                || !signConfig.hasPermission(appKey, path)) {
-            throw new SecurityException("appKey无接口访问权限");
+        if (!signConfig.hasPermission(appCode, signGeneratePath)
+                || !signConfig.hasPermission(appCode, path)) {
+            throw new SecurityException("appCode无接口访问权限");
         }
 
         // 3. 获取接口盐值
@@ -34,7 +34,7 @@ public class SignService {
         }
 
         // 4. 校验动态盐值有效性
-        if (!signDomainService.validateDynamicSalt(appKey, path, interfaceSalt, dynamicSalt, saltGenerateTime)) {
+        if (!signDomainService.validateDynamicSalt(appCode, path, interfaceSalt, dynamicSalt, saltGenerateTime)) {
             throw new SecurityException("动态盐值无效");
         }
 
@@ -45,6 +45,6 @@ public class SignService {
         }
 
         // 6. 生成签名
-        return signDomainService.generateSign(appKey, path, appConfig.getAppSecret(), interfaceSalt);
+        return signDomainService.generateSign(appCode, path, appConfig.getAppSecret(), interfaceSalt);
     }
 }

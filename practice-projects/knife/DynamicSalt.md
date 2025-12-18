@@ -8,7 +8,7 @@ sequenceDiagram
     participant H5 as H5前端页面
     participant DynamicSaltGenerate as 动态盐值生成接口
     participant SignGenerate as 签名生成接口
-    participant SubmitInterface as 提交接口
+    participant SubmitInterface as 某提交接口
     
     Note over H5,DynamicSaltGenerate: 1. 请求生成动态盐值（根据调用方和提交接口）
     H5->>DynamicSaltGenerate: 请求生成提交接口的动态盐值<br/>（传参调用方和提交接口路径）
@@ -25,8 +25,8 @@ sequenceDiagram
     SignGenerate->>SignGenerate: 生成接口调用签名<br/>hash(调用方 + 秘钥 + 当前时间戳 + 提交接口路径或参数) <br/>注意：签名与校验算法需保持一致，如果只hash(调用方 + 秘钥 + 当前时间戳)也可以。
     SignGenerate-->>H5: 返回签名结果<br/>(提交接口路径、签名、签名时间戳)
     
-    Note over H5, SubmitInterface: 4. 调用提交接口（携带签名）
-    H5->>SubmitInterface: 提交数据，携带签名信息<br/>(调用方+签名+签名时间戳)
+    Note over H5, SubmitInterface: 4. 调用某提交接口（携带签名）
+    H5->>SubmitInterface: 提交数据，携带签名信息<br/>(调用方+接口路径+签名+签名时间戳)
     
     Note over SubmitInterface: 5. 接口签名校验（保存前检查）
     SubmitInterface->>SubmitInterface: 权限校验(时效性、本提交接口权限)
@@ -91,7 +91,7 @@ CREATE TABLE api_dynamic_salt_log (
     api_path VARCHAR(255) NOT NULL COMMENT '目标接口路径',
     dynamic_salt VARCHAR(128) NOT NULL COMMENT '动态盐值',
     salt_timestamp BIGINT NOT NULL COMMENT '生成时间戳（毫秒）',
-    expire_time DATETIME NOT NULL COMMENT '过期时间',
+    expire_time DATETIME COMMENT '过期时间',
     used TINYINT DEFAULT 0 COMMENT '是否已使用：0-未使用，1-已使用',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_user_api (app_code, api_path),
@@ -208,7 +208,7 @@ CREATE TABLE api_dynamic_salt_log (
     api_path VARCHAR(255) NOT NULL,
     dynamic_salt VARCHAR(128) NOT NULL,
     salt_timestamp BIGINT NOT NULL,
-    expire_time TIMESTAMP NOT NULL,
+    expire_time TIMESTAMP,
     used SMALLINT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

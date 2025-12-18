@@ -45,12 +45,12 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
     }
 
     /**
-     * 根据 appKey 查询 API 权限信息
+     * 根据 appCode 查询 API 权限信息
      * 从 api_users 表获取 appSecret，从 api_auth 表获取允许访问的路径列表
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<ApiAuth> findByAppKey(String appKey) {
+    public Optional<ApiAuth> findByAppCode(String appCode) {
         try {
             // 1. 从 api_users 表查询用户信息和密钥
             String userSql = String.format(
@@ -65,7 +65,7 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
                     rs.getString(COL_APP_CODE),
                     rs.getString(COL_SECRET_KEY)
                 ),
-                appKey, now
+                appCode, now
             );
             
             if (userInfo == null) {
@@ -81,7 +81,7 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
             List<String> permitPaths = jdbcTemplate.query(
                 permitSql,
                 (rs, rowNum) -> rs.getString(COL_API_PATH),
-                appKey, now
+                appCode, now
             );
 
             // 3. 从 api_auth 表查询禁止访问的接口路径列表（status=0表示禁止）
@@ -93,7 +93,7 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
             List<String> forbiddenPaths = jdbcTemplate.query(
                 forbiddenSql,
                 (rs, rowNum) -> rs.getString(COL_API_PATH),
-                appKey
+                appCode
             );
 
             // 4. 构建 ApiAuth 对象

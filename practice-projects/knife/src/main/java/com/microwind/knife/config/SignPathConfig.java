@@ -32,6 +32,6 @@ public class SignPathConfig {
         Map<String, ApiAuth> authMap = new HashMap<>();
         authMap.put("APP001", app001Auth);
 
-        return appKey -> Optional.ofNullable(authMap.get(appKey));
+        return appCode -> Optional.ofNullable(authMap.get(appCode));
     }
 }

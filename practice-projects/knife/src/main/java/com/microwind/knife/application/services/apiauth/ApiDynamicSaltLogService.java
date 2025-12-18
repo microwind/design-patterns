@@ -21,7 +21,7 @@ public class ApiDynamicSaltLogService {
     /**
      * 验证并消费动态盐值
      */
-    @Transactional
+    @Transactional(transactionManager = "apiAuthTransactionManager")
     public boolean validateAndConsumeSalt(String appCode, String apiPath, String dynamicSalt) {
         Optional<ApiDynamicSaltLog> saltOpt = saltLogJpaRepository.findValidSalt(
                 appCode, apiPath, dynamicSalt, LocalDateTime.now()
@@ -38,7 +38,7 @@ public class ApiDynamicSaltLogService {
     /**
      * 生成并保存动态盐值
      */
-    @Transactional
+    @Transactional(transactionManager = "apiAuthTransactionManager")
     public ApiDynamicSaltLog generateSalt(String appCode, Long apiId, String apiPath,
                                           String dynamicSalt, Long saltTimestamp,
                                           LocalDateTime expireTime) {
@@ -57,7 +57,7 @@ public class ApiDynamicSaltLogService {
     /**
      * 清理过期的盐值记录
      */
-    @Transactional
+    @Transactional(transactionManager = "apiAuthTransactionManager")
     public int cleanExpiredSalts() {
         return saltLogJpaRepository.deleteExpiredSalts(LocalDateTime.now());
     }

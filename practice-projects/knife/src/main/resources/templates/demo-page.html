@@ -68,7 +68,7 @@
 <div class="container">
     <h3>初始信息（后端下发）</h3>
     <div class="info">
-        <p><strong>AppKey:</strong> <span id="appKey" th:text="${appKey}"></span></p>
+        <p><strong>AppCode:</strong> <span id="appCode" th:text="${appCode}"></span></p>
         <p><strong>目标接口:</strong> <span id="targetPath" th:text="${path}"></span></p>
         <p><strong>动态盐值:</strong> <span id="dynamicSalt" th:text="${dynamicSalt}"></span></p>
         <p><strong>盐值生成时间:</strong> <span id="dynamicSaltTime" th:text="${dynamicSaltTime}"></span></p>
@@ -98,7 +98,7 @@
 <script th:inline="javascript">
     // 从后端获取的配置信息
     const CONFIG = {
-        appKey: /*[[${appKey}]]*/ 'sign-caller1',
+        appCode: /*[[${appCode}]]*/ 'sign-caller1',
         targetPath: /*[[${path}]]*/ '/admin/admin-sign-submit',
         dynamicSalt: /*[[${dynamicSalt}]]*/ '',
         dynamicSaltTime: /*[[${dynamicSaltTime}]]*/ 0,
@@ -128,7 +128,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    appKey: CONFIG.appKey,
+                    appCode: CONFIG.appCode,
                     path: CONFIG.targetPath,
                     dynamicSalt: CONFIG.dynamicSalt,
                     dynamicSaltTime: CONFIG.dynamicSaltTime
@@ -177,7 +177,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-App-Key': CONFIG.appKey,
+                    'X-App-Key': CONFIG.appCode,
                     'X-Sign': state.sign,
                     'X-Sign-Time': state.signTime.toString()
                 },

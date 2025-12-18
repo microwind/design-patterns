@@ -18,26 +18,26 @@ public class SignValidationService {
 
     /**
      * 验证请求的权限、时效和签名
-     * @param appKey 应用Key
+     * @param appCode 应用Key
      * @param path 接口路径
      * @param sign 签名
      * @param signTime 签名时间戳
      * @return 验证是否通过
      * @throws SecurityException 验证失败时抛出异常
      */
-    public boolean validateRequest(String appKey, String path, String sign, Long signTime) {
-        log.info("开始验证签名 - appKey: {}, path: {}, signTime: {}", appKey, path, signTime);
+    public boolean validateRequest(String appCode, String path, String sign, Long signTime) {
+        log.info("开始验证签名 - appCode: {}, path: {}, signTime: {}", appCode, path, signTime);
 
-        // 1. 校验appKey是否存在
-        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appKey);
+        // 1. 校验appCode是否存在
+        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appCode);
         if (appConfig == null) {
-            log.error("无效的appKey: {}", appKey);
-            throw new SecurityException("无效的appKey：" + appKey);
+            log.error("无效的appCode: {}", appCode);
+            throw new SecurityException("无效的appCode：" + appCode);
         }
 
         // 2. 校验权限 - 检查是否有访问该接口的权限
-        if (!apiAuthConfig.hasPermission(appKey, path)) {
-            log.error("appKey {} 无权限访问接口: {}", appKey, path);
+        if (!apiAuthConfig.hasPermission(appCode, path)) {
+            log.error("appCode {} 无权限访问接口: {}", appCode, path);
             throw new SecurityException("无权限访问该接口");
         }
 
@@ -57,7 +57,7 @@ public class SignValidationService {
         }
 
         boolean isValid = signDomainService.validateSign(
-                appKey,
+                appCode,
                 path,
                 appConfig.getAppSecret(),
                 interfaceSalt,
@@ -66,26 +66,26 @@ public class SignValidationService {
         );
 
         if (!isValid) {
-            log.error("签名验证失败 - appKey: {}, path: {}", appKey, path);
+            log.error("签名验证失败 - appCode: {}, path: {}", appCode, path);
             throw new SecurityException("签名无效");
         }
 
-        log.info("签名验证成功 - appKey: {}, path: {}", appKey, path);
+        log.info("签名验证成功 - appCode: {}, path: {}", appCode, path);
         return true;
     }
 
     /**
      * 验证动态盐值的权限和时效
      */
-    public boolean validateDynamicSaltPermission(String appKey, String targetPath) {
-        // 1. 校验appKey是否存在
-        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appKey);
+    public boolean validateDynamicSaltPermission(String appCode, String targetPath) {
+        // 1. 校验appCode是否存在
+        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appCode);
         if (appConfig == null) {
-            throw new SecurityException("无效的appKey：" + appKey);
+            throw new SecurityException("无效的appCode：" + appCode);
         }
 
         // 2. 校验是否有访问目标接口的权限
-        if (!apiAuthConfig.hasPermission(appKey, targetPath)) {
+        if (!apiAuthConfig.hasPermission(appCode, targetPath)) {
             throw new SecurityException("无权限访问目标接口");
         }
 

@@ -12,11 +12,11 @@ public class DynamicSaltService {
     private final ApiAuthConfig apiAuthConfig;
 
     // 生成动态盐值
-    public DynamicSalt generate(String appKey, String path) {
+    public DynamicSalt generate(String appCode, String path) {
         String interfaceSalt = apiAuthConfig.getInterfaceSalt(path);
         if (interfaceSalt == null) {
             throw new IllegalArgumentException("接口路径不存在：" + path);
         }
-        return signDomainService.generateDynamicSalt(appKey, path, interfaceSalt);
+        return signDomainService.generateDynamicSalt(appCode, path, interfaceSalt);
     }
 }

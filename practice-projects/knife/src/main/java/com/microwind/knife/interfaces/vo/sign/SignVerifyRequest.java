@@ -4,10 +4,10 @@ import lombok.Data;
 
 import java.util.Map;
 
-// 提交请求DTO
+// 提交请求
 @Data
 public class SignVerifyRequest {
-    private String appKey;
+    private String appCode;
     private String path;
     private String sign;
     private Long time;

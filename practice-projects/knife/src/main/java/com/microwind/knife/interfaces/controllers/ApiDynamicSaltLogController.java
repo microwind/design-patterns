@@ -45,14 +45,20 @@ public class ApiDynamicSaltLogController {
         ApiDynamicSaltLog saltLog = saltLogService.generateSalt(
                 appCode, apiId, apiPath, dynamicSalt, saltTimestamp, expireDateTime
         );
-        return ApiResponse.success(saltLog, "动态盐值生成成功");
+        return ApiResponse.success(saltLog, "动态盐值保存成功");
     }
 
     /**
      * 清理过期盐值
      */
     @DeleteMapping("/clean")
-    public ApiResponse<Integer> cleanExpiredSalts() {
+    public ApiResponse<Integer> cleanExpiredSalts(
+            @RequestParam(defaultValue = "false") boolean force) {
+
+        if (!force) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "必须显式指定 force=true");
+        }
+
         int count = saltLogService.cleanExpiredSalts();
         return ApiResponse.success(count, "已清理 " + count + " 条过期盐值记录");
     }

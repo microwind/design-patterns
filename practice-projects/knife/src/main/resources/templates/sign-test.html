@@ -20,7 +20,7 @@
     <!-- 步骤1：生成动态盐值 -->
     <div class="step">
         <h3>1. 生成动态盐值</h3>
-        <input type="text" id="appKey" placeholder="输入appKey" value="APP001">
+        <input type="text" id="appCode" placeholder="输入appCode" value="APP001">
         <input type="text" id="submitPath" placeholder="提交接口路径" value="/v1/submit">
         <button onclick="generateDynamicSalt()">生成动态盐值</button>
         <div id="saltResult" class="result"></div>
@@ -49,14 +49,14 @@
 
     // 步骤1：根据用户身份和调用接口获取动态盐值
     async function generateDynamicSalt() {
-        const appKey = document.getElementById('appKey').value;
+        const appCode = document.getElementById('appCode').value;
         const path = document.getElementById('submitPath').value;
         const saltResultEl = document.getElementById('saltResult');
 
         try {
             const headers = {
                 'Content-Type': 'application/json'
-                appKey: appKey,
+                appCode: appCode,
                 path: path
             };
             const response = await fetch('/sign/dynamic-salt', {
@@ -88,7 +88,7 @@
 
         try {
             const request = {
-                appKey: document.getElementById('appKey').value,
+                appCode: document.getElementById('appCode').value,
                 path: dynamicSaltInfo.path,
                 dynamicSalt: dynamicSaltInfo.dynamicSalt,
                 dynamicSaltTime: dynamicSaltInfo.dynamicSaltTime
@@ -127,7 +127,7 @@
             // 请求header封装
             const headers = {
                 'Content-Type': 'application/json',
-                appKey: document.getElementById('appKey').value,
+                appCode: document.getElementById('appCode').value,
                 path: signInfo.path,
                 sign: signInfo.sign,
                 time: signInfo.time

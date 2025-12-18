@@ -4,7 +4,7 @@ import lombok.Data;
 // 动态盐值请求DTO
 @Data
 public class DynamicSaltRequest {
-    private String appKey;
+    private String appCode;
     private String path;
 }
 

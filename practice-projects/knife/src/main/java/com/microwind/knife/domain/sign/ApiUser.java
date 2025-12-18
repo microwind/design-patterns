@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class ApiUser {
-    private String appKey;           // 调用方身份
+    private String appCode;           // 调用方身份
     private String appSecret;        // 调用方秘钥
     private List<String> permitPaths; // 允许访问的接口路径
     private List<String> forbiddenPath; // 禁止访问的几口路径，禁止的优与允许的

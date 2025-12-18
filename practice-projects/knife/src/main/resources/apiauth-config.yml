@@ -2,7 +2,7 @@
 apiauth:
   # 应用配置
   apps:
-    - appKey: apiauth-caller1
+    - appCode: apiauth-caller1
       appSecret: secret_key_abc123_sign_caller1
       description: "签名调用方1"
       permissions:

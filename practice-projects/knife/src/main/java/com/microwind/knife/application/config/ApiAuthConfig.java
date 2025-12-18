@@ -23,7 +23,7 @@ public class ApiAuthConfig {
 
     @Data
     public static class AppConfig {
-        private String appKey;
+        private String appCode;
         private String appSecret;
         private String description;
         private List<String> permissions;
@@ -36,14 +36,14 @@ public class ApiAuthConfig {
     }
 
     /**
-     * 根据appKey获取应用配置
+     * 根据appCode获取应用配置
      */
-    public AppConfig getAppByKey(String appKey) {
+    public AppConfig getAppByKey(String appCode) {
         if (apps == null) {
             return null;
         }
         return apps.stream()
-                .filter(app -> app.getAppKey().equals(appKey))
+                .filter(app -> app.getAppCode().equals(appCode))
                 .findFirst()
                 .orElse(null);
     }
@@ -62,8 +62,8 @@ public class ApiAuthConfig {
     /**
      * 检查应用是否有权限访问指定接口
      */
-    public boolean hasPermission(String appKey, String path) {
-        AppConfig app = getAppByKey(appKey);
+    public boolean hasPermission(String appCode, String path) {
+        AppConfig app = getAppByKey(appCode);
         if (app == null || app.getPermissions() == null) {
             return false;
         }

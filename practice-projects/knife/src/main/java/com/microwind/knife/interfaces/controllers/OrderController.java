@@ -94,7 +94,7 @@ public class OrderController {
                 UpdateOrderStatusResponse response = new UpdateOrderStatusResponse(orderNo, request.getStatus());
                 return ApiResponse.success(response, "订单：" + orderNo + " 的状态更新为：" + request.getStatus());
             } else {
-                return ApiResponse.failure(500, "订单：" + orderNo + " 状态更新失败");
+                return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "订单：" + orderNo + " 状态更新失败");
             }
         } catch (IllegalArgumentException ex) {
             return ApiResponse.failure(HttpStatus.BAD_REQUEST.value(), "无效的订单状态：" + ex.getMessage());
