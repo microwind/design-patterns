@@ -8,11 +8,15 @@ import com.microwind.knife.application.services.apiauth.ApiAuthService;
 import com.microwind.knife.application.services.apiauth.ApiDynamicSaltLogService;
 import com.microwind.knife.application.services.apiauth.ApiInfoService;
 import com.microwind.knife.domain.apiauth.ApiInfo;
+import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.DynamicSalt;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * 动态盐值应用服务
@@ -32,6 +36,8 @@ public class DynamicSaltService {
     private final ApiInfoService apiInfoService;
     private final ApiDynamicSaltLogService apiDynamicSaltLogService;
     private final ApiAuthService apiAuthService;
+    private final DynamicSaltMapper dynamicSaltMapper;
+    private final SignRepository signRepository;
 
     /**
      * 生成动态盐值
@@ -77,7 +83,12 @@ public class DynamicSaltService {
         // 数据库模式 + 开启数据库校验：直接查库验证并消费
         if (SignConfig.CONFIG_MODE_DATABASE.equalsIgnoreCase(configMode)
                 && signConfig.isValidateDynamicSaltFromDatabase()) {
-            return apiDynamicSaltLogService.validateAndConsumeSalt(appCode, path, dynamicSalt);
+            // 根据配置选择使用 SignRepository 或 JPA
+            if (signConfig.isUseJdbcRepository()) {
+                return signRepository.validateAndConsumeSalt(appCode, path, dynamicSalt);
+            } else {
+                return apiDynamicSaltLogService.validateAndConsumeSalt(appCode, path, dynamicSalt);
+            }
         }
 
         // 算法校验模式：检查 TTL 并重新计算
@@ -95,10 +106,78 @@ public class DynamicSaltService {
         return signDomainService.validateDynamicSalt(dynamicSaltDTO, interfaceSalt);
     }
 
+    public boolean validateDynamicSalt(DynamicSaltDTO dto) {
+        return validateDynamicSalt(dto.getAppCode(),
+                dto.getApiPath(),
+                dto.getDynamicSalt(),
+                dto.getSaltTimestamp());
+    }
+
     /**
      * 从数据库配置生成动态盐值
      */
     private DynamicSaltDTO generateFromDatabase(String appCode, String path) {
+        // 根据配置选择使用 SignRepository 或 JPA
+        if (signConfig.isUseJdbcRepository()) {
+            return generateFromDatabaseViaJdbc(appCode, path);
+        } else {
+            return generateFromDatabaseViaJpa(appCode, path);
+        }
+    }
+
+    /**
+     * 通过 JdbcTemplate (SignRepository) 从数据库配置生成动态盐值
+     */
+    private DynamicSaltDTO generateFromDatabaseViaJdbc(String appCode, String path) {
+        // 获取并验证接口信息和盐值
+        Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
+        if (apiInfoOpt.isEmpty()) {
+            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
+        }
+        ApiInfo apiInfo = apiInfoOpt.get();
+
+        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
+        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
+            throw new IllegalArgumentException(
+                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
+            );
+        }
+
+        String interfaceSalt = apiInfo.getFixedSalt();
+        if (interfaceSalt == null || interfaceSalt.isEmpty()) {
+            throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
+        }
+
+        // 检查权限
+        String dynamicSaltGeneratePath = signConfig.getDynamicSaltGeneratePath();
+        if (!signRepository.checkAuth(appCode, dynamicSaltGeneratePath)) {
+            throw new SecurityException(
+                    String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
+            );
+        }
+        if (!signRepository.checkAuth(appCode, path)) {
+            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
+        }
+
+        // 生成动态盐值
+        Long saltTimestamp = System.currentTimeMillis();
+        DynamicSalt dynamicSalt = signDomainService.generateDynamicSalt(appCode, path, interfaceSalt, saltTimestamp);
+
+        // 根据配置决定是否保存到数据库
+        if (signConfig.isValidateDynamicSaltFromDatabase()) {
+            LocalDateTime expireTime = LocalDateTime.now().plusSeconds(signConfig.getDynamicSaltTtl() / 1000);
+            signRepository.saveDynamicSaltLog(
+                    appCode, apiInfo.getId(), path, dynamicSalt.dynamicSalt(), saltTimestamp, expireTime
+            );
+        }
+
+        return dynamicSaltMapper.toDTO(dynamicSalt);
+    }
+
+    /**
+     * 通过 JPA 从数据库配置生成动态盐值
+     */
+    private DynamicSaltDTO generateFromDatabaseViaJpa(String appCode, String path) {
         // 获取并验证接口信息和盐值
         ApiInfo apiInfo = getValidatedApiInfo(path);
         String interfaceSalt = apiInfo.getFixedSalt();
@@ -110,7 +189,7 @@ public class DynamicSaltService {
         String dynamicSaltGeneratePath = signConfig.getDynamicSaltGeneratePath();
         if (!apiAuthService.checkAuth(appCode, dynamicSaltGeneratePath)) {
             throw new SecurityException(
-                String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
+                    String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
             );
         }
         if (!apiAuthService.checkAuth(appCode, path)) {
@@ -123,11 +202,11 @@ public class DynamicSaltService {
 
         // 根据配置决定是否保存到数据库
         if (signConfig.isValidateDynamicSaltFromDatabase()) {
-            DynamicSaltDTO dto = DynamicSaltMapper.toDTO(dynamicSalt, apiInfo.getId());
+            DynamicSaltDTO dto = dynamicSaltMapper.toDTO(dynamicSalt, apiInfo.getId());
             apiDynamicSaltLogService.save(dto);
         }
 
-        return DynamicSaltMapper.toDTO(dynamicSalt);
+        return dynamicSaltMapper.toDTO(dynamicSalt);
     }
 
     /**
@@ -144,7 +223,7 @@ public class DynamicSaltService {
         String dynamicSaltGeneratePath = signConfig.getDynamicSaltGeneratePath();
         if (apiAuthConfig.noPermission(appCode, dynamicSaltGeneratePath)) {
             throw new SecurityException(
-                String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
+                    String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
             );
         }
         if (apiAuthConfig.noPermission(appCode, path)) {
@@ -155,7 +234,7 @@ public class DynamicSaltService {
         Long saltTimestamp = System.currentTimeMillis();
         DynamicSalt dynamicSalt = signDomainService.generateDynamicSalt(appCode, path, interfaceSalt, saltTimestamp);
 
-        return DynamicSaltMapper.toDTO(dynamicSalt);
+        return dynamicSaltMapper.toDTO(dynamicSalt);
     }
 
     /**
@@ -164,21 +243,60 @@ public class DynamicSaltService {
      */
     private String getInterfaceSalt(String path, String configMode) {
         if (SignConfig.CONFIG_MODE_DATABASE.equalsIgnoreCase(configMode)) {
-            // 从数据库获取
-            ApiInfo apiInfo = getValidatedApiInfo(path);
-            String interfaceSalt = apiInfo.getFixedSalt();
-            if (interfaceSalt == null || interfaceSalt.isEmpty()) {
-                throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
-            }
-            return interfaceSalt;
+            return getInterfaceSaltFromDatabase(path);
         } else {
-            // 从本地配置获取
-            String interfaceSalt = apiAuthConfig.getInterfaceSalt(path);
-            if (interfaceSalt == null || interfaceSalt.isEmpty()) {
-                throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
-            }
-            return interfaceSalt;
+            return getInterfaceSaltFromLocalConfig(path);
         }
+    }
+
+    /**
+     * 从数据库获取接口盐值
+     */
+    private String getInterfaceSaltFromDatabase(String path) {
+        // 根据配置选择使用 SignRepository 或 JPA
+        if (signConfig.isUseJdbcRepository()) {
+            return getInterfaceSaltFromDatabaseViaJdbc(path);
+        } else {
+            return getInterfaceSaltFromDatabaseViaJpa(path);
+        }
+    }
+
+    /**
+     * 通过 JdbcTemplate (SignRepository) 从数据库获取接口盐值
+     */
+    private String getInterfaceSaltFromDatabaseViaJdbc(String path) {
+        Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
+        if (apiInfoOpt.isEmpty()) {
+            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
+        }
+        String interfaceSalt = apiInfoOpt.get().getFixedSalt();
+        if (interfaceSalt == null || interfaceSalt.isEmpty()) {
+            throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
+        }
+        return interfaceSalt;
+    }
+
+    /**
+     * 通过 JPA 从数据库获取接口盐值
+     */
+    private String getInterfaceSaltFromDatabaseViaJpa(String path) {
+        ApiInfo apiInfo = getValidatedApiInfo(path);
+        String interfaceSalt = apiInfo.getFixedSalt();
+        if (interfaceSalt == null || interfaceSalt.isEmpty()) {
+            throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
+        }
+        return interfaceSalt;
+    }
+
+    /**
+     * 从本地配置获取接口盐值
+     */
+    private String getInterfaceSaltFromLocalConfig(String path) {
+        String interfaceSalt = apiAuthConfig.getInterfaceSalt(path);
+        if (interfaceSalt == null || interfaceSalt.isEmpty()) {
+            throw new IllegalArgumentException("接口固定盐值不存在，路径：" + path);
+        }
+        return interfaceSalt;
     }
 
     /**
@@ -194,7 +312,7 @@ public class DynamicSaltService {
         ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
         if (apiType != ApiInfo.ApiType.NEED_SIGN) {
             throw new IllegalArgumentException(
-                String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
+                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
             );
         }
 

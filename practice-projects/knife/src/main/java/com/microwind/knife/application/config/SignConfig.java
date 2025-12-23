@@ -18,6 +18,9 @@ public class SignConfig {
 
     public static final String CONFIG_MODE_DATABASE = "database";
     public static final String CONFIG_MODE_FILE = "file";
+    
+    public static final String REPOSITORY_TYPE_JDBC = "jdbc";
+    public static final String REPOSITORY_TYPE_JPA = "jpa";
 
     /**
      * 动态盐值配置
@@ -34,17 +37,24 @@ public class SignConfig {
      * - database: 通过数据库配置（适合大规模应用）
      * - file: 通过本地配置文件（适合小规模应用）
      */
-    private String configMode = "file";
+    private String configMode = CONFIG_MODE_DATABASE;
+
+    /**
+     * 仓库类型：jdbc 或 jpa
+     * - jdbc: 使用 SignRepository（JdbcTemplate 实现）
+     * - jpa: 使用 JPA Repository
+     */
+    private String repositoryType = REPOSITORY_TYPE_JDBC;
 
     /**
      * 动态盐值生成接口路径
      */
-    private String dynamicSaltGeneratePath = "/api/sign/dynamic-salt-generate";
+    private String dynamicSaltGeneratePath;
 
     /**
      * 签名生成接口路径
      */
-    private String signGeneratePath = "/api/sign/generate";
+    private String signGeneratePath;
 
     /**
      * 动态盐值配置
@@ -95,6 +105,20 @@ public class SignConfig {
      */
     public Boolean isValidateDynamicSaltFromDatabase() {
         return dynamicSalt != null && Boolean.TRUE.equals(dynamicSalt.getValidateFromDatabase());
+    }
+
+    /**
+     * 是否使用 JdbcTemplate 方式（SignRepository）
+     */
+    public boolean isUseJdbcRepository() {
+        return REPOSITORY_TYPE_JDBC.equalsIgnoreCase(repositoryType);
+    }
+
+    /**
+     * 是否使用 JPA 方式
+     */
+    public boolean isUseJpaRepository() {
+        return REPOSITORY_TYPE_JPA.equalsIgnoreCase(repositoryType);
     }
 }
 

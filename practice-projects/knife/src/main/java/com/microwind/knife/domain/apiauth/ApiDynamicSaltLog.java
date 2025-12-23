@@ -78,10 +78,21 @@ public class ApiDynamicSaltLog {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间
+     */
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

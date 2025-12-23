@@ -2,8 +2,13 @@ package com.microwind.knife.application.dto.sign;
 
 import com.microwind.knife.domain.apiauth.ApiDynamicSaltLog;
 import com.microwind.knife.domain.sign.DynamicSalt;
+import com.microwind.knife.interfaces.vo.sign.DynamicSaltRequest;
+import com.microwind.knife.interfaces.vo.sign.DynamicSaltVerfiyRequest;
+import com.microwind.knife.interfaces.vo.sign.SignRequest;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.factory.Mappers;
 
 /**
  * 动态盐值映射器
@@ -14,7 +19,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public class DynamicSaltMapper {
+public interface DynamicSaltMapper {
+    DynamicSaltMapper INSTANCE = Mappers.getMapper(DynamicSaltMapper.class);
 
     /**
      * 领域模型 -> DTO
@@ -22,19 +28,7 @@ public class DynamicSaltMapper {
      * @param dynamicSalt 动态盐值领域模型
      * @return DTO 对象
      */
-    public static DynamicSaltDTO toDTO(DynamicSalt dynamicSalt) {
-        if (dynamicSalt == null) {
-            return null;
-        }
-
-        return DynamicSaltDTO.builder()
-                .appCode(dynamicSalt.appCode())
-                .apiPath(dynamicSalt.apiPath())
-                .dynamicSalt(dynamicSalt.dynamicSalt())
-                .saltTimestamp(dynamicSalt.saltTimestamp())
-                .expireTime(dynamicSalt.expireTime())
-                .build();
-    }
+    DynamicSaltDTO toDTO(DynamicSalt dynamicSalt);
 
     /**
      * 领域模型 -> DTO（带 apiId）
@@ -43,7 +37,7 @@ public class DynamicSaltMapper {
      * @param apiId       接口 ID
      * @return DTO 对象
      */
-    public static DynamicSaltDTO toDTO(DynamicSalt dynamicSalt, Long apiId) {
+    default DynamicSaltDTO toDTO(DynamicSalt dynamicSalt, Long apiId) {
         DynamicSaltDTO dto = toDTO(dynamicSalt);
         if (dto != null) {
             dto.setApiId(apiId);
@@ -51,25 +45,18 @@ public class DynamicSaltMapper {
         return dto;
     }
 
+    @Mapping(source = "path", target = "apiPath")
+    @Mapping(source = "dynamicSaltTime", target = "saltTimestamp")
+    DynamicSaltDTO toDTO(DynamicSaltVerfiyRequest request);
+
     /**
      * DTO -> 持久化实体
      *
      * @param dto 动态盐值 DTO
      * @return 持久化实体
      */
-    public static ApiDynamicSaltLog toEntity(DynamicSaltDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        return ApiDynamicSaltLog.builder()
-                .appCode(dto.getAppCode())
-                .apiId(dto.getApiId())
-                .apiPath(dto.getApiPath())
-                .dynamicSalt(dto.getDynamicSalt())
-                .saltTimestamp(dto.getSaltTimestamp())
-                .expireTime(dto.getExpireTime())
-                .used((short) 0)
-                .build();
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "used", constant = "0")
+    @Mapping(target = "createdAt", ignore = true)
+    ApiDynamicSaltLog toEntity(DynamicSaltDTO dto);
 }

@@ -9,10 +9,14 @@ import com.microwind.knife.application.services.apiauth.ApiAuthService;
 import com.microwind.knife.application.services.apiauth.ApiInfoService;
 import com.microwind.knife.application.services.apiauth.ApiUsersService;
 import com.microwind.knife.domain.apiauth.ApiInfo;
+import com.microwind.knife.domain.apiauth.ApiUsers;
+import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * 签名应用服务
@@ -32,6 +36,8 @@ public class SignService {
     private final ApiInfoService apiInfoService;
     private final SignConfig signConfig;
     private final ApiAuthConfig apiAuthConfig;
+    private final SignMapper signMapper;
+    private final SignRepository signRepository;
 
     /**
      * 生成签名
@@ -56,7 +62,14 @@ public class SignService {
         // 获取秘钥并生成签名
         String secretKey = getSecretKey(appCode, path);
         Sign sign = signDomainService.generateSign(appCode, secretKey, path);
-        return SignMapper.toDTO(sign);
+        return signMapper.toDTO(sign);
+    }
+
+    public SignDTO generate(SignDTO signDTO) {
+        return generate(signDTO.getAppCode(),
+                signDTO.getApiPath(),
+                signDTO.getDynamicSalt(),
+                signDTO.getDynamicSaltTime());
     }
 
     /**
@@ -121,6 +134,50 @@ public class SignService {
      * 从数据库获取秘钥
      */
     private String getSecretKeyFromDatabase(String appCode, String path) {
+        // 根据配置选择使用 SignRepository 或 JPA
+        if (signConfig.isUseJdbcRepository()) {
+            return getSecretKeyFromDatabaseViaJdbc(appCode, path);
+        } else {
+            return getSecretKeyFromDatabaseViaJpa(appCode, path);
+        }
+    }
+
+    /**
+     * 通过 JdbcTemplate (SignRepository) 从数据库获取秘钥
+     */
+    private String getSecretKeyFromDatabaseViaJdbc(String appCode, String path) {
+        // 验证接口信息
+        Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
+        if (apiInfoOpt.isEmpty()) {
+            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
+        }
+        ApiInfo apiInfo = apiInfoOpt.get();
+
+        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
+        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
+            throw new IllegalArgumentException(
+                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
+            );
+        }
+
+        // 检查权限
+        if (!signRepository.checkAuth(appCode, path)) {
+            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
+        }
+
+        // 获取秘钥
+        Optional<ApiUsers> apiUsersOpt = signRepository.findApiUserByAppCode(appCode);
+        if (apiUsersOpt.isEmpty()) {
+            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
+        }
+
+        return apiUsersOpt.get().getSecretKey();
+    }
+
+    /**
+     * 通过 JPA 从数据库获取秘钥
+     */
+    private String getSecretKeyFromDatabaseViaJpa(String appCode, String path) {
         // 验证接口信息
         ApiInfo apiInfo = apiInfoService.getByApiPath(path);
         if (apiInfo == null) {

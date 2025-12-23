@@ -26,33 +26,36 @@ public class AdminController {
     }
 
     // 携带sign访问admin路径的测试
-    @RequestMapping(
-            value = "/admin-sign-submit",
-            method = {RequestMethod.GET, RequestMethod.POST}
-    )
+//    @RequestMapping(
+//            value = "/admin-sign-submit",
+//            method = {RequestMethod.GET, RequestMethod.POST}
+//    )
 
-    public ApiResponse<Object> signSubmit(
-            @RequestHeader(value = "appCode", required = false) String appCode,
-            @RequestHeader(value = "sign", required = false) String sign,
-            @RequestHeader(value = "time", required = false) Long time,
-            @RequestParam(value = "action", required = false) String action) {
+//    public ApiResponse<Object> signSubmit(
+//            @RequestHeader(value = "appCode", required = false) String appCode,
+//            @RequestHeader(value = "sign", required = false) String sign,
+//            @RequestHeader(value = "path", required = false) String path,
+//            @RequestHeader(value = "time", required = false) Long time,
+//            @RequestBody(required = false) RequestBody body) {
 
-        String path = "/api/admin/admin-sign-submit";
-
-        try {
-            // 执行权限、时效和签名校验
-            signValidationService.validateRequest(appCode, path, sign, time);
-
-            // 校验通过，执行业务逻辑
-            log.info("签名验证，接收参数: {}", action);
-            return ApiResponse.success(action, "sign：" + sign + "校验成功。");
-
-        } catch (SecurityException e) {
-            log.error("签名验证失败: {}", e.getMessage());
-            return ApiResponse.failure(HttpStatus.FORBIDDEN.value(), "验证失败: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("处理请求失败: {}", e.getMessage());
-            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(),"处理失败: " + e.getMessage());
-        }
-    }
+//        if (path == null || path.isEmpty()) {
+//            path = "/api/admin/admin-sign-submit";
+//        }
+//
+//        try {
+//            // 执行权限、时效和签名校验
+//            signValidationService.validateRequest(appCode, path, sign, time);
+//
+//            // 校验通过，执行业务逻辑
+//            log.info("签名验证，接收参数: {}", body);
+//            return ApiResponse.success(body, "sign：" + sign + "校验成功。");
+//
+//        } catch (SecurityException e) {
+//            log.error("签名验证失败: {}", e.getMessage());
+//            return ApiResponse.failure(HttpStatus.FORBIDDEN.value(), "验证失败: " + e.getMessage());
+//        } catch (Exception e) {
+//            log.error("处理请求失败: {}", e.getMessage());
+//            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(),"处理失败: " + e.getMessage());
+//        }
+//    }
 }

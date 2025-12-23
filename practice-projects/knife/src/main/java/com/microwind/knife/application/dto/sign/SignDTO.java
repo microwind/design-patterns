@@ -16,28 +16,24 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class SignDTO {
 
-    /**
-     * 调用方编码（appCode）
-     */
+    // 调用方编码（appCode）
     private String appCode;
 
-    /**
-     * 接口路径
-     */
+    // 接口路径
     private String apiPath;
 
-    /**
-     * 签名
-     */
+    // 签名值
     private String signValue;
 
-    /**
-     * 生成时间戳（毫秒）
-     */
+    // 生成时间戳（毫秒）
     private Long timestamp;
 
-    /**
-     * 签名过期时间
-     */
+    // 签名过期时间
     private LocalDateTime expireTime;
+
+    // 动态盐值
+    private String dynamicSalt;
+
+    // 动态盐值生成时间
+    private Long dynamicSaltTime;
 }

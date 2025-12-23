@@ -116,6 +116,8 @@ spring:
 sign:
   # 配置模式是 database 还是 本地file
   config-mode: database
+  # 采用jpa还是jdbc来操作数据库
+  repository-type: jdbc
   # 动态盐值生成路径
   dynamic-salt-generate-path: "/api/sign/dynamic-salt-generate"
   # 签名生成路径
@@ -125,7 +127,7 @@ sign:
     # 动态盐值有效期（毫秒），默认24小时
     ttl: 86400000
     # 是否使用数据库校验动态盐值，如为false则仅通过算法校验
-    validate-from-database: false
+    validate-from-database: true
   # 签名配置
   signature:
     # 签名有效期（毫秒），默认10分钟

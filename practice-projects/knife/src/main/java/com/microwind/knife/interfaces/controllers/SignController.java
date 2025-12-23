@@ -2,17 +2,15 @@ package com.microwind.knife.interfaces.controllers;
 
 import com.microwind.knife.application.config.SignConfig;
 import com.microwind.knife.application.dto.sign.DynamicSaltDTO;
+import com.microwind.knife.application.dto.sign.DynamicSaltMapper;
 import com.microwind.knife.application.dto.sign.SignDTO;
+import com.microwind.knife.application.dto.sign.SignMapper;
 import com.microwind.knife.application.services.sign.DynamicSaltService;
 import com.microwind.knife.application.services.sign.SignService;
-import com.microwind.knife.application.services.sign.SignVerifyService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.interfaces.vo.sign.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +29,9 @@ import java.util.Map;
 public class SignController {
     private final DynamicSaltService dynamicSaltService;
     private final SignService signService;
-    private final SignVerifyService signVerifyService;
     private final SignConfig signConfig;
+    private final SignMapper signMapper;
+    private final DynamicSaltMapper dynamicSaltMapper;
 
     /**
      * 动态盐值生成接口
@@ -50,6 +49,7 @@ public class SignController {
      */
     @PostMapping("/dynamic-salt-generate")
     public ApiResponse<DynamicSaltResponse> generateDynamicSalt(@RequestBody DynamicSaltRequest request) {
+        String path = "/api/sign/dynamic-salt-generate";
         // 基于接口固定盐值生成动态盐值
         DynamicSaltDTO salt = dynamicSaltService.generate(request.getAppCode(), request.getPath());
         // 构建动态盐值响应
@@ -87,7 +87,7 @@ public class SignController {
      * @return 校验结果及动态盐值信息
      */
     @PostMapping("/dynamic-salt-validate")
-    public ApiResponse<Map<String, Object>> validateDynamicSalt(@RequestBody SignRequest request) {
+    public ApiResponse<Map<String, Object>> validateDynamicSalt(@RequestBody DynamicSaltVerfiyRequest request) {
         String appCode = request.getAppCode();
         String path = request.getPath();
         String dynamicSalt = request.getDynamicSalt();
@@ -97,7 +97,8 @@ public class SignController {
             isValid = false;
         } else {
             // 执行动态盐值校验
-            isValid = dynamicSaltService.validateDynamicSalt(appCode, path, dynamicSalt, dynamicSaltTime);
+            DynamicSaltDTO dynamicSaltDTO = dynamicSaltMapper.toDTO(request);
+            isValid = dynamicSaltService.validateDynamicSalt(dynamicSaltDTO);
         }
 
         // 构建响应中的动态盐值信息
@@ -140,12 +141,8 @@ public class SignController {
      */
     @PostMapping("/generate")
     public ApiResponse<SignResponse> generateSign(@RequestBody SignRequest request) {
-        SignDTO dto = signService.generate(
-                request.getAppCode(),
-                request.getPath(),
-                request.getDynamicSalt(),
-                request.getDynamicSaltTime()
-        );
+        String path = "/api/sign/generate";
+        SignDTO dto = signService.generate(signMapper.requestToDTO(request));
         SignResponse response = new SignResponse();
         response.setPath(dto.getApiPath());
         response.setSign(dto.getSignValue());
@@ -183,11 +180,7 @@ public class SignController {
             isValid = false;
         } else {
             // 执行签名校验
-            SignDTO signDTO = new SignDTO();
-            signDTO.setAppCode(appCode);
-            signDTO.setApiPath(path);
-            signDTO.setSignValue(sign);
-            signDTO.setTimestamp(time);
+            SignDTO signDTO = signMapper.signVerifyRequestToDTO(request);
             isValid = signService.validateSign(signDTO);
         }
 
@@ -225,20 +218,24 @@ public class SignController {
      * - 此为测试接口，其他业务接口可参考此实现
      * - 必须携带有效的签名才能提交数据
      *
-     * @param request 包含 appCode, path, sign, time, data 的请求
+     * @header 包含 appCode, path, sign, time 签名请求
      * @return 提交结果
      */
     @PostMapping("/submit-test")
-    public ApiResponse<Map<String, Object>> submit(@RequestBody SignVerifyRequest request) {
-        String result = signVerifyService.submit(
-                request.getAppCode(),
-                request.getPath(),
-                request.getSign(),
-                request.getTime(),
-                request.getData()
-        );
+    public ApiResponse<Map<String, Object>> submit(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "sign", required = false) String sign,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "time", required = false) Long time,
+            @RequestBody(required = false) RequestBody body) {
+        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
+        signVerifyRequest.setAppCode(appCode);
+        signVerifyRequest.setPath(path);
+        signVerifyRequest.setSign(sign);
+        signVerifyRequest.setTime(time);
+//        String result = signService.checkSign(signVerifyRequest, body);
         Map<String, Object> response = new HashMap<>();
-        response.put("result", result);
+//        response.put("result", result);
         return ApiResponse.success(response, "带签名的请求提交成功。");
     }
 }
