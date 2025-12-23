@@ -1,24 +1,27 @@
+# 本文件适用于小项目，调用方较少（20个以内）的情况
+# 如果调用方较多，则通过数据库来配置访问权限和接口盐值
 # 签名配置文件 - 存储账号、秘钥、权限和接口盐值
+# 对应文件为application/config/ApiAuthConfig.java
 apiauth:
-  # 应用配置
+  # 调用方配置
   apps:
-    - appCode: apiauth-caller1
-      appSecret: secret_key_abc123_sign_caller1
-      description: "签名调用方1"
+    - appCode: ios1
+      appName: appUser1
+      secretKey: secret&!_caller1
+      description: "调用方1"
       permissions:
-        - "/sign/dynamic-salt"
-        - "/sign/sign-generate"
+        - "/api/sign/generate"
+        - "/api/sign/dynamic-salt-generate"
+        - "/api/users"
+        - "/api/orders"
+        - "/api/users/{userId}"
         - "/api/admin/admin-sign-submit"
 
   # 接口盐值配置
   interface-salts:
-    "/sign/dynamic-salt": "dynamic_salt_salt_def456"
-    "/sign/sign-generate": "sign_generate_salt_ghi012"
-    "/api/admin/admin-sign-submit": "admin_submit_salt_xyz789"
-
-  # 签名配置
-  validation:
-    # 动态盐值有效期（毫秒）
-    dynamic-salt-ttl: 300000  # 5分钟
-    # 签名有效期（毫秒）
-    sign-ttl: 60000  # 1分钟
+    - path: "/api/users"
+      salt: "t3!@$$"
+    - path: "/api/users/{userId}"
+      salt: "ngx#124"
+    - path: "/api/admin/admin-sign-submit"
+      salt: "a6x_T@"

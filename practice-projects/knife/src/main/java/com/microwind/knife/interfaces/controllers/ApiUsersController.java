@@ -1,5 +1,7 @@
 package com.microwind.knife.interfaces.controllers;
 
+import com.microwind.knife.application.dto.apiauth.ApiUserDTO;
+import com.microwind.knife.application.dto.apiauth.ApiUserMapper;
 import com.microwind.knife.application.services.apiauth.ApiUsersService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.apiauth.ApiUsers;
@@ -17,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiUsersController {
 
+    private final ApiUserMapper apiUserMapper;
     private final ApiUsersService apiUsersService;
 
     /**
@@ -33,7 +36,7 @@ public class ApiUsersController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ApiUsers> createApiUser(@RequestBody ApiUsers apiUsers) {
+    public ApiResponse<ApiUserDTO> createApiUser(@RequestBody ApiUsers apiUsers) {
         return ApiResponse.success(apiUsersService.createApiUser(apiUsers), "API用户创建成功");
     }
 
@@ -41,7 +44,7 @@ public class ApiUsersController {
      * 获取所有用户
      */
     @GetMapping
-    public ApiResponse<List<ApiUsers>> getAllUsers() {
+    public ApiResponse<List<ApiUserDTO>> getAllUsers() {
         return ApiResponse.success(apiUsersService.getAllUsers(), "查询成功");
     }
 
@@ -49,7 +52,7 @@ public class ApiUsersController {
      * 根据ID获取用户
      */
     @GetMapping("/{id}")
-    public ApiResponse<ApiUsers> getUserById(@PathVariable Long id) {
+    public ApiResponse<ApiUserDTO> getUserById(@PathVariable Long id) {
         return ApiResponse.success(apiUsersService.getById(id), "查询成功");
     }
 
@@ -57,7 +60,7 @@ public class ApiUsersController {
      * 根据appCode获取用户
      */
     @GetMapping("/code/{appCode}")
-    public ApiResponse<ApiUsers> getUserByAppCode(@PathVariable String appCode) {
+    public ApiResponse<ApiUserDTO> getUserByAppCode(@PathVariable String appCode) {
         return ApiResponse.success(apiUsersService.getByAppCode(appCode), "查询成功");
     }
 
@@ -65,7 +68,7 @@ public class ApiUsersController {
      * 更新用户信息
      */
     @PutMapping("/{id}")
-    public ApiResponse<ApiUsers> updateApiUser(@PathVariable Long id, @RequestBody ApiUsers apiUsers) {
+    public ApiResponse<ApiUserDTO> updateApiUser(@PathVariable Long id, @RequestBody ApiUsers apiUsers) {
         return ApiResponse.success(apiUsersService.updateApiUser(id, apiUsers), "用户信息更新成功");
     }
 

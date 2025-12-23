@@ -35,7 +35,7 @@ public class AdminController {
             @RequestHeader(value = "appCode", required = false) String appCode,
             @RequestHeader(value = "sign", required = false) String sign,
             @RequestHeader(value = "time", required = false) Long time,
-            @RequestBody Object obj) {
+            @RequestParam(value = "action", required = false) String action) {
 
         String path = "/api/admin/admin-sign-submit";
 
@@ -44,8 +44,8 @@ public class AdminController {
             signValidationService.validateRequest(appCode, path, sign, time);
 
             // 校验通过，执行业务逻辑
-            log.info("签名验证，处理内容: {}", obj);
-            return ApiResponse.success(obj, "sign：" + sign + "校验成功。");
+            log.info("签名验证，接收参数: {}", action);
+            return ApiResponse.success(action, "sign：" + sign + "校验成功。");
 
         } catch (SecurityException e) {
             log.error("签名验证失败: {}", e.getMessage());

@@ -1,7 +1,7 @@
 package com.microwind.knife.interfaces.controllers;
 
+import com.microwind.knife.application.dto.sign.DynamicSaltDTO;
 import com.microwind.knife.application.services.sign.DynamicSaltService;
-import com.microwind.knife.domain.sign.DynamicSalt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -31,12 +31,13 @@ public class SignPageController {
         String targetPath = "/api/admin/admin-sign-submit";
 
         try {
-            DynamicSalt dynamicSalt = dynamicSaltService.generate(appCode, targetPath);
+            // 注意 DynamicSaltService.generate 返回 DynamicSaltDTO
+            DynamicSaltDTO dynamicSaltDTO = dynamicSaltService.generate(appCode, targetPath);
             // 将动态盐值信息传递给前端页面
             model.addAttribute("appCode", appCode);
-            model.addAttribute("path", dynamicSalt.path());
-            model.addAttribute("dynamicSalt", dynamicSalt.saltValue());
-            model.addAttribute("dynamicSaltTime", dynamicSalt.generateTime());
+            model.addAttribute("path", dynamicSaltDTO.getApiPath());
+            model.addAttribute("dynamicSalt", dynamicSaltDTO.getDynamicSalt());
+            model.addAttribute("dynamicSaltTime", dynamicSaltDTO.getSaltTimestamp());
         } catch (IllegalArgumentException e) {
             log.error("签名验证失败: {}", e.getMessage());
         }

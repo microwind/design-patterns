@@ -262,7 +262,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 public class Order {
     private int id;
     private List<OrderItem> items;
-    private String status;
+    private final String status;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

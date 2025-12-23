@@ -109,6 +109,34 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * 处理安全异常（403 Forbidden）
+     * 例如：应用无权访问特定接口
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Object> handleSecurityException(SecurityException ex) {
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                "Security Exception",
+                ex.getMessage(),
+                null
+        );
+    }
+
+    /**
+     * 处理非法参数异常（400 Bad Request）
+     * 例如：接口路径不存在、盐值不存在等
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid Argument",
+                ex.getMessage(),
+                null
+        );
+    }
+
+    /**
      * 处理JDBC连接失败
      */
     @ExceptionHandler(JDBCConnectionException.class)

@@ -31,7 +31,43 @@ public class ApiInfo {
     private String apiName;
 
     @Column(name = "api_type")
-    private Short apiType = 1; // 1-不用sign，2-需要sign
+    private Short apiType = 1; // 1-不需要签名，2-需要签名
+
+    /**
+     * API类型枚举
+     */
+    public enum ApiType {
+        NO_SIGN(1, "不需要签名"),
+        NEED_SIGN(2, "需要签名");
+
+        private final int code;
+        private final String description;
+
+        ApiType(int code, String description) {
+            this.code = code;
+            this.description = description;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        /**
+         * 根据code获取枚举
+         */
+        public static ApiType fromCode(int code) {
+            for (ApiType type : values()) {
+                if (type.code == code) {
+                    return type;
+                }
+            }
+            throw new IllegalArgumentException("Unknown api type code: " + code);
+        }
+    }
 
     @Column(name = "fixed_salt", length = 64)
     private String fixedSalt;

@@ -1,5 +1,6 @@
 package com.microwind.knife.interfaces.controllers;
 
+import com.microwind.knife.application.config.SignConfig;
 import com.microwind.knife.application.services.apiauth.ApiDynamicSaltLogService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.apiauth.ApiDynamicSaltLog;
@@ -13,11 +14,12 @@ import java.time.LocalDateTime;
  * 动态盐值管理Controller
  */
 @RestController
-@RequestMapping("/api/apiauth/salt")
+@RequestMapping("/api/apiauth/dynamic-salt-log")
 @RequiredArgsConstructor
 public class ApiDynamicSaltLogController {
 
     private final ApiDynamicSaltLogService saltLogService;
+    private final SignConfig signConfig;
 
     /**
      * 验证并消费动态盐值
@@ -33,19 +35,18 @@ public class ApiDynamicSaltLogController {
     /**
      * 生成动态盐值
      */
-    @PostMapping("/generate")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ApiDynamicSaltLog> generateSalt(@RequestParam String appCode,
-                                                       @RequestParam Long apiId,
-                                                       @RequestParam String apiPath,
-                                                       @RequestParam String dynamicSalt,
-                                                       @RequestParam Long saltTimestamp,
-                                                       @RequestParam String expireTime) {
+    @PostMapping("/create")
+    public ApiResponse<ApiDynamicSaltLog> create(@RequestParam String appCode,
+                                               @RequestParam Long apiId,
+                                               @RequestParam String apiPath,
+                                               @RequestParam String dynamicSalt,
+                                               @RequestParam Long saltTimestamp,
+                                               @RequestParam String expireTime) {
         LocalDateTime expireDateTime = LocalDateTime.parse(expireTime);
-        ApiDynamicSaltLog saltLog = saltLogService.generateSalt(
+        ApiDynamicSaltLog saltLog = saltLogService.save(
                 appCode, apiId, apiPath, dynamicSalt, saltTimestamp, expireDateTime
         );
-        return ApiResponse.success(saltLog, "动态盐值保存成功");
+        return ApiResponse.success(saltLog, "动态盐值创建成功。");
     }
 
     /**

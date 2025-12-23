@@ -1,7 +1,7 @@
 package com.microwind.knife.infrastructure.repository;
 
 import com.microwind.knife.domain.repository.ApiAuthRepository;
-import com.microwind.knife.domain.sign.ApiAuth;
+import com.microwind.knife.domain.sign.SignUserAuth;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -50,7 +50,7 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<ApiAuth> findByAppCode(String appCode) {
+    public Optional<SignUserAuth> findByAppCode(String appCode) {
         try {
             // 1. 从 api_users 表查询用户信息和密钥
             String userSql = String.format(
@@ -96,15 +96,15 @@ public class ApiAuthRepositoryImpl implements ApiAuthRepository {
                 appCode
             );
 
-            // 4. 构建 ApiAuth 对象
-            ApiAuth apiAuth = new ApiAuth(
+            // 4. 构建 SignUserAuth 对象
+            SignUserAuth signUserAuth = new SignUserAuth(
                 userInfo.appCode,
                 userInfo.secretKey,
                 permitPaths != null ? permitPaths : Collections.emptyList(),
                 forbiddenPaths != null ? forbiddenPaths : Collections.emptyList()
             );
-            
-            return Optional.of(apiAuth);
+
+            return Optional.of(signUserAuth);
             
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();

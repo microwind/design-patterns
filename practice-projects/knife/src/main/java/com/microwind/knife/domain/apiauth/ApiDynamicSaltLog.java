@@ -9,47 +9,79 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 动态盐值记录表
+ * 动态盐值日志实体
  */
+@Entity
+@Table(
+        name = "api_dynamic_salt_log",
+        indexes = {
+                @Index(name = "idx_app_path_salt", columnList = "app_code,api_path,dynamic_salt"),
+                @Index(name = "idx_expire_time", columnList = "expire_time"),
+                @Index(name = "idx_used", columnList = "used")
+        }
+)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "api_dynamic_salt_log", schema = "public")
 public class ApiDynamicSaltLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
+    /**
+     * 接口ID（关联 api_info 表）
+     */
+    @Column(name = "api_id")
+    private Long apiId;
+
+    /**
+     * 应用编码
+     */
     @Column(name = "app_code", nullable = false, length = 50)
     private String appCode;
 
-    @Column(name = "api_id", nullable = false)
-    private Long apiId;
-
-    @Column(name = "api_path", nullable = false, length = 255)
+    /**
+     * 接口路径
+     */
+    @Column(name = "api_path", nullable = false, length = 500)
     private String apiPath;
 
-    @Column(name = "dynamic_salt", nullable = false, length = 128)
+    /**
+     * 动态盐值
+     */
+    @Column(name = "dynamic_salt", nullable = false, length = 100)
     private String dynamicSalt;
 
-    @Column(name = "salt_timestamp", nullable = false)
+    /**
+     * 盐值生成时间戳（毫秒）
+     */
+    @Column(name = "salt_timestamp")
     private Long saltTimestamp;
 
-    @Column(name = "expire_time", nullable = false)
+    /**
+     * 过期时间（null 表示永久有效）
+     */
+    @Column(name = "expire_time")
     private LocalDateTime expireTime;
 
-    @Column(name = "used")
-    private Short used = 0; // 0-未使用，1-已使用
+    /**
+     * 是否已使用 0 未使用 1 已使用
+     */
+    @Column(name = "used", nullable = false)
+    private Short used = 0;
 
-    @Column(name = "created_at", updatable = false)
+    /**
+     * 创建时间
+     */
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 }

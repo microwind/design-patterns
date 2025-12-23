@@ -111,3 +111,22 @@ spring:
       domain: 你的域名
   catv:
     config-file: classpath:dedicated-ip-ranges.yml
+
+# 签名配置
+sign:
+  # 配置模式是 database 还是 本地file
+  config-mode: database
+  # 动态盐值生成路径
+  dynamic-salt-generate-path: "/api/sign/dynamic-salt-generate"
+  # 签名生成路径
+  sign-generate-path: "/api/sign/generate"
+  # 动态盐值配置
+  dynamic-salt:
+    # 动态盐值有效期（毫秒），默认24小时
+    ttl: 86400000
+    # 是否使用数据库校验动态盐值，如为false则仅通过算法校验
+    validate-from-database: false
+  # 签名配置
+  signature:
+    # 签名有效期（毫秒），默认10分钟
+    ttl: 600000

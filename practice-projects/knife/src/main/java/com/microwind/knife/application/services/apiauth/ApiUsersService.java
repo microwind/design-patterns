@@ -1,5 +1,7 @@
 package com.microwind.knife.application.services.apiauth;
 
+import com.microwind.knife.application.dto.apiauth.ApiUserDTO;
+import com.microwind.knife.application.dto.apiauth.ApiUserMapper;
 import com.microwind.knife.domain.apiauth.ApiUsers;
 import com.microwind.knife.domain.repository.apiauth.ApiUsersJpaRepository;
 import com.microwind.knife.exception.ResourceNotFoundException;
@@ -16,15 +18,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ApiUsersService {
-
+    private final ApiUserMapper apiUserMapper;
     private final ApiUsersJpaRepository apiUsersJpaRepository;
 
     /**
      * 根据appCode查询用户
      */
-    public ApiUsers getByAppCode(String appCode) {
-        return apiUsersJpaRepository.findByAppCode(appCode)
+    public ApiUserDTO getByAppCode(String appCode) {
+        ApiUsers apiUsers = apiUsersJpaRepository.findByAppCode(appCode)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiUsers not found with appCode: " + appCode));
+        return apiUserMapper.toDTO(apiUsers);
     }
 
     /**
@@ -37,23 +40,31 @@ public class ApiUsersService {
     /**
      * 获取有效用户信息（用于签名验证）
      */
-    public ApiUsers getValidUser(String appCode) {
-        return apiUsersJpaRepository.findValidUser(appCode, LocalDateTime.now())
+    public ApiUserDTO getValidUser(String appCode) {
+        ApiUsers apiUsers = apiUsersJpaRepository.findValidUser(appCode, LocalDateTime.now())
                 .orElseThrow(() -> new ResourceNotFoundException("Valid ApiUsers not found with appCode: " + appCode));
+        return apiUserMapper.toDTO(apiUsers);
     }
 
     /**
      * 创建API用户
      */
     @Transactional
-    public ApiUsers createApiUser(ApiUsers apiUsers) {
-        return apiUsersJpaRepository.save(apiUsers);
+    public ApiUserDTO createApiUser(ApiUsers apiUsers) {
+        ApiUsers newApiUsers = apiUsersJpaRepository.save(apiUsers);
+        return apiUserMapper.toDTO(newApiUsers);
     }
 
     /**
      * 根据ID查询
      */
-    public ApiUsers getById(Long id) {
+    public ApiUserDTO getById(Long id) {
+        ApiUsers newApiUsers = apiUsersJpaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ApiUsers not found with id: " + id));
+        return apiUserMapper.toDTO(newApiUsers);
+    }
+
+    public ApiUsers getByUserId(Long id) {
         return apiUsersJpaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ApiUsers not found with id: " + id));
     }
@@ -61,16 +72,17 @@ public class ApiUsersService {
     /**
      * 查询所有用户
      */
-    public List<ApiUsers> getAllUsers() {
-        return apiUsersJpaRepository.findAll();
+    public List<ApiUserDTO> getAllUsers() {
+        List<ApiUsers> apiUsers = apiUsersJpaRepository.findAll();
+        return apiUserMapper.toDTO(apiUsers);
     }
 
     /**
      * 更新用户信息
      */
     @Transactional
-    public ApiUsers updateApiUser(Long id, ApiUsers apiUsers) {
-        ApiUsers existingUser = getById(id);
+    public ApiUserDTO updateApiUser(Long id, ApiUsers apiUsers) {
+        ApiUsers existingUser = getByUserId(id);
         if (apiUsers.getAppCode() != null) {
             existingUser.setAppCode(apiUsers.getAppCode());
         }
@@ -89,7 +101,8 @@ public class ApiUsersService {
         if (apiUsers.getExpireTime() != null) {
             existingUser.setExpireTime(apiUsers.getExpireTime());
         }
-        return apiUsersJpaRepository.save(existingUser);
+        ApiUsers newUser = apiUsersJpaRepository.save(existingUser);
+        return apiUserMapper.toDTO(newUser);
     }
 
     /**
@@ -97,7 +110,7 @@ public class ApiUsersService {
      */
     @Transactional
     public void deleteApiUser(Long id) {
-        ApiUsers apiUsers = getById(id);
+        ApiUsers apiUsers = getByUserId(id);
         apiUsersJpaRepository.delete(apiUsers);
     }
 }

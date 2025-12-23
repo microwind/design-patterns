@@ -83,7 +83,8 @@ CREATE TABLE api_auth (
     INDEX idx_status (status),
 ) COMMENT='API接口权限表';
 
---- 4. api_dynamic_salt_log表，每次生成动态盐值时记录，用于备份
+--- 4. api_dynamic_salt_log表【可选】，
+--- 每次生成动态盐值时记录，如果配置了从数据库校验动态盐值才需要记录到表中，否则每次算法校验即可
 CREATE TABLE api_dynamic_salt_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     app_code VARCHAR(50) NOT NULL COMMENT '用户标识',
@@ -200,7 +201,8 @@ CREATE INDEX idx_api_auth_app_code ON api_auth(app_code);
 CREATE INDEX idx_api_auth_api_path ON api_auth(api_path);
 CREATE INDEX idx_api_auth_status ON api_auth(status);
 
---- 表4. api_dynamic_salt_log表，每次生成动态盐值时记录，用于备份
+--- 表4. api_dynamic_salt_log表【可选】，
+--- 每次生成动态盐值时记录，如果配置了从数据库校验动态盐值才需要记录到表中，否则每次算法校验即可
 CREATE TABLE api_dynamic_salt_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     app_code VARCHAR(50) NOT NULL,

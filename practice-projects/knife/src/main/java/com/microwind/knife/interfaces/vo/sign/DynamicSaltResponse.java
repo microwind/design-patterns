@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class DynamicSaltResponse {
     private String path;
+    private String appCode;
     private String dynamicSalt;
     private Long dynamicSaltTime;
 }
