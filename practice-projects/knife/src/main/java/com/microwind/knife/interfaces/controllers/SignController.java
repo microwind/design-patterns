@@ -10,6 +10,7 @@ import com.microwind.knife.application.services.sign.DynamicSaltValidationServic
 import com.microwind.knife.application.services.sign.SignService;
 import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
+import com.microwind.knife.domain.sign.SignUserAuth;
 import com.microwind.knife.interfaces.vo.sign.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -208,6 +209,52 @@ public class SignController {
     }
 
     /**
+     * 获取调用方全部api列表
+     * @param appCode 调用方
+     * @param sign 签名
+     * @param path 访问路径
+     * @param time 时间戳
+     * @param params 其他参数【可选】
+     * @return 请求结果
+     */
+    @RequestMapping(
+            value = "/user-auth-list",
+            method = {RequestMethod.GET, RequestMethod.POST}
+    )
+    public ApiResponse<Object> userAuthList(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "sign", required = false) String sign,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "time", required = false) Long time,
+            @RequestBody(required = false) Map<String, Object> params) {
+        path = "/api/sign/user-auth-list";
+        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
+        signVerifyRequest.setAppCode(appCode);
+        signVerifyRequest.setPath(path);
+        signVerifyRequest.setSign(sign);
+        signVerifyRequest.setTime(time);
+        SignDTO signDTO = signMapper.toDTO(signVerifyRequest);
+        boolean isValid = signValidationService.validate(signDTO);
+        Map<String, Object> response = new HashMap<>();
+        response.put("params", params);
+        response.put("request", signVerifyRequest);
+        if (isValid) {
+            SignUserAuth signUserAuth = signService.getSignUserAuth(appCode);
+            // 脱敏 secretKey
+            SignUserAuth maskedAuth = new SignUserAuth(
+                    signUserAuth.appCode(),
+                    "***",  // 脱敏 secretKey
+                    signUserAuth.permitPaths(),
+                    signUserAuth.forbiddenPath()
+            );
+            response.put("signUserAuth", maskedAuth);
+            return ApiResponse.success(response, "请求提交成功。");
+        } else {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), response, "签名校验失败。");
+        }
+    }
+
+    /**
      * 带签名的数据提交接口（测试）
      * <p>
      * 功能：验证签名并提交业务数据
@@ -225,12 +272,12 @@ public class SignController {
      * @header 包含 appCode, path, sign, time 签名请求
      */
     @PostMapping("/submit-test")
-    public ApiResponse<Map<String, Object>> submit(
+    public ApiResponse<Map<String, Object>> submitTest(
             @RequestHeader(value = "appCode", required = false) String appCode,
             @RequestHeader(value = "sign", required = false) String sign,
-            @RequestHeader(value = "path", required = false) String path,
             @RequestHeader(value = "time", required = false) Long time,
-            @RequestBody(required = false) Map<String, Object> body) {
+            @RequestBody(required = false) Map<String, Object> params) {
+        String path = "/api/sign/submit-test";
         SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
         signVerifyRequest.setAppCode(appCode);
         signVerifyRequest.setPath(path);
@@ -240,7 +287,7 @@ public class SignController {
         boolean isValid = signValidationService.validate(signDTO);
         Map<String, Object> response = new HashMap<>();
         response.put("isValid", isValid);
-        response.put("body", body);
+        response.put("params", params);
         if (isValid) {
             return ApiResponse.success(response, "带签名的请求提交成功。");
         } else {

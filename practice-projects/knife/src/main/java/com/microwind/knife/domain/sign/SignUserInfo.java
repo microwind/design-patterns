@@ -9,7 +9,7 @@ package com.microwind.knife.domain.sign;
  * @param appName   应用名称
  * @param status    状态（1=启用，0=禁用）
  */
-public record UserInfo(
+public record SignUserInfo(
         String appCode,
         String secretKey,
         String appName,

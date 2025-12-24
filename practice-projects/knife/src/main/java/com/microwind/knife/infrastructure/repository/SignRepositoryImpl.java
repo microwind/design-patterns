@@ -5,7 +5,7 @@ import com.microwind.knife.domain.apiauth.ApiInfo;
 import com.microwind.knife.domain.apiauth.ApiUsers;
 import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.SignUserAuth;
-import com.microwind.knife.domain.sign.UserInfo;
+import com.microwind.knife.domain.sign.SignUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -54,7 +54,7 @@ public class SignRepositoryImpl implements SignRepository {
     public Optional<SignUserAuth> findByAppCode(String appCode) {
         try {
             // 1. 查询用户基本信息
-            UserInfo userInfo = findUserInfoByAppCode(appCode);
+            SignUserInfo userInfo = findUserInfoByAppCode(appCode);
             if (userInfo == null) {
                 return Optional.empty();
             }
@@ -82,7 +82,7 @@ public class SignRepositoryImpl implements SignRepository {
     /**
      * 根据 appCode 查询用户基本信息
      */
-    private UserInfo findUserInfoByAppCode(String appCode) {
+    private SignUserInfo findUserInfoByAppCode(String appCode) {
         String sql = """
                 SELECT app_code, secret_key, app_name, status
                 FROM api_users
@@ -260,10 +260,10 @@ public class SignRepositoryImpl implements SignRepository {
     }
 
     /**
-     * UserInfo RowMapper
+     * SignUserInfo RowMapper
      */
-    private RowMapper<UserInfo> userInfoRowMapper() {
-        return (rs, rowNum) -> new UserInfo(
+    private RowMapper<SignUserInfo> userInfoRowMapper() {
+        return (rs, rowNum) -> new SignUserInfo(
                 rs.getString("app_code"),
                 rs.getString("secret_key"),
                 rs.getString("app_name"),

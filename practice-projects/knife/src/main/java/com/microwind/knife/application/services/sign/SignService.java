@@ -1,20 +1,18 @@
 package com.microwind.knife.application.services.sign;
 
-import com.microwind.knife.application.config.ApiAuthConfig;
-import com.microwind.knife.application.config.SignConfig;
-import com.microwind.knife.application.dto.apiauth.ApiUserDTO;
 import com.microwind.knife.application.dto.sign.DynamicSaltDTO;
 import com.microwind.knife.application.dto.sign.SignDTO;
 import com.microwind.knife.application.dto.sign.SignMapper;
-import com.microwind.knife.application.services.apiauth.ApiAuthService;
-import com.microwind.knife.application.services.apiauth.ApiInfoService;
-import com.microwind.knife.application.services.apiauth.ApiUsersService;
-import com.microwind.knife.domain.apiauth.ApiInfo;
-import com.microwind.knife.domain.apiauth.ApiUsers;
+import com.microwind.knife.application.services.sign.strategy.secretkey.SecretKeyStrategyFactory;
 import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.sign.SignDomainService;
+import com.microwind.knife.domain.sign.SignUserAuth;
+import com.microwind.knife.interfaces.vo.sign.SignVerifyRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,26 +20,26 @@ import java.util.Optional;
 /**
  * 签名应用服务
  * <p>
- * 负责协调签名的生成。
- * 支持两种配置模式：
+ * 负责协调签名的生成和校验。
+ * 使用策略模式支持多种配置方式：
  * 1. 本地文件配置方式（适合小型项目，调用方较少，小于50个）
- * 2. 数据库配置方式（适合中大型项目，调用方较多，大于50个）
+ * 2. JPA 数据库配置方式（适合中大型项目，使用 Spring Data JPA）
+ * 3. JDBC 数据库配置方式（适合中大型项目，使用原生 JDBC）
  */
 @Service
 @RequiredArgsConstructor
 public class SignService {
     private final SignDomainService signDomainService;
-    private final DynamicSaltValidationService dynamicSaltValidationService;
-    private final ApiAuthService apiAuthService;
-    private final ApiUsersService apiUsersService;
-    private final ApiInfoService apiInfoService;
-    private final SignConfig signConfig;
-    private final ApiAuthConfig apiAuthConfig;
-    private final SignMapper signMapper;
     private final SignRepository signRepository;
+    private final DynamicSaltValidationService dynamicSaltValidationService;
+    private final SignValidationService signValidationService;
+    private final SecretKeyStrategyFactory secretKeyStrategyFactory;
+    private final SignMapper signMapper;
 
     /**
      * 生成签名
+     * <p>
+     * 使用策略模式根据配置自动选择合适的秘钥获取方式
      *
      * @param appCode       应用编码
      * @param path          接口路径
@@ -65,8 +63,8 @@ public class SignService {
             throw new IllegalArgumentException("动态盐值校验失败");
         }
 
-        // 获取秘钥并生成签名
-        String secretKey = getSecretKey(appCode, path);
+        // 使用策略获取秘钥并生成签名
+        String secretKey = secretKeyStrategyFactory.getStrategy().getSecretKey(appCode, path);
         Sign sign = signDomainService.generateSign(appCode, secretKey, path);
         return signMapper.toDTO(sign);
     }
@@ -79,109 +77,46 @@ public class SignService {
     }
 
     /**
-     * 获取应用秘钥
-     * 根据配置模式从数据库或本地配置获取
+     * 校验签名
+     * <p>
+     * 委托给 SignValidationService 处理
+     *
+     * @param appCode  应用编码
+     * @param path     接口路径
+     * @param sign     签名值
+     * @param signTime 签名时间戳（毫秒）
+     * @return true-校验通过，false-校验失败
      */
-    private String getSecretKey(String appCode, String path) {
-        String configMode = signConfig.getConfigMode();
-
-        if (SignConfig.CONFIG_MODE_DATABASE.equalsIgnoreCase(configMode)) {
-            return getSecretKeyFromDatabase(appCode, path);
-        } else {
-            return getSecretKeyFromLocalConfig(appCode, path);
-        }
+    public boolean validateSign(String appCode, String path, String sign, Long signTime) {
+        return signValidationService.validate(appCode, path, sign, signTime);
     }
 
     /**
-     * 从数据库获取秘钥
+     * 校验签名（DTO版本）
+     *
+     * @param signDTO 签名DTO
+     * @return true-校验通过，false-校验失败
      */
-    private String getSecretKeyFromDatabase(String appCode, String path) {
-        // 根据配置选择使用 SignRepository 或 JPA
-        if (signConfig.isUseJdbcRepository()) {
-            return getSecretKeyFromDatabaseViaJdbc(appCode, path);
-        } else {
-            return getSecretKeyFromDatabaseViaJpa(appCode, path);
-        }
+    public boolean validateSign(SignDTO signDTO) {
+        return signValidationService.validate(signDTO);
+    }
+
+    public boolean validateSign(SignVerifyRequest signVerifyRequest) {
+        return signValidationService.validate(signMapper.toDTO(signVerifyRequest));
     }
 
     /**
-     * 通过 JdbcTemplate (SignRepository) 从数据库获取秘钥
+     * 获取调用者全部 API 权限（聚合对象 SignUserAuth）
+     *
+     * @param appCode 调用方身份标识
+     * @return SignUserAuth - 包含 secretKey、允许访问路径列表、禁止访问路径列表
+     * @throws ResourceNotFoundException 如果找不到对应的 appCode，则抛出异常
+     *
+     * <p>说明：
+     * 1. 直接返回聚合对象 SignUserAuth，而不是 Optional。
      */
-    private String getSecretKeyFromDatabaseViaJdbc(String appCode, String path) {
-        // 验证接口信息
-        Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
-        if (apiInfoOpt.isEmpty()) {
-            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
-        }
-        ApiInfo apiInfo = apiInfoOpt.get();
-
-        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
-        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
-            throw new IllegalArgumentException(
-                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
-            );
-        }
-
-        // 检查权限
-        if (!signRepository.checkAuth(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        Optional<ApiUsers> apiUsersOpt = signRepository.findApiUserByAppCode(appCode);
-        if (apiUsersOpt.isEmpty()) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return apiUsersOpt.get().getSecretKey();
-    }
-
-    /**
-     * 通过 JPA 从数据库获取秘钥
-     */
-    private String getSecretKeyFromDatabaseViaJpa(String appCode, String path) {
-        // 验证接口信息
-        ApiInfo apiInfo = apiInfoService.getByApiPath(path);
-        if (apiInfo == null) {
-            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
-        }
-
-        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
-        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
-            throw new IllegalArgumentException(
-                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
-            );
-        }
-
-        // 检查权限
-        if (!apiAuthService.checkAuth(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        ApiUserDTO apiUserDTO = apiUsersService.getByAppCode(appCode);
-        if (apiUserDTO.getAppCode() == null) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return apiUserDTO.getSecretKey();
-    }
-
-    /**
-     * 从本地配置获取秘钥
-     */
-    private String getSecretKeyFromLocalConfig(String appCode, String path) {
-        // 检查权限
-        if (apiAuthConfig.noPermission(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appCode);
-        if (appConfig == null) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return appConfig.getAppSecret();
+    public SignUserAuth getSignUserAuth(String appCode) {
+        return signRepository.findByAppCode(appCode)
+                .orElseThrow(() -> new ResourceNotFoundException("没有找到对应AppCode。"));
     }
 }
