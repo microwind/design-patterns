@@ -3,6 +3,7 @@ package com.microwind.knife.application.services.sign;
 import com.microwind.knife.application.config.ApiAuthConfig;
 import com.microwind.knife.application.config.SignConfig;
 import com.microwind.knife.application.dto.apiauth.ApiUserDTO;
+import com.microwind.knife.application.dto.sign.DynamicSaltDTO;
 import com.microwind.knife.application.dto.sign.SignDTO;
 import com.microwind.knife.application.dto.sign.SignMapper;
 import com.microwind.knife.application.services.apiauth.ApiAuthService;
@@ -21,7 +22,7 @@ import java.util.Optional;
 /**
  * 签名应用服务
  * <p>
- * 负责协调签名的生成和验证。
+ * 负责协调签名的生成。
  * 支持两种配置模式：
  * 1. 本地文件配置方式（适合小型项目，调用方较少，小于50个）
  * 2. 数据库配置方式（适合中大型项目，调用方较多，大于50个）
@@ -30,7 +31,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SignService {
     private final SignDomainService signDomainService;
-    private final DynamicSaltService dynamicSaltService;
+    private final DynamicSaltValidationService dynamicSaltValidationService;
     private final ApiAuthService apiAuthService;
     private final ApiUsersService apiUsersService;
     private final ApiInfoService apiInfoService;
@@ -55,7 +56,12 @@ public class SignService {
         }
 
         // 校验动态盐值
-        if (!dynamicSaltService.validateDynamicSalt(appCode, path, dynamicSalt, saltTimestamp)) {
+        DynamicSaltDTO dynamicSaltDTO = new DynamicSaltDTO();
+        dynamicSaltDTO.setAppCode(appCode);
+        dynamicSaltDTO.setApiPath(path);
+        dynamicSaltDTO.setDynamicSalt(dynamicSalt);
+        dynamicSaltDTO.setSaltTimestamp(saltTimestamp);
+        if (!dynamicSaltValidationService.validate(dynamicSaltDTO)) {
             throw new IllegalArgumentException("动态盐值校验失败");
         }
 
@@ -70,50 +76,6 @@ public class SignService {
                 signDTO.getApiPath(),
                 signDTO.getDynamicSalt(),
                 signDTO.getDynamicSaltTime());
-    }
-
-    /**
-     * 校验签名
-     *
-     * @param appCode  应用编码
-     * @param path     接口路径
-     * @param sign     签名值
-     * @param signTime 签名时间
-     * @return 是否有效
-     */
-    public boolean validateSign(String appCode, String path, String sign, Long signTime) {
-        // 参数校验
-        if (appCode == null || path == null || sign == null || signTime == null) {
-            return false;
-        }
-
-        // 时间戳校验
-        long now = System.currentTimeMillis();
-        if (signTime > now) {
-            throw new IllegalArgumentException("签名时间不能大于当前时间：" + signTime);
-        }
-
-        Long ttl = signConfig.getSignatureTtl();
-        if ((now - signTime) > ttl) {
-            throw new IllegalArgumentException("签名已超过有效期：" + signTime);
-        }
-
-        // 获取秘钥并校验签名
-        String secretKey = getSecretKey(appCode, path);
-        SignDTO signDTO = new SignDTO();
-        signDTO.setAppCode(appCode);
-        signDTO.setApiPath(path);
-        signDTO.setTimestamp(signTime);
-        signDTO.setSignValue(sign);
-        return signDomainService.validateSign(signDTO, secretKey);
-    }
-
-    public boolean validateSign(SignDTO signDTO) {
-        return validateSign(signDTO.getAppCode(),
-                signDTO.getApiPath(),
-                signDTO.getSignValue(),
-                signDTO.getTimestamp()
-        );
     }
 
     /**

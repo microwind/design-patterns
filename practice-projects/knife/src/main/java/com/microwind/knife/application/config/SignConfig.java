@@ -47,12 +47,12 @@ public class SignConfig {
     private String repositoryType = REPOSITORY_TYPE_JDBC;
 
     /**
-     * 动态盐值生成接口路径
+     * 动态盐值生成接口路径，来自application.yml配置
      */
     private String dynamicSaltGeneratePath;
 
     /**
-     * 签名生成接口路径
+     * 签名生成接口路径，来自application.yml配置
      */
     private String signGeneratePath;
 

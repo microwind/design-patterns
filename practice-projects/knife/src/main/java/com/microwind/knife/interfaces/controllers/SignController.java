@@ -6,7 +6,9 @@ import com.microwind.knife.application.dto.sign.DynamicSaltMapper;
 import com.microwind.knife.application.dto.sign.SignDTO;
 import com.microwind.knife.application.dto.sign.SignMapper;
 import com.microwind.knife.application.services.sign.DynamicSaltService;
+import com.microwind.knife.application.services.sign.DynamicSaltValidationService;
 import com.microwind.knife.application.services.sign.SignService;
+import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.interfaces.vo.sign.*;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ import java.util.Map;
 public class SignController {
     private final DynamicSaltService dynamicSaltService;
     private final SignService signService;
+    private final SignValidationService signValidationService;
+    private final DynamicSaltValidationService dynamicSaltValidationService;
     private final SignConfig signConfig;
     private final SignMapper signMapper;
     private final DynamicSaltMapper dynamicSaltMapper;
@@ -49,7 +53,6 @@ public class SignController {
      */
     @PostMapping("/dynamic-salt-generate")
     public ApiResponse<DynamicSaltResponse> generateDynamicSalt(@RequestBody DynamicSaltRequest request) {
-        String path = "/api/sign/dynamic-salt-generate";
         // 基于接口固定盐值生成动态盐值
         DynamicSaltDTO salt = dynamicSaltService.generate(request.getAppCode(), request.getPath());
         // 构建动态盐值响应
@@ -98,7 +101,7 @@ public class SignController {
         } else {
             // 执行动态盐值校验
             DynamicSaltDTO dynamicSaltDTO = dynamicSaltMapper.toDTO(request);
-            isValid = dynamicSaltService.validateDynamicSalt(dynamicSaltDTO);
+            isValid = dynamicSaltValidationService.validate(dynamicSaltDTO);
         }
 
         // 构建响应中的动态盐值信息
@@ -141,8 +144,7 @@ public class SignController {
      */
     @PostMapping("/generate")
     public ApiResponse<SignResponse> generateSign(@RequestBody SignRequest request) {
-        String path = "/api/sign/generate";
-        SignDTO dto = signService.generate(signMapper.requestToDTO(request));
+        SignDTO dto = signService.generate(signMapper.toDTO(request));
         SignResponse response = new SignResponse();
         response.setPath(dto.getApiPath());
         response.setSign(dto.getSignValue());
@@ -180,8 +182,8 @@ public class SignController {
             isValid = false;
         } else {
             // 执行签名校验
-            SignDTO signDTO = signMapper.signVerifyRequestToDTO(request);
-            isValid = signService.validateSign(signDTO);
+            SignDTO signDTO = signMapper.toDTO(request);
+            isValid = signValidationService.validate(signDTO);
         }
 
         // 构建响应中的签名信息
@@ -218,8 +220,8 @@ public class SignController {
      * - 此为测试接口，其他业务接口可参考此实现
      * - 必须携带有效的签名才能提交数据
      *
-     * @header 包含 appCode, path, sign, time 签名请求
      * @return 提交结果
+     * @header 包含 appCode, path, sign, time 签名请求
      */
     @PostMapping("/submit-test")
     public ApiResponse<Map<String, Object>> submit(
@@ -233,9 +235,11 @@ public class SignController {
         signVerifyRequest.setPath(path);
         signVerifyRequest.setSign(sign);
         signVerifyRequest.setTime(time);
-//        String result = signService.checkSign(signVerifyRequest, body);
+        SignDTO signDTO = signMapper.toDTO(signVerifyRequest);
+        boolean isValid = signValidationService.validate(signDTO);
         Map<String, Object> response = new HashMap<>();
-//        response.put("result", result);
+        response.put("isValid", isValid);
+        response.put("body", body);
         return ApiResponse.success(response, "带签名的请求提交成功。");
     }
 }

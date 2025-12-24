@@ -20,17 +20,40 @@ import org.mapstruct.factory.Mappers;
 public interface SignMapper {
     SignMapper INSTANCE = Mappers.getMapper(SignMapper.class);
 
-    // 领域模型 -> DTO
+    /**
+     * 领域模型 -> DTO
+     *
+     * @param sign 签名领域模型
+     * @return DTO 对象
+     */
     SignDTO toDTO(Sign sign);
 
-    // 将Request转为DTO
-    // DTO 字段名不同，需要映射
+    /**
+     * SignRequest -> DTO
+     * <p>
+     * 字段映射：path -> apiPath
+     *
+     * @param request 签名请求
+     * @return DTO 对象
+     */
     @Mapping(source = "path", target = "apiPath")
-    SignDTO requestToDTO(SignRequest request);
+    SignDTO toDTO(SignRequest request);
 
-    // 领域模型 -> DTO
+    /**
+     * SignVerifyRequest -> DTO
+     * <p>
+     * 字段映射：
+     * <ul>
+     *   <li>path -> apiPath</li>
+     *   <li>sign -> signValue</li>
+     *   <li>time -> timestamp</li>
+     * </ul>
+     *
+     * @param request 签名验证请求
+     * @return DTO 对象
+     */
     @Mapping(source = "path", target = "apiPath")
     @Mapping(source = "sign", target = "signValue")
     @Mapping(source = "time", target = "timestamp")
-    SignDTO signVerifyRequestToDTO(SignVerifyRequest signVerifyRequest);
+    SignDTO toDTO(SignVerifyRequest request);
 }
