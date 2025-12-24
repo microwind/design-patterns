@@ -99,6 +99,7 @@ mvn clean compile
 mvn exec:java -Dexec.args="--web"
 * 运行模式：
 * 1. Web模式：java -jar xxx.jar --web (启动嵌入式Tomcat)
+  $ java -jar ./target/springwind-user-demo-1.0-SNAPSHOT.jar --web
 * 2. 控制台模式：java -jar xxx.jar (直接在控制台运行)
 ```
 

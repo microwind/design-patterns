@@ -1,6 +1,6 @@
 # SpringWind Framework
 
-一个轻量级的Spring-like框架实现，模拟Spring MVC核心原理，包括IoC容器、依赖注入、AOP、JDBC模板等。下面我将用文字和图表来描述。
+一个轻量级的Spring-like框架实现，模拟Spring MVC核心原理，包括IoC容器、依赖注入、AOP、JDBC模板等。下面我将用文字和图表来描述。非常适合学习和理解Spring框架的核心原理。
 
 ## 整体架构图
 ```
