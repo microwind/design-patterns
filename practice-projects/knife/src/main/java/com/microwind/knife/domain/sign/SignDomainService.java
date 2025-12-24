@@ -63,7 +63,7 @@ public class SignDomainService {
                 dto.getSaltTimestamp());
     }
 
-    // 生成签名（核心算法）
+    // 生成签名（核心算法），不含参数，采取md5校验
     public Sign generateSign(String appCode, String secretKey, String path) {
         long timestamp = System.currentTimeMillis();
         // 字符串拼接，再计算hash值，需与校验算法一致

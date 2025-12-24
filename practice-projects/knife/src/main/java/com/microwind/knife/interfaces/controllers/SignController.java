@@ -12,6 +12,7 @@ import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.interfaces.vo.sign.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -229,7 +230,7 @@ public class SignController {
             @RequestHeader(value = "sign", required = false) String sign,
             @RequestHeader(value = "path", required = false) String path,
             @RequestHeader(value = "time", required = false) Long time,
-            @RequestBody(required = false) RequestBody body) {
+            @RequestBody(required = false) Map<String, Object> body) {
         SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
         signVerifyRequest.setAppCode(appCode);
         signVerifyRequest.setPath(path);
@@ -240,6 +241,10 @@ public class SignController {
         Map<String, Object> response = new HashMap<>();
         response.put("isValid", isValid);
         response.put("body", body);
-        return ApiResponse.success(response, "带签名的请求提交成功。");
+        if (isValid) {
+            return ApiResponse.success(response, "带签名的请求提交成功。");
+        } else {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), response, "带签名的请求校验失败。");
+        }
     }
 }

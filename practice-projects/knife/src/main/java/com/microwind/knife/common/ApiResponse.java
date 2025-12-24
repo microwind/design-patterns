@@ -19,6 +19,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.OK.value(), data, message);
     }
 
+    public static <T> ApiResponse<T> failure(int code, T data, String message) {
+        return new ApiResponse<>(code, data, message);
+    }
+
     public static <T> ApiResponse<T> failure(int code, String message) {
         return new ApiResponse<>(code, null, message);
     }

@@ -58,31 +58,6 @@ public class DynamicSaltService {
         }
     }
 
-//    /**
-//     * 校验动态盐值
-//     * <p>
-//     * 委托给 DynamicSaltValidationService 处理
-//     *
-//     * @param appCode         应用编码
-//     * @param path            接口路径
-//     * @param dynamicSalt     动态盐值
-//     * @param dynamicSaltTime 动态盐值生成时间戳（毫秒）
-//     * @return true-校验通过，false-校验失败
-//     */
-//    public boolean validateDynamicSalt(String appCode, String path, String dynamicSalt, Long dynamicSaltTime) {
-//        return dynamicSaltValidationService.validate(appCode, path, dynamicSalt, dynamicSaltTime);
-//    }
-//
-//    /**
-//     * 校验动态盐值（DTO版本）
-//     *
-//     * @param dto 动态盐值DTO
-//     * @return true-校验通过，false-校验失败
-//     */
-//    public boolean validateDynamicSalt(DynamicSaltDTO dto) {
-//        return dynamicSaltValidationService.validate(dto);
-//    }
-
     /**
      * 从数据库配置生成动态盐值
      */
