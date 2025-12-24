@@ -16,7 +16,7 @@ java-web/
 │   │   │   │   │        ├── application/          # 应用层（协调领域逻辑，处理业务用例）
 │   │   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
 │   │   │   │   │        │   │   ├── OrderService.java   # 订单应用服务
-│   │   │   │   │        │   │   └── BookService.java    # 书本应用服务
+│   │   │   │   │        │   │   └── SampleService.java    # 书本应用服务
 │   │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
 │   │   │   │   │        │   │   ├── OrderDTO.java # 订单数据交换对象
 │   │   │   │   │        │   │   └── BookDTO.java  # 书本数据交换对象

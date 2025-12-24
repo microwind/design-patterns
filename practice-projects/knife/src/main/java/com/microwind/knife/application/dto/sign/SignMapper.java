@@ -1,6 +1,7 @@
 package com.microwind.knife.application.dto.sign;
 
 import com.microwind.knife.domain.sign.Sign;
+import com.microwind.knife.interfaces.vo.sign.SignHeaderRequest;
 import com.microwind.knife.interfaces.vo.sign.SignRequest;
 import com.microwind.knife.interfaces.vo.sign.SignVerifyRequest;
 import org.mapstruct.Mapper;
@@ -38,6 +39,19 @@ public interface SignMapper {
      */
     @Mapping(source = "path", target = "apiPath")
     SignDTO toDTO(SignRequest request);
+
+    /**
+     * SignHeaderRequest -> DTO
+     * <p>
+     * 字段映射：path -> apiPath
+     *
+     * @param request 签名请求
+     * @return DTO 对象
+     */
+    @Mapping(source = "path", target = "apiPath")
+    @Mapping(source = "sign", target = "signValue")
+    @Mapping(source = "time", target = "timestamp")
+    SignDTO toDTO(SignHeaderRequest request);
 
     /**
      * SignVerifyRequest -> DTO

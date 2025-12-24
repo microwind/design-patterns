@@ -13,22 +13,22 @@ import org.springframework.stereotype.Component;
  */
 @Component("localConfigSecretKeyStrategy")
 @RequiredArgsConstructor
-public class LocalConfigSecretKeyStrategy implements SecretKeyRetrievalStrategy {
+public class LocalConfigSecretKeyStrategy extends AbstractSecretKeyStrategy {
     private final ApiAuthConfig apiAuthConfig;
 
     @Override
-    public String getSecretKey(String appCode, String path) {
-        // 检查权限
+    protected void checkPermission(String appCode, String path) {
         if (apiAuthConfig.noPermission(appCode, path)) {
             throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
         }
+    }
 
-        // 获取秘钥
+    @Override
+    protected String doGetSecretKey(String appCode, String path) {
         ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appCode);
         if (appConfig == null) {
             throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
         }
-
         return appConfig.getAppSecret();
     }
 }

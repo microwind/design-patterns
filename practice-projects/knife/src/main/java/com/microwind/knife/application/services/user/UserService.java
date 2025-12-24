@@ -1,4 +1,4 @@
-package com.microwind.knife.application.services;
+package com.microwind.knife.application.services.user;
 
 import com.microwind.knife.application.dto.user.UserMapper;
 import com.microwind.knife.domain.user.User;

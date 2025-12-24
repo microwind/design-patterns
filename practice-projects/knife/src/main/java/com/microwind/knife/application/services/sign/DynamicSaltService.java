@@ -5,6 +5,7 @@ import com.microwind.knife.application.services.sign.strategy.dynamicsalt.Dynami
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * 动态盐值应用服务
@@ -33,6 +34,10 @@ public class DynamicSaltService {
      */
     @Transactional
     public DynamicSaltDTO generate(String appCode, String path) {
+        // 参数校验
+        if (appCode == null || path == null) {
+            throw new IllegalArgumentException("请求参数不完整。");
+        }
         return dynamicSaltStrategyFactory.getStrategy().generate(appCode, path);
     }
 

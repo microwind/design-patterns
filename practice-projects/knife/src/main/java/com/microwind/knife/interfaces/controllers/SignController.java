@@ -54,9 +54,26 @@ public class SignController {
      * @return 生成的动态盐值信息
      */
     @PostMapping("/dynamic-salt-generate")
-    public ApiResponse<DynamicSaltResponse> generateDynamicSalt(@RequestBody DynamicSaltRequest request) {
+    public ApiResponse<DynamicSaltResponse> generateDynamicSalt(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestBody DynamicSaltRequest request
+    ) {
+        if (appCode == null) {
+            appCode = request.getAppCode();
+        }
+        if (path == null) {
+            path = request.getPath();
+        }
+        if (appCode == null || appCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("appCode 不能为空");
+        }
+        if (path == null || path.trim().isEmpty()) {
+            throw new IllegalArgumentException("path 不能为空");
+        }
         // 基于接口固定盐值生成动态盐值
-        DynamicSaltDTO salt = dynamicSaltService.generate(request.getAppCode(), request.getPath());
+        DynamicSaltDTO salt = dynamicSaltService.generate(appCode, path);
+
         // 构建动态盐值响应
         DynamicSaltResponse response = new DynamicSaltResponse();
         response.setPath(salt.getApiPath());
@@ -92,11 +109,26 @@ public class SignController {
      * @return 校验结果及动态盐值信息
      */
     @PostMapping("/dynamic-salt-validate")
-    public ApiResponse<Map<String, Object>> validateDynamicSalt(@RequestBody DynamicSaltVerfiyRequest request) {
-        String appCode = request.getAppCode();
-        String path = request.getPath();
-        String dynamicSalt = request.getDynamicSalt();
-        Long dynamicSaltTime = request.getDynamicSaltTime();
+    public ApiResponse<Map<String, Object>> validateDynamicSalt(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "dynamicSalt", required = false) String dynamicSalt,
+            @RequestHeader(value = "dynamicSaltTime", required = false) Long dynamicSaltTime,
+            @RequestBody DynamicSaltVerfiyRequest request) {
+
+        if (appCode == null) {
+            appCode = request.getAppCode();
+        }
+        if (path == null) {
+            path = request.getPath();
+        }
+        if (dynamicSalt == null) {
+            dynamicSalt = request.getDynamicSalt();
+        }
+        if (dynamicSaltTime == null) {
+            dynamicSaltTime = request.getDynamicSaltTime();
+        }
+
         boolean isValid;
         if (appCode == null || path == null || dynamicSalt == null || dynamicSaltTime == null) {
             isValid = false;
@@ -145,9 +177,29 @@ public class SignController {
      * @return 生成的签名信息
      */
     @PostMapping("/generate")
-    public ApiResponse<SignResponse> generateSign(@RequestBody SignRequest request) {
+    public ApiResponse<SignResponse> generateSign(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "dynamicSalt", required = false) String dynamicSalt,
+            @RequestHeader(value = "dynamicSaltTime", required = false) Long dynamicSaltTime,
+            @RequestBody SignRequest request) {
+
+        if (request.getAppCode() == null) {
+            request.setAppCode(appCode);
+        }
+        if (request.getPath() == null) {
+            request.setPath(path);
+        }
+        if (request.getDynamicSalt() == null) {
+            request.setDynamicSalt(dynamicSalt);
+        }
+        if (request.getDynamicSaltTime() == null) {
+            request.setDynamicSaltTime(dynamicSaltTime);
+        }
+
         SignDTO dto = signService.generate(signMapper.toDTO(request));
         SignResponse response = new SignResponse();
+        response.setAppCode(dto.getAppCode());
         response.setPath(dto.getApiPath());
         response.setSign(dto.getSignValue());
         response.setTime(dto.getTimestamp());
@@ -174,11 +226,26 @@ public class SignController {
      * @return 校验结果及签名信息
      */
     @PostMapping("/sign-validate")
-    public ApiResponse<Map<String, Object>> validateSign(@RequestBody SignVerifyRequest request) {
-        String appCode = request.getAppCode();
-        String path = request.getPath();
-        String sign = request.getSign();
-        Long time = request.getTime();
+    public ApiResponse<Map<String, Object>> validateSign(
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "sign", required = false) String sign,
+            @RequestHeader(value = "time", required = false) Long time,
+            @RequestBody SignVerifyRequest request) {
+
+        if (request.getAppCode() == null) {
+            request.setAppCode(appCode);
+        }
+        if (request.getPath() == null) {
+            request.setPath(path);
+        }
+        if (request.getSign() == null) {
+            request.setSign(sign);
+        }
+        if (request.getTime() == null) {
+            request.setTime(time);
+        }
+
         boolean isValid;
         if (appCode == null || path == null || sign == null || time == null) {
             isValid = false;
@@ -273,17 +340,17 @@ public class SignController {
      */
     @PostMapping("/submit-test")
     public ApiResponse<Map<String, Object>> submitTest(
-            @RequestHeader(value = "appCode", required = false) String appCode,
-            @RequestHeader(value = "sign", required = false) String sign,
-            @RequestHeader(value = "time", required = false) Long time,
+//            @RequestHeader(value = "appCode", required = false) String appCode,
+//            @RequestHeader(value = "sign", required = false) String sign,
+//            @RequestHeader(value = "time", required = false) Long time,
+            @ModelAttribute("signHeaders") SignHeaderRequest headers,
             @RequestBody(required = false) Map<String, Object> params) {
-        String path = "/api/sign/submit-test";
-        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
-        signVerifyRequest.setAppCode(appCode);
-        signVerifyRequest.setPath(path);
-        signVerifyRequest.setSign(sign);
-        signVerifyRequest.setTime(time);
-        SignDTO signDTO = signMapper.toDTO(signVerifyRequest);
+//        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
+//        signVerifyRequest.setAppCode(headers.getAppCode());
+//        signVerifyRequest.setPath(headers.getPath());
+//        signVerifyRequest.setSign(headers.getPath());
+//        signVerifyRequest.setTime(headers.getTime());
+        SignDTO signDTO = signMapper.toDTO(headers);
         boolean isValid = signValidationService.validate(signDTO);
         Map<String, Object> response = new HashMap<>();
         response.put("isValid", isValid);

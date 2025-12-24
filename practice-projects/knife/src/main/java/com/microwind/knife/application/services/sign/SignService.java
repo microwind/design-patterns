@@ -10,12 +10,8 @@ import com.microwind.knife.domain.sign.SignDomainService;
 import com.microwind.knife.domain.sign.SignUserAuth;
 import com.microwind.knife.interfaces.vo.sign.SignVerifyRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * 签名应用服务
@@ -50,7 +46,7 @@ public class SignService {
     public SignDTO generate(String appCode, String path, String dynamicSalt, Long saltTimestamp) {
         // 参数校验
         if (appCode == null || path == null || dynamicSalt == null || saltTimestamp == null) {
-            throw new IllegalArgumentException("请求参数不完整");
+            throw new IllegalArgumentException("请求参数不完整。");
         }
 
         // 校验动态盐值

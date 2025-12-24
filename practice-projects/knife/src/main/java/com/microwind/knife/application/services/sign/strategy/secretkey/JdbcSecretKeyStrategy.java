@@ -17,11 +17,11 @@ import java.util.Optional;
  */
 @Component("jdbcSecretKeyStrategy")
 @RequiredArgsConstructor
-public class JdbcSecretKeyStrategy implements SecretKeyRetrievalStrategy {
+public class JdbcSecretKeyStrategy extends AbstractSecretKeyStrategy {
     private final SignRepository signRepository;
 
     @Override
-    public String getSecretKey(String appCode, String path) {
+    protected void checkPermission(String appCode, String path) {
         // 验证接口信息
         Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
         if (apiInfoOpt.isEmpty()) {
@@ -40,13 +40,14 @@ public class JdbcSecretKeyStrategy implements SecretKeyRetrievalStrategy {
         if (!signRepository.checkAuth(appCode, path)) {
             throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
         }
+    }
 
-        // 获取秘钥
+    @Override
+    protected String doGetSecretKey(String appCode, String path) {
         Optional<ApiUsers> apiUsersOpt = signRepository.findApiUserByAppCode(appCode);
         if (apiUsersOpt.isEmpty()) {
             throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
         }
-
         return apiUsersOpt.get().getSecretKey();
     }
 }

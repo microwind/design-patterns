@@ -17,36 +17,39 @@ import org.springframework.stereotype.Component;
  * 适用场景：小型项目，调用方较少（< 50个）
  */
 @Component("localConfigDynamicSaltStrategy")
-@RequiredArgsConstructor
-public class LocalConfigDynamicSaltStrategy implements DynamicSaltGenerationStrategy {
-    private final SignDomainService signDomainService;
+public class LocalConfigDynamicSaltStrategy extends AbstractDynamicSaltStrategy {
     private final ApiAuthConfig apiAuthConfig;
-    private final SignConfig signConfig;
-    private final DynamicSaltMapper dynamicSaltMapper;
+
+    public LocalConfigDynamicSaltStrategy(SignDomainService signDomainService,
+                                          SignConfig signConfig,
+                                          DynamicSaltMapper dynamicSaltMapper,
+                                          ApiAuthConfig apiAuthConfig) {
+        super(signDomainService, signConfig, dynamicSaltMapper);
+        this.apiAuthConfig = apiAuthConfig;
+    }
 
     @Override
-    public DynamicSaltDTO generate(String appCode, String path) {
-        // 获取接口盐值
+    protected String getFixedSalt(String path) {
         String interfaceSalt = apiAuthConfig.getInterfaceSalt(path);
         if (interfaceSalt == null || interfaceSalt.isEmpty()) {
             throw new IllegalArgumentException("接口固定盐值不存在，不支持获取动态盐值，路径：" + path);
         }
+        return interfaceSalt;
+    }
 
-        // 检查权限
+    @Override
+    protected void checkPermissions(String appCode, String path) {
+        // 检查动态盐值生成接口权限
         String dynamicSaltGeneratePath = signConfig.getDynamicSaltGeneratePath();
         if (apiAuthConfig.noPermission(appCode, dynamicSaltGeneratePath)) {
             throw new SecurityException(
                     String.format("应用 [%s] 无权访问动态盐值生成接口 [%s]", appCode, dynamicSaltGeneratePath)
             );
         }
+
+        // 检查目标接口权限
         if (apiAuthConfig.noPermission(appCode, path)) {
             throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
         }
-
-        // 生成动态盐值
-        Long saltTimestamp = System.currentTimeMillis();
-        DynamicSalt dynamicSalt = signDomainService.generateDynamicSalt(appCode, path, interfaceSalt, saltTimestamp);
-
-        return dynamicSaltMapper.toDTO(dynamicSalt);
     }
 }

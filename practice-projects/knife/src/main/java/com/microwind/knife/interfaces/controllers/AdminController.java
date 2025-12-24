@@ -6,6 +6,7 @@ import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.order.Order;
 import com.microwind.knife.interfaces.vo.EmptyResponse;
+import com.microwind.knife.interfaces.vo.sign.SignHeaderRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.K;
@@ -33,22 +34,24 @@ public class AdminController {
             method = {RequestMethod.GET, RequestMethod.POST}
     )
     public ApiResponse<Object> adminSignSubmit(
-            @RequestHeader(value = "appCode", required = false) String appCode,
-            @RequestHeader(value = "sign", required = false) String sign,
-            @RequestHeader(value = "path", required = false) String path,
-            @RequestHeader(value = "time", required = false) Long time,
-            @RequestBody(required = false) Map<String, Object> body) {
+            @ModelAttribute("signHeaders") SignHeaderRequest headers,
+            @RequestBody(required = false) Map<String, Object> params) {
 
+            String sign = headers.getSign();
 
             // 执行权限、时效和签名校验
-            boolean isValid = signValidationService.validate(appCode, path, sign, time);
+            boolean isValid = signValidationService.validate(
+                    headers.getAppCode(),
+                    headers.getPath(),
+                    headers.getSign(),
+                    headers.getTime());
 
             // 校验通过，执行业务逻辑
             if (isValid) {
-                log.info("签名验证，接收参数: {}", body);
-                return ApiResponse.success(body, "sign：" + sign + "校验成功。");
+                log.info("签名验证，接收参数: {}", params);
+                return ApiResponse.success(params, "sign：" + sign + "校验成功。");
             } else {
-                log.error("签名验证失败: {}", body);
+                log.error("签名验证失败: {}", params);
                 return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "sign：" + sign + "验证失败。");
             }
     }

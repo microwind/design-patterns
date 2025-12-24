@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component;
  */
 @Component("jpaSecretKeyStrategy")
 @RequiredArgsConstructor
-public class JpaSecretKeyStrategy implements SecretKeyRetrievalStrategy {
+public class JpaSecretKeyStrategy extends AbstractSecretKeyStrategy {
     private final ApiInfoService apiInfoService;
     private final ApiAuthService apiAuthService;
     private final ApiUsersService apiUsersService;
 
     @Override
-    public String getSecretKey(String appCode, String path) {
+    protected void checkPermission(String appCode, String path) {
         // 验证接口信息
         ApiInfo apiInfo = apiInfoService.getByApiPath(path);
         if (apiInfo == null) {
@@ -41,13 +41,14 @@ public class JpaSecretKeyStrategy implements SecretKeyRetrievalStrategy {
         if (!apiAuthService.checkAuth(appCode, path)) {
             throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
         }
+    }
 
-        // 获取秘钥
+    @Override
+    protected String doGetSecretKey(String appCode, String path) {
         ApiUserDTO apiUserDTO = apiUsersService.getByAppCode(appCode);
         if (apiUserDTO.getAppCode() == null) {
             throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
         }
-
         return apiUserDTO.getSecretKey();
     }
 }

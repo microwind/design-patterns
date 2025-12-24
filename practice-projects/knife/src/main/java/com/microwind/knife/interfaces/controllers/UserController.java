@@ -1,26 +1,33 @@
 package com.microwind.knife.interfaces.controllers;
 
+import com.microwind.knife.application.dto.sign.SignDTO;
+import com.microwind.knife.application.dto.sign.SignMapper;
+import com.microwind.knife.application.dto.user.UserPageDTO;
+import com.microwind.knife.application.services.user.UserService;
+import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.user.User;
-import com.microwind.knife.application.dto.user.UserPageDTO;
-import com.microwind.knife.application.services.UserService;
 import com.microwind.knife.exception.ResourceNotFoundException;
+import com.microwind.knife.interfaces.vo.sign.SignHeaderRequest;
 import com.microwind.knife.interfaces.vo.user.CreateUserRequest;
 import com.microwind.knife.interfaces.vo.user.UpdateUserRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final SignValidationService signValidationService;
+    private final SignMapper signMapper;
 
     // 创建用户
     @PostMapping("")
@@ -31,15 +38,27 @@ public class UserController {
 
     // 根据用户ID查询
     @GetMapping("/{userId}")
-    public ApiResponse<Optional<User>> getUser(@PathVariable Integer userId) {
+    public ApiResponse<User> getUser(
+            @ModelAttribute("signHeaders") SignHeaderRequest signHeaders,
+            @PathVariable Integer userId) {
         // return userService.getUserById(userId);
+        log.info("完整headers：appCode={}, sign={}, time={}, path={}",
+                signHeaders.getAppCode(), signHeaders.getSign(), signHeaders.getTime(), signHeaders.getPath());
+        SignDTO signDTO = signMapper.toDTO(signHeaders);
+        boolean isValid = signValidationService.validate(signDTO);
+        if (!isValid) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "签名" + signHeaders + "校验失败。");
+        }
         // 或自定义ApiResponse返回
         Optional<User> user = userService.getUserById(userId);
-        if (user.isPresent()) {
-            return ApiResponse.success(user, "查询用户成功。");
-        } else {
-            return ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询用户失败。");
-        }
+//        if (user.isPresent()) {
+//            return ApiResponse.success(user.get(), "查询用户成功。");
+//        } else {
+//            return ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询用户失败。");
+//        }
+        return user.map(u -> ApiResponse.success(u, "查询用户成功。"))
+                .orElseGet(() -> ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询用户失败。"));
+
     }
 
     // 更新接口
@@ -48,9 +67,16 @@ public class UserController {
         return userService.updateUser(userId, request);
     }
 
-    // POST删除接口，返回JSON
-    @PostMapping("/{userId}")
-    public ApiResponse<Void> removeUser(@PathVariable Integer userId) {
+    // 删除接口，返回JSON
+    @DeleteMapping("/{userId}")
+    public ApiResponse<Void> removeUser(
+            @ModelAttribute("signHeaders") SignHeaderRequest headers,
+            @PathVariable Integer userId) {
+        SignDTO signDTO = signMapper.toDTO(headers);
+        boolean isValid = signValidationService.validate(signDTO);
+        if (!isValid) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "签名" + signDTO + "校验失败。");
+        }
         try {
             userService.deleteUser(userId);
             return ApiResponse.success(null, "删除用户 " + userId + " 成功。");
@@ -62,7 +88,7 @@ public class UserController {
     }
 
     // DELETE删除接口，返回no_content
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/delete/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Integer userId) {
         userService.deleteUser(userId);

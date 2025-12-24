@@ -2,7 +2,7 @@ package com.microwind.knife.interfaces.controllers;
 
 import com.microwind.knife.application.dto.order.OrderPageDTO;
 import com.microwind.knife.application.dto.order.OrderWithItemsPageDTO;
-import com.microwind.knife.application.services.OrderService;
+import com.microwind.knife.application.services.order.OrderService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.order.Order;
 import com.microwind.knife.interfaces.vo.order.CreateOrderRequest;
@@ -10,15 +10,12 @@ import com.microwind.knife.interfaces.vo.order.UpdateOrderRequest;
 import com.microwind.knife.interfaces.vo.order.UpdateOrderStatusResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
