@@ -11,9 +11,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.sql.SQLException;
@@ -26,11 +29,14 @@ import java.util.Map;
  * 业务异常使用 @ExceptionHandler 注解处理
  * 框架异常通过重写父类方法处理
  */
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    public GlobalExceptionHandler() {
+        System.out.println("============ GlobalExceptionHandler 初始化成功 ============");
+    }
     /**
      * 构建标准化错误响应
      *
@@ -45,6 +51,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             String title,
             Object detail,
             Object error) {
+
         ProblemDetail problemDetail = null;
         if (detail != null) {
             if (detail instanceof ProblemDetail) {
@@ -85,6 +92,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             return ResponseEntity.status(statusCode).headers(headers).body(body);
         }
 
+        // 避免 ProblemDetail 被二次封装
+        if (body instanceof ProblemDetail) {
+            return ResponseEntity.status(statusCode).headers(headers).body(body);
+        }
+
         // 其他状态码（例如 400/404/500）仍按原来逻辑封装成 ProblemDetail
         return buildErrorResponse(
                 statusCode,
@@ -94,6 +106,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    /**
+     * 处理 Spring 官方推荐的状态异常（400 / 404 / 403 等）
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex) {
+        return buildErrorResponse(
+                ex.getStatusCode(),
+                ex.getStatusCode().toString(),
+                ex.getReason(),
+                null
+        );
+    }
 
     /**
      * 处理权限不足异常（403 Forbidden）
@@ -128,11 +152,49 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+        logger.warn("=== 捕获到 IllegalArgumentException ===", ex);  // 加这行
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 "Invalid Argument",
                 ex.getMessage(),
                 null
+        );
+    }
+
+    /**
+     * 处理非法参数异常（400 Bad Request）
+     * 例如：URL 不存在 → Tomcat HTML 404 页面
+     */
+    @Override
+    protected ResponseEntity<Object> handleNoHandlerFoundException(
+            NoHandlerFoundException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        String message = String.format("请求的接口不存在: %s %s", ex.getHttpMethod(), ex.getRequestURL());
+
+        // 复用你已有的 buildErrorResponse
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, message);
+        problemDetail.setTitle("API Not Found");
+        problemDetail.setProperty("code", 404);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    /**
+     * 处理路径参数、Query参数类型转换异常 (例如 String 转 Integer 失败)
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String detail = String.format("字段 '%s' 的值 '%s' 无法转换为类型 '%s'",
+                ex.getName(), ex.getValue(), ex.getRequiredType().getSimpleName());
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Type Mismatch",
+                detail,
+                ex.getMessage()
         );
     }
 
@@ -249,6 +311,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "Validation Failed",
                 errors,
+                ex
+        );
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(
+            Exception ex, @Nullable Object body, HttpHeaders headers,
+            HttpStatusCode statusCode, WebRequest request) {
+
+        logger.error("handleExceptionInternal called for: {}", ex.getClass().getName(), ex);
+        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+        logger.error("handleAllExceptions called for: {}", ex.getClass().getName(), ex);
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal Server Error",
+                ex.getMessage(),
                 ex
         );
     }

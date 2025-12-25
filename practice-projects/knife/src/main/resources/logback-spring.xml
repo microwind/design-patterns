@@ -32,9 +32,9 @@
 
     <!-- Spring Boot 默认日志 -->
     <!-- 若日志级别为 DEBUG，这样 debug 也会打印 -->
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
+    <root level="${LOG_ROOT_LEVEL:INFO}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 
 </configuration>

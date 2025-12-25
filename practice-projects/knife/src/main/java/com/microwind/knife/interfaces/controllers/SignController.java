@@ -11,8 +11,11 @@ import com.microwind.knife.application.services.sign.SignService;
 import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.sign.SignUserAuth;
+import com.microwind.knife.interfaces.annotation.IgnoreSignHeader;
 import com.microwind.knife.interfaces.vo.sign.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +30,7 @@ import java.util.Map;
  * 2. 签名生成和校验
  * 3. 带签名的请求提交
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/sign")
 @RequiredArgsConstructor
@@ -54,6 +58,7 @@ public class SignController {
      * @return 生成的动态盐值信息
      */
     @PostMapping("/dynamic-salt-generate")
+    @IgnoreSignHeader
     public ApiResponse<DynamicSaltResponse> generateDynamicSalt(
             @RequestHeader(value = "appCode", required = false) String appCode,
             @RequestHeader(value = "path", required = false) String path,
@@ -177,6 +182,7 @@ public class SignController {
      * @return 生成的签名信息
      */
     @PostMapping("/generate")
+    @IgnoreSignHeader
     public ApiResponse<SignResponse> generateSign(
             @RequestHeader(value = "appCode", required = false) String appCode,
             @RequestHeader(value = "path", required = false) String path,
@@ -277,10 +283,7 @@ public class SignController {
 
     /**
      * 获取调用方全部api列表
-     * @param appCode 调用方
-     * @param sign 签名
-     * @param path 访问路径
-     * @param time 时间戳
+     * @param signHeaders sign请求头信息
      * @param params 其他参数【可选】
      * @return 请求结果
      */
@@ -289,24 +292,17 @@ public class SignController {
             method = {RequestMethod.GET, RequestMethod.POST}
     )
     public ApiResponse<Object> userAuthList(
-            @RequestHeader(value = "appCode", required = false) String appCode,
-            @RequestHeader(value = "sign", required = false) String sign,
-            @RequestHeader(value = "path", required = false) String path,
-            @RequestHeader(value = "time", required = false) Long time,
-            @RequestBody(required = false) Map<String, Object> params) {
-        path = "/api/sign/user-auth-list";
-        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
-        signVerifyRequest.setAppCode(appCode);
-        signVerifyRequest.setPath(path);
-        signVerifyRequest.setSign(sign);
-        signVerifyRequest.setTime(time);
-        SignDTO signDTO = signMapper.toDTO(signVerifyRequest);
+            @ModelAttribute("signHeaders") SignHeaderRequest signHeaders,
+            @RequestParam(required = false) Map<String, Object> params) {
+        log.info("完整headers：appCode={}, sign={}, time={}, path={}",
+                signHeaders.getAppCode(), signHeaders.getSign(), signHeaders.getTime(), signHeaders.getPath());
+        SignDTO signDTO = signMapper.toDTO(signHeaders);
         boolean isValid = signValidationService.validate(signDTO);
         Map<String, Object> response = new HashMap<>();
         response.put("params", params);
-        response.put("request", signVerifyRequest);
+        response.put("request", signHeaders);
         if (isValid) {
-            SignUserAuth signUserAuth = signService.getSignUserAuth(appCode);
+            SignUserAuth signUserAuth = signService.getSignUserAuth(signDTO.getAppCode());
             // 脱敏 secretKey
             SignUserAuth maskedAuth = new SignUserAuth(
                     signUserAuth.appCode(),
@@ -340,17 +336,22 @@ public class SignController {
      */
     @PostMapping("/submit-test")
     public ApiResponse<Map<String, Object>> submitTest(
-//            @RequestHeader(value = "appCode", required = false) String appCode,
-//            @RequestHeader(value = "sign", required = false) String sign,
-//            @RequestHeader(value = "time", required = false) Long time,
-            @ModelAttribute("signHeaders") SignHeaderRequest headers,
+            @RequestHeader(value = "appCode", required = false) String appCode,
+            @RequestHeader(value = "sign", required = false) String sign,
+            @RequestHeader(value = "path", required = false) String path,
+            @RequestHeader(value = "time", required = false) Long time,
+            HttpServletRequest request,
             @RequestBody(required = false) Map<String, Object> params) {
-//        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
-//        signVerifyRequest.setAppCode(headers.getAppCode());
-//        signVerifyRequest.setPath(headers.getPath());
-//        signVerifyRequest.setSign(headers.getPath());
-//        signVerifyRequest.setTime(headers.getTime());
-        SignDTO signDTO = signMapper.toDTO(headers);
+        if (path == null) {
+            path = request.getRequestURI().substring(request.getContextPath().length());
+        }
+        SignVerifyRequest signVerifyRequest = new SignVerifyRequest();
+        signVerifyRequest.setAppCode(appCode);
+        signVerifyRequest.setPath(path);
+        signVerifyRequest.setSign(sign);
+        signVerifyRequest.setTime(time);
+        log.info("完整SignVerifyRequest={}", signVerifyRequest.toString());
+        SignDTO signDTO = signMapper.toDTO(signVerifyRequest);
         boolean isValid = signValidationService.validate(signDTO);
         Map<String, Object> response = new HashMap<>();
         response.put("isValid", isValid);

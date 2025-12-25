@@ -1,7 +1,9 @@
 # default Environment
 spring:
   profiles:
-    active: dev
+    active: prod
+  mvc:
+    throw-exception-if-no-handler-found: true
 
   # Thymeleaf config
   thymeleaf:
@@ -126,7 +128,7 @@ sign:
   dynamic-salt:
     # 动态盐值有效期（毫秒），默认24小时
     ttl: 86400000
-    # 是否使用数据库校验动态盐值，如为false则仅通过算法校验
+    # 是否使用数据库校验动态盐值，如为true则每次生成都存入数据库，如为false则仅通过算法校验
 #    validate-from-database: true
   # 签名配置
   signature:

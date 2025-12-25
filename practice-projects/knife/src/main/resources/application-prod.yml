@@ -37,3 +37,8 @@ spring:
       jdbc-url: jdbc:postgresql://localhost:5432/apiauth
       username: postgres
       password: lego798
+
+# 日志级别配置
+logging:
+  level:
+    root: INFO

@@ -51,11 +51,6 @@ public class UserController {
         }
         // 或自定义ApiResponse返回
         Optional<User> user = userService.getUserById(userId);
-//        if (user.isPresent()) {
-//            return ApiResponse.success(user.get(), "查询用户成功。");
-//        } else {
-//            return ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询用户失败。");
-//        }
         return user.map(u -> ApiResponse.success(u, "查询用户成功。"))
                 .orElseGet(() -> ApiResponse.failure(HttpStatus.NOT_FOUND.value(), "查询用户失败。"));
 

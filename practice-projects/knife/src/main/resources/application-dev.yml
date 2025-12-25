@@ -38,3 +38,7 @@ spring:
       username: postgres
       password: lego798
 
+# 日志级别配置
+logging:
+  level:
+    root: INFO

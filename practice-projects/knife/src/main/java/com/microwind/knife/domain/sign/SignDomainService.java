@@ -52,6 +52,40 @@ public class SignDomainService {
         }
     }
 
+    public static String sm3(String input) {
+        try {
+
+        } catch (Exception e) {
+        }
+        return "";
+    }
+
+    //
+    public Sign generateSignWithParams(String appCode, String secretKey, String path) {
+        log.debug("生成签名: appCode={}, path={}", appCode, path);
+
+        // 获取当前时间戳（毫秒）
+        long timestamp = System.currentTimeMillis();
+
+        // 注意：拼接顺序必须与校验端完全一致
+        String signSource = appCode + secretKey + path + timestamp;
+
+        // 使用 SHA-256 计算签名值
+        String signValue = sm3(signSource);
+
+        // 计算签名过期时间
+        long expireTimestamp = timestamp + signConfig.getSignatureTtl();
+        LocalDateTime expireTime = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(expireTimestamp),
+                ZoneId.systemDefault()
+        );
+
+        log.debug("签名生成成功: sign={}, timestamp={}, expireTime={}",
+                signValue, timestamp, expireTime);
+
+        return new Sign(appCode, path, signValue, timestamp, expireTime);
+    }
+
     /**
      * 生成动态盐值
      * <p>
