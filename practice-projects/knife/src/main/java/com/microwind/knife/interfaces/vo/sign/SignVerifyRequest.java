@@ -18,6 +18,9 @@ public class SignVerifyRequest {
     private String sign;
     private Long time;
 
+    // 参数可选
+    private Map<String, Object> parameters;
+
     public boolean isValid() {
         return appCode != null && !appCode.isEmpty()
                 && sign != null && !sign.isEmpty()

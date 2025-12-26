@@ -21,7 +21,7 @@ public class SignatureUtil {
     /**
      * 通用签名方法（抽取重复逻辑）
      */
-    public static String sign(Map<String, Object> parameters, String secretKey, Algorithm algorithm) {
+    public static String sign(Map<String, Object> parameters, String appCode, String secretKey, Long time, Algorithm algorithm) {
         if (parameters == null) {
             throw new IllegalArgumentException("待签名参数不能为空");
         }
@@ -33,8 +33,17 @@ public class SignatureUtil {
         }
 
         // 构建签名源字符串（确保非null）
-        String signatureSource = buildSignatureSource(parameters, secretKey);
-        log.debug("[SignatureUtil.sign] 签名源字符串（{}）: {}", algorithm.name(), signatureSource);
+        String signatureSource = buildSignatureSource(parameters);
+        if (appCode != null && !appCode.isEmpty()) {
+            signatureSource += appCode;
+        }
+        if (secretKey != null && !secretKey.isEmpty()) {
+            signatureSource += secretKey;
+        }
+        if (time != null) {
+            signatureSource += time;
+        }
+        log.info("[SignatureUtil.sign] 签名算法:（{}） 源字符串:{}", algorithm.name(), signatureSource);
 
         // 按算法生成签名（统一UTF-8编码）
         byte[] sourceBytes = signatureSource.getBytes(StandardCharsets.UTF_8);
@@ -51,6 +60,10 @@ public class SignatureUtil {
         }
     }
 
+    public static String sign(Map<String, Object> parameters, String secretKey, Algorithm algorithm) {
+        return sign(parameters, null, secretKey, null, algorithm);
+    }
+
     // 简化各算法的快捷方法
     public static String md5Sign(Map<String, Object> parameters, String secretKey) {
         return sign(parameters, secretKey, Algorithm.MD5);
@@ -64,6 +77,10 @@ public class SignatureUtil {
         return sign(parameters, secretKey, Algorithm.SHA256);
     }
 
+    public static String sm3Sign(Map<String, Object> parameters, String appCode, String secretKey, Long time) {
+        return sign(parameters, appCode, secretKey, time, Algorithm.SM3);
+    }
+
     public static String sm3Sign(Map<String, Object> parameters, String secretKey) {
         return sign(parameters, secretKey, Algorithm.SM3);
     }
@@ -74,33 +91,41 @@ public class SignatureUtil {
      * 1. 排除空串("")和null值
      * 2. 排除复杂类型（非基础类型/字符串）
      * 3. 按字典序排序(ASCII升序)
-     * 4. 拼接格式：key1=value1&key2=value2&...&key=密钥
+     * 4. 拼接格式：key1=value1&key2=value2&...
      * 5. 即使无业务参数，也拼接密钥（避免空签名源）
      */
-    private static String buildSignatureSource(Map<String, Object> parameters, String secretKey) {
+    public static String buildSignatureSource(Map<String, Object> parameters) {
+        if (parameters.isEmpty()) {
+            return "";
+        }
         // 按字典序排序参数键
         List<String> sortedKeys = new ArrayList<>(parameters.keySet());
         Collections.sort(sortedKeys);
 
         StringBuilder signatureBuilder = new StringBuilder();
+        boolean first = true;
+
         for (String key : sortedKeys) {
             Object paramValue = parameters.get(key);
-            // 跳过null/复杂类型
+
+            // 跳过 null / 复杂类型
             if (paramValue == null || isComplexType(paramValue)) {
                 continue;
             }
+
             String valueStr = paramValue.toString();
             // 跳过空串
-            if (valueStr == null || valueStr.isEmpty()) {
+            if (valueStr.isEmpty()) {
                 continue;
             }
+
+            if (!first) {
+                signatureBuilder.append("&");
+            }
+            first = false;
             signatureBuilder.append(key).append("=").append(valueStr);
         }
 
-        // 把密钥拼接在最后
-        if (!signatureBuilder.isEmpty()) {
-            signatureBuilder.append("key=").append(secretKey);
-        }
         log.info("[SignatureUtil.buildSignatureSource] 签名源字符串: {}", signatureBuilder);
         return signatureBuilder.toString();
     }
@@ -147,15 +172,15 @@ public class SignatureUtil {
         String sm3Sign = sm3Sign(requestParams, secretKey);
 
         System.out.println("=== 正常参数测试 ===");
-        System.out.println("MD5 签名结果: " + md5Sign); // 82540caa1c2062b14318f060e69a3f86
-        System.out.println("SHA1 签名结果: " + sha1Sign); // 87953f05d36c01538bc8c6a8b1d4b22c6e8f9fe4
-        System.out.println("SHA256 签名结果: " + sha256Sign); // 1d85f9a4eaa89d27b86d38d39f6e0355b19d5748c128aa2b856a0d8239a7719d
-        System.out.println("SM3 签名结果: " + sm3Sign); // 1e9c6860d2576017e2c0367f31833d90647622bc0fd221b6340a0d7820a06f06
+        System.out.println("MD5 签名结果: " + md5Sign);
+        System.out.println("SHA1 签名结果: " + sha1Sign);
+        System.out.println("SHA256 签名结果: " + sha256Sign);
+        System.out.println("SM3 签名结果: " + sm3Sign);
 
         /* === 测试例子2：空参数集（边界测试） === */
         Map<String, Object> emptyParams = new HashMap<>();
         String emptyMd5 = md5Sign(emptyParams, secretKey);
         System.out.println("\n=== 空参数测试 ===");
-        System.out.println("空参数MD5签名: " + emptyMd5); // 仅密钥参与签名 d41d8cd98f00b204e9800998ecf8427e
+        System.out.println("空参数MD5签名: " + emptyMd5);
     }
 }

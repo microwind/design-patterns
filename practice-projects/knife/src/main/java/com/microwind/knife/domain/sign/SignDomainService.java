@@ -1,8 +1,10 @@
 package com.microwind.knife.domain.sign;
 
+import cn.hutool.crypto.SmUtil;
 import com.microwind.knife.application.config.SignConfig;
 import com.microwind.knife.application.dto.sign.DynamicSaltDTO;
 import com.microwind.knife.application.dto.sign.SignDTO;
+import com.microwind.knife.utils.SignatureUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,12 +15,19 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HexFormat;
+import java.util.Map;
 
 /**
  * 签名领域服务
  * <p>
  * 提供签名和动态盐值的生成、验证等核心业务逻辑
- * 所有签名和盐值算法统一使用 SHA-256
+ * <p>
+ * 签名算法：
+ * <ul>
+ *   <li>动态盐值：SHA-256</li>
+ *   <li>签名（不带参数）：SHA-256</li>
+ *   <li>签名（带参数）：SM3</li>
+ * </ul>
  * </p>
  *
  * @author jarry
@@ -50,40 +59,6 @@ public class SignDomainService {
             log.error("SHA-256 计算失败: input={}", input, e);
             throw new IllegalStateException("SHA-256 algorithm error", e);
         }
-    }
-
-    public static String sm3(String input) {
-        try {
-
-        } catch (Exception e) {
-        }
-        return "";
-    }
-
-    //
-    public Sign generateSignWithParams(String appCode, String secretKey, String path) {
-        log.debug("生成签名: appCode={}, path={}", appCode, path);
-
-        // 获取当前时间戳（毫秒）
-        long timestamp = System.currentTimeMillis();
-
-        // 注意：拼接顺序必须与校验端完全一致
-        String signSource = appCode + secretKey + path + timestamp;
-
-        // 使用 SHA-256 计算签名值
-        String signValue = sm3(signSource);
-
-        // 计算签名过期时间
-        long expireTimestamp = timestamp + signConfig.getSignatureTtl();
-        LocalDateTime expireTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(expireTimestamp),
-                ZoneId.systemDefault()
-        );
-
-        log.debug("签名生成成功: sign={}, timestamp={}, expireTime={}",
-                signValue, timestamp, expireTime);
-
-        return new Sign(appCode, path, signValue, timestamp, expireTime);
     }
 
     /**
@@ -203,17 +178,10 @@ public class SignDomainService {
     }
 
     /**
-     * 生成签名
+     * 生成签名（不带参数）
      * <p>
-     * 签名生成算法：SHA-256(appCode + secretKey + timestamp + path)
+     * 签名生成算法：SHA-256(appCode + secretKey + path + timestamp)
      * 用于验证请求的合法性和完整性
-     * </p>
-     * <p>
-     * 生成流程：
-     * 1. 获取当前时间戳
-     * 2. 按固定顺序拼接字符串
-     * 3. 使用 SHA-256 计算签名值
-     * 4. 计算签名过期时间
      * </p>
      *
      * @param appCode   应用编码
@@ -222,28 +190,45 @@ public class SignDomainService {
      * @return 签名对象，包含签名值、时间戳和过期时间
      */
     public Sign generateSign(String appCode, String secretKey, String path) {
-        log.debug("生成签名: appCode={}, path={}", appCode, path);
+        log.debug("生成签名（不带参数）: appCode={}, path={}", appCode, path);
 
         // 获取当前时间戳（毫秒）
         long timestamp = System.currentTimeMillis();
 
-        // 注意：拼接顺序必须与校验端完全一致
-        String signSource = appCode + secretKey + path + timestamp;
-
-        // 使用 SHA-256 计算签名值
+        // 构建签名源字符串并计算签名
+        String signSource = buildSignSourceWithoutParams(appCode, secretKey, path, timestamp);
         String signValue = sha256(signSource);
 
-        // 计算签名过期时间
-        long expireTimestamp = timestamp + signConfig.getSignatureTtl();
-        LocalDateTime expireTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(expireTimestamp),
-                ZoneId.systemDefault()
-        );
+        // 创建并返回签名对象
+        return createSignObject(appCode, path, signValue, timestamp);
+    }
 
-        log.debug("签名生成成功: sign={}, timestamp={}, expireTime={}",
-                signValue, timestamp, expireTime);
+    /**
+     * 生成签名（带参数）
+     * <p>
+     * 签名生成算法：SM3(参数 + appCode + secretKey + path + timestamp)
+     * 用于验证请求的合法性、完整性和参数不被篡改
+     * </p>
+     *
+     * @param appCode    应用编码
+     * @param secretKey  应用密钥
+     * @param path       接口路径
+     * @param params 请求参数
+     * @return 签名对象，包含签名值、时间戳和过期时间
+     */
+    public Sign generateSignWithParams(String appCode, String secretKey, String path, Map<String, Object> params) {
+        log.debug("生成签名（带参数）: appCode={}, path={}, paramsCount={}",
+                appCode, path, params != null ? params.size() : 0);
 
-        return new Sign(appCode, path, signValue, timestamp, expireTime);
+        // 获取当前时间戳（毫秒）
+        long timestamp = System.currentTimeMillis();
+
+        // 构建签名源字符串并计算签名（包含参数）
+        String signSource = buildSignSourceWithParams(appCode, secretKey, path, timestamp, params);
+        String signValue = SmUtil.sm3(signSource);
+
+        // 创建并返回签名对象
+        return createSignObject(appCode, path, signValue, timestamp);
     }
 
     /**
@@ -264,8 +249,17 @@ public class SignDomainService {
         );
     }
 
+    public Sign generateSignWithParams(SignDTO signDTO, String secretKey, Map<String, Object> params) {
+        return generateSignWithParams(
+                signDTO.getAppCode(),
+                secretKey,
+                signDTO.getApiPath(),
+                params
+        );
+    }
+
     /**
-     * 校验签名有效性
+     * 校验签名有效性（不带参数）
      * <p>
      * 校验算法：重新计算 SHA-256(appCode + secretKey + path + timestamp)
      * 比较计算结果与传入的 signValue 是否一致
@@ -286,22 +280,48 @@ public class SignDomainService {
      */
     public boolean validateSign(String appCode, String secretKey, String path,
                                 String signValue, Long timestamp) {
-        log.debug("校验签名: appCode={}, path={}, timestamp={}", appCode, path, timestamp);
+        log.debug("校验签名（不带参数）: appCode={}, path={}, timestamp={}", appCode, path, timestamp);
 
-        // 重新计算签名，算法与生成时需要一致
-        String signSource = appCode + secretKey + path + timestamp;
+        // 重新计算签名，算法与生成时一致
+        String signSource = buildSignSourceWithoutParams(appCode, secretKey, path, timestamp);
         String expectedSign = sha256(signSource);
 
         // 比较计算结果与传入值
-        boolean valid = expectedSign.equals(signValue);
+        return compareSignature(expectedSign, signValue, "不带参数");
+    }
 
-        if (!valid) {
-            log.warn("签名校验失败: expected={}, actual={}", expectedSign, signValue);
-        } else {
-            log.debug("签名校验通过");
-        }
+    /**
+     * 校验签名有效性（带参数）
+     * <p>
+     * 校验算法：重新计算 SM3(参数 + appCode + secretKey + path + timestamp)
+     * 比较计算结果与传入的 signValue 是否一致
+     * </p>
+     * <p>
+     * 注意：
+     * 1. 此方法只校验签名计算是否正确，不校验时间是否过期
+     * 2. 拼接顺序必须与生成签名时完全一致
+     * 3. 时间过期校验应在上层业务逻辑中处理
+     * </p>
+     *
+     * @param appCode   应用编码
+     * @param secretKey 应用密钥
+     * @param path      接口路径
+     * @param signValue 待校验的签名值
+     * @param timestamp 签名时间戳（毫秒）
+     * @param params    请求参数
+     * @return true-校验通过，false-校验失败
+     */
+    public boolean validateSignWithParams(String appCode, String secretKey, String path,
+                                          String signValue, Long timestamp, Map<String, Object> params) {
+        log.debug("校验签名（带参数）: appCode={}, path={}, timestamp={}, paramsCount={}",
+                appCode, path, timestamp, params != null ? params.size() : 0);
 
-        return valid;
+        // 重新计算签名，算法与生成时一致
+        String signSource = buildSignSourceWithParams(appCode, secretKey, path, timestamp, params);
+        String expectedSign = SmUtil.sm3(signSource);
+
+        // 比较计算结果与传入值
+        return compareSignature(expectedSign, signValue, "带参数");
     }
 
     /**
@@ -322,5 +342,108 @@ public class SignDomainService {
                 dto.getSignValue(),
                 dto.getTimestamp()
         );
+    }
+
+    public boolean validateSignWithParams(SignDTO dto, String secretKey, Map<String, Object> params) {
+        return validateSignWithParams(
+                dto.getAppCode(),
+                secretKey,
+                dto.getApiPath(),
+                dto.getSignValue(),
+                dto.getTimestamp(),
+                params
+        );
+    }
+
+    // ==================== 私有辅助方法 ====================
+
+    /**
+     * 构建签名源字符串（不带参数）
+     * <p>
+     * 拼接顺序：appCode + secretKey + path + timestamp
+     * 注意：拼接顺序必须与校验端完全一致
+     * </p>
+     *
+     * @param appCode   应用编码
+     * @param secretKey 应用密钥
+     * @param path      接口路径
+     * @param timestamp 时间戳
+     * @return 签名源字符串
+     */
+    private String buildSignSourceWithoutParams(String appCode, String secretKey, String path, Long timestamp) {
+        return appCode + secretKey + path + timestamp;
+    }
+
+    /**
+     * 构建签名源字符串（带参数）
+     * <p>
+     * 拼接顺序：参数字符串 + appCode + secretKey + path + timestamp
+     * 注意：拼接顺序必须与校验端完全一致
+     * </p>
+     *
+     * @param appCode    应用编码
+     * @param secretKey  应用密钥
+     * @param path       接口路径
+     * @param timestamp  时间戳
+     * @param params 请求参数
+     * @return 签名源字符串
+     */
+    private String buildSignSourceWithParams(String appCode, String secretKey, String path,
+                                             Long timestamp, Map<String, Object> params) {
+        String baseSource = appCode + secretKey + path + timestamp;
+        String paramsSource = "";
+        if (params != null && !params.isEmpty()) {
+            paramsSource = SignatureUtil.buildSignatureSource(params);
+        }
+        return paramsSource + baseSource;
+    }
+
+    /**
+     * 创建签名对象
+     * <p>
+     * 计算签名过期时间并创建签名对象
+     * </p>
+     *
+     * @param appCode   应用编码
+     * @param path      接口路径
+     * @param signValue 签名值
+     * @param timestamp 时间戳
+     * @return 签名对象
+     */
+    private Sign createSignObject(String appCode, String path, String signValue, long timestamp) {
+        // 计算签名过期时间
+        long expireTimestamp = timestamp + signConfig.getSignatureTtl();
+        LocalDateTime expireTime = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(expireTimestamp),
+                ZoneId.systemDefault()
+        );
+
+        log.debug("签名生成成功: sign={}, timestamp={}, expireTime={}",
+                signValue, timestamp, expireTime);
+
+        return new Sign(appCode, path, signValue, timestamp, expireTime);
+    }
+
+    /**
+     * 比较签名值
+     * <p>
+     * 比较计算结果与传入值是否一致，并记录日志
+     * </p>
+     *
+     * @param expectedSign 期望的签名值
+     * @param actualSign   实际的签名值
+     * @param signType     签名类型（用于日志）
+     * @return true-校验通过，false-校验失败
+     */
+    private boolean compareSignature(String expectedSign, String actualSign, String signType) {
+        boolean valid = expectedSign.equals(actualSign);
+
+        if (!valid) {
+            log.warn("签名校验失败（{}）: expected={}, actual={}", signType, expectedSign, actualSign);
+        } else {
+            log.debug("签名校验通过（{}）", signType);
+        }
+
+        return valid;
     }
 }

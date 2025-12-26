@@ -8,10 +8,11 @@ import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.sign.SignDomainService;
 import com.microwind.knife.domain.sign.SignUserAuth;
-import com.microwind.knife.interfaces.vo.sign.SignVerifyRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * 签名应用服务
@@ -33,62 +34,87 @@ public class SignService {
     private final SignMapper signMapper;
 
     /**
-     * 生成签名
+     * 生成签名（不带参数）
      * <p>
      * 使用策略模式根据配置自动选择合适的秘钥获取方式
      *
-     * @param appCode       应用编码
-     * @param path          接口路径
-     * @param dynamicSalt   动态盐值
-     * @param saltTimestamp 盐值时间戳
+     * @param signDTO 签名 DTO，包含 appCode、path、dynamicSalt、dynamicSaltTime
      * @return 签名 DTO
      */
-    public SignDTO generate(String appCode, String path, String dynamicSalt, Long saltTimestamp) {
+    public SignDTO generate(SignDTO signDTO) {
         // 参数校验
-        if (appCode == null || path == null || dynamicSalt == null || saltTimestamp == null) {
-            throw new IllegalArgumentException("请求参数不完整。");
-        }
+        validateGenerateParams(signDTO);
 
         // 校验动态盐值
-        DynamicSaltDTO dynamicSaltDTO = new DynamicSaltDTO();
-        dynamicSaltDTO.setAppCode(appCode);
-        dynamicSaltDTO.setApiPath(path);
-        dynamicSaltDTO.setDynamicSalt(dynamicSalt);
-        dynamicSaltDTO.setSaltTimestamp(saltTimestamp);
-        if (!dynamicSaltValidationService.validate(dynamicSaltDTO)) {
-            throw new IllegalArgumentException("动态盐值校验失败");
-        }
+        validateDynamicSalt(signDTO);
 
-        // 使用策略获取秘钥并生成签名
-        String secretKey = secretKeyStrategyFactory.getStrategy().getSecretKey(appCode, path);
-        Sign sign = signDomainService.generateSign(appCode, secretKey, path);
+        // 使用策略获取秘钥并生成签名（不带参数）
+        String secretKey = secretKeyStrategyFactory.getStrategy()
+                .getSecretKey(signDTO.getAppCode(), signDTO.getApiPath());
+        Sign sign = signDomainService.generateSign(
+                signDTO.getAppCode(),
+                secretKey,
+                signDTO.getApiPath()
+        );
         return signMapper.toDTO(sign);
     }
 
-    public SignDTO generate(SignDTO signDTO) {
-        return generate(signDTO.getAppCode(),
+    /**
+     * 生成签名（带参数）
+     * <p>
+     * 使用策略模式根据配置自动选择合适的秘钥获取方式
+     *
+     * @param signDTO    签名 DTO，包含 appCode、path、dynamicSalt、dynamicSaltTime
+     * @param params 请求参数
+     * @return 签名 DTO
+     */
+    public SignDTO generateWithParams(SignDTO signDTO, Map<String, Object> params) {
+        // 参数校验
+        validateGenerateParams(signDTO);
+
+        // 校验动态盐值
+        validateDynamicSalt(signDTO);
+
+        // 使用策略获取秘钥并生成签名（带参数）
+        String secretKey = secretKeyStrategyFactory.getStrategy()
+                .getSecretKey(signDTO.getAppCode(), signDTO.getApiPath());
+        Sign sign = signDomainService.generateSignWithParams(
+                signDTO.getAppCode(),
+                secretKey,
                 signDTO.getApiPath(),
-                signDTO.getDynamicSalt(),
-                signDTO.getDynamicSaltTime());
+                params
+        );
+        return signMapper.toDTO(sign);
     }
 
     /**
-     * 校验签名
+     * 校验生成签名的参数
+     */
+    private void validateGenerateParams(SignDTO signDTO) {
+        if (signDTO.getAppCode() == null || signDTO.getApiPath() == null ||
+                signDTO.getDynamicSalt() == null || signDTO.getDynamicSaltTime() == null) {
+            throw new IllegalArgumentException("请求参数不完整。");
+        }
+    }
+
+    /**
+     * 校验动态盐值
+     */
+    private void validateDynamicSalt(SignDTO signDTO) {
+        DynamicSaltDTO dynamicSaltDTO = new DynamicSaltDTO();
+        dynamicSaltDTO.setAppCode(signDTO.getAppCode());
+        dynamicSaltDTO.setApiPath(signDTO.getApiPath());
+        dynamicSaltDTO.setDynamicSalt(signDTO.getDynamicSalt());
+        dynamicSaltDTO.setSaltTimestamp(signDTO.getDynamicSaltTime());
+        if (!dynamicSaltValidationService.validate(dynamicSaltDTO)) {
+            throw new IllegalArgumentException("动态盐值校验失败");
+        }
+    }
+
+    /**
+     * 校验签名（不带参数）
      * <p>
      * 委托给 SignValidationService 处理
-     *
-     * @param appCode  应用编码
-     * @param path     接口路径
-     * @param sign     签名值
-     * @param signTime 签名时间戳（毫秒）
-     * @return true-校验通过，false-校验失败
-     */
-    public boolean validateSign(String appCode, String path, String sign, Long signTime) {
-        return signValidationService.validate(appCode, path, sign, signTime);
-    }
-
-    /**
-     * 校验签名（DTO版本）
      *
      * @param signDTO 签名DTO
      * @return true-校验通过，false-校验失败
@@ -97,8 +123,17 @@ public class SignService {
         return signValidationService.validate(signDTO);
     }
 
-    public boolean validateSign(SignVerifyRequest signVerifyRequest) {
-        return signValidationService.validate(signMapper.toDTO(signVerifyRequest));
+    /**
+     * 校验签名（带参数）
+     * <p>
+     * 委托给 SignValidationService 处理
+     *
+     * @param signDTO    签名DTO
+     * @param params 请求参数
+     * @return true-校验通过，false-校验失败
+     */
+    public boolean validateSignWithParams(SignDTO signDTO, Map<String, Object> params) {
+        return signValidationService.validateWithParams(signDTO, params);
     }
 
     /**

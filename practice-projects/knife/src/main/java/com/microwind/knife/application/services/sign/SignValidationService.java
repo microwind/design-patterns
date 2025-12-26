@@ -1,21 +1,14 @@
 package com.microwind.knife.application.services.sign;
 
-import com.microwind.knife.application.config.ApiAuthConfig;
 import com.microwind.knife.application.config.SignConfig;
-import com.microwind.knife.application.dto.apiauth.ApiUserDTO;
 import com.microwind.knife.application.dto.sign.SignDTO;
-import com.microwind.knife.application.services.apiauth.ApiAuthService;
-import com.microwind.knife.application.services.apiauth.ApiInfoService;
-import com.microwind.knife.application.services.apiauth.ApiUsersService;
-import com.microwind.knife.domain.apiauth.ApiInfo;
-import com.microwind.knife.domain.apiauth.ApiUsers;
-import com.microwind.knife.domain.repository.SignRepository;
+import com.microwind.knife.application.services.sign.strategy.secretkey.SecretKeyStrategyFactory;
 import com.microwind.knife.domain.sign.SignDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * 签名验证服务
@@ -34,168 +27,69 @@ public class SignValidationService {
 
     private final SignDomainService signDomainService;
     private final SignConfig signConfig;
-    private final ApiAuthConfig apiAuthConfig;
-    private final ApiAuthService apiAuthService;
-    private final ApiUsersService apiUsersService;
-    private final ApiInfoService apiInfoService;
-    private final SignRepository signRepository;
+    private final SecretKeyStrategyFactory secretKeyStrategyFactory;
+    private final ValidationHelper validationHelper;
 
     /**
-     * 校验签名
-     *
-     * @param appCode  应用编码
-     * @param path     接口路径
-     * @param sign     签名值
-     * @param signTime 签名时间戳（毫秒）
-     * @return true-校验通过，false-校验失败
-     */
-    public boolean validate(String appCode, String path, String sign, Long signTime) {
-        // 参数校验
-        if (appCode == null || path == null || sign == null || signTime == null) {
-            return false;
-        }
-
-        // 时间戳校验
-        long now = System.currentTimeMillis();
-        if (signTime > now) {
-            throw new IllegalArgumentException("签名时间不能大于当前时间：" + signTime);
-        }
-
-        // 有效期校验
-        Long ttl = signConfig.getSignatureTtl();
-        if ((now - signTime) > ttl) {
-            throw new IllegalArgumentException("签名已超过有效期：" + signTime);
-        }
-
-        // 获取秘钥并校验签名
-        String secretKey = getSecretKey(appCode, path);
-        SignDTO signDTO = new SignDTO();
-        signDTO.setAppCode(appCode);
-        signDTO.setApiPath(path);
-        signDTO.setTimestamp(signTime);
-        signDTO.setSignValue(sign);
-        return signDomainService.validateSign(signDTO, secretKey);
-    }
-
-    /**
-     * 校验签名（DTO版本）
+     * 校验签名（不带参数）
      *
      * @param signDTO 签名DTO
      * @return true-校验通过，false-校验失败
      */
     public boolean validate(SignDTO signDTO) {
-        return validate(signDTO.getAppCode(),
+        // 1. 参数校验
+        if (!validateParams(signDTO)) {
+            return false;
+        }
+
+        // 2. 时间戳校验
+        validationHelper.validateTimestamp(signDTO.getTimestamp(), "签名");
+
+        // 3. TTL校验
+        validationHelper.validateTtl(signDTO.getTimestamp(), signConfig.getSignatureTtl(), "签名");
+
+        // 4. 获取秘钥并校验签名（不带参数）
+        String secretKey = secretKeyStrategyFactory.getStrategy()
+                .getSecretKey(signDTO.getAppCode(), signDTO.getApiPath());
+        return signDomainService.validateSign(signDTO, secretKey);
+    }
+
+    /**
+     * 校验签名（带参数）
+     *
+     * @param signDTO    签名DTO
+     * @param params 请求参数
+     * @return true-校验通过，false-校验失败
+     */
+    public boolean validateWithParams(SignDTO signDTO, Map<String, Object> params) {
+        // 1. 参数校验
+        if (!validateParams(signDTO)) {
+            return false;
+        }
+
+        // 2. 时间戳校验
+        validationHelper.validateTimestamp(signDTO.getTimestamp(), "签名");
+
+        // 3. TTL校验
+        validationHelper.validateTtl(signDTO.getTimestamp(), signConfig.getSignatureTtl(), "签名");
+
+        // 4. 获取秘钥并校验签名（带参数）
+        String secretKey = secretKeyStrategyFactory.getStrategy()
+                .getSecretKey(signDTO.getAppCode(), signDTO.getApiPath());
+        return signDomainService.validateSignWithParams(signDTO, secretKey, params);
+    }
+
+    /**
+     * 校验必要参数
+     *
+     * @param signDTO 签名DTO
+     * @return true-参数有效，false-参数无效
+     */
+    private boolean validateParams(SignDTO signDTO) {
+        return validationHelper.validateParams(
+                signDTO.getAppCode(),
                 signDTO.getApiPath(),
-                signDTO.getSignValue(),
-                signDTO.getTimestamp()
-        );
-    }
-
-    /**
-     * 获取应用秘钥
-     * 根据配置模式从数据库或本地配置获取
-     */
-    private String getSecretKey(String appCode, String path) {
-        String configMode = signConfig.getConfigMode();
-
-        if (SignConfig.CONFIG_MODE_DATABASE.equalsIgnoreCase(configMode)) {
-            return getSecretKeyFromDatabase(appCode, path);
-        } else {
-            return getSecretKeyFromLocalConfig(appCode, path);
-        }
-    }
-
-    /**
-     * 从数据库获取秘钥
-     */
-    private String getSecretKeyFromDatabase(String appCode, String path) {
-        // 根据配置选择使用 SignRepository 或 JPA
-        if (signConfig.isUseJdbcRepository()) {
-            return getSecretKeyFromDatabaseViaJdbc(appCode, path);
-        } else {
-            return getSecretKeyFromDatabaseViaJpa(appCode, path);
-        }
-    }
-
-    /**
-     * 通过 JdbcTemplate (SignRepository) 从数据库获取秘钥
-     */
-    private String getSecretKeyFromDatabaseViaJdbc(String appCode, String path) {
-        // 验证接口信息
-        Optional<ApiInfo> apiInfoOpt = signRepository.findApiInfoByPath(path);
-        if (apiInfoOpt.isEmpty()) {
-            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
-        }
-        ApiInfo apiInfo = apiInfoOpt.get();
-
-        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
-        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
-            throw new IllegalArgumentException(
-                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
-            );
-        }
-
-        // 检查权限
-        if (!signRepository.checkAuth(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        Optional<ApiUsers> apiUsersOpt = signRepository.findApiUserByAppCode(appCode);
-        if (apiUsersOpt.isEmpty()) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return apiUsersOpt.get().getSecretKey();
-    }
-
-    /**
-     * 通过 JPA 从数据库获取秘钥
-     */
-    private String getSecretKeyFromDatabaseViaJpa(String appCode, String path) {
-        // 验证接口信息
-        ApiInfo apiInfo = apiInfoService.getByApiPath(path);
-        if (apiInfo == null) {
-            throw new IllegalArgumentException("API 信息不存在，路径：" + path);
-        }
-
-        ApiInfo.ApiType apiType = ApiInfo.ApiType.fromCode(apiInfo.getApiType());
-        if (apiType != ApiInfo.ApiType.NEED_SIGN) {
-            throw new IllegalArgumentException(
-                    String.format("接口不需要签名验证，路径：%s，类型：%s", path, apiType.getDescription())
-            );
-        }
-
-        // 检查权限
-        if (!apiAuthService.checkAuth(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        ApiUserDTO apiUserDTO = apiUsersService.getByAppCode(appCode);
-        if (apiUserDTO.getAppCode() == null) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return apiUserDTO.getSecretKey();
-    }
-
-    /**
-     * 从本地配置获取秘钥
-     */
-    private String getSecretKeyFromLocalConfig(String appCode, String path) {
-        // 检查权限
-        if (apiAuthConfig.noPermission(appCode, path)) {
-            throw new SecurityException(String.format("应用 [%s] 无权访问目标接口 [%s]", appCode, path));
-        }
-
-        // 获取秘钥
-        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppByKey(appCode);
-        if (appConfig == null) {
-            throw new IllegalArgumentException("应用不存在，appCode：" + appCode);
-        }
-
-        return appConfig.getAppSecret();
+                signDTO.getSignValue()
+        ) && validationHelper.validateParams(signDTO.getTimestamp());
     }
 }
-
