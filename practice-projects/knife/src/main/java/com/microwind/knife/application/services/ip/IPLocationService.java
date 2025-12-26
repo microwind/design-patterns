@@ -29,7 +29,7 @@ public class IPLocationService {
     @Autowired
     private IPUtil ipUtil;
 
-    @Value("${public.ip.service.url:http://ipdb-internal.5gtv.com.cn/}")
+    @Value("${public.ip.service.url:https://api.vore.top/api/IPdata}")
     private String publicIPServiceUrl;
 
     private final CloseableHttpClient httpClient = HttpClients.createDefault();

@@ -9,7 +9,7 @@ public class HomeController {
     @GetMapping("/")
     public String home() {
         return """
-                <h1>这是一个 Springboot DDD 工程示例，可以作为开发脚手架.</h1>\
+                <h1>这是一个 Springboot DDD 工程示例，集成了常见工具，可以作为开发脚手架.</h1>\
                 <pre>\
                 测试
                 <code>\

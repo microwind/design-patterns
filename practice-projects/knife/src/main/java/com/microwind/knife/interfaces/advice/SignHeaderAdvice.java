@@ -16,7 +16,11 @@ import java.util.Optional;
  * 控制器增强：自动提取并校验签名相关请求头
  */
 @Slf4j
-@ControllerAdvice(basePackages = "com.microwind.knife.interfaces.controllers")
+@ControllerAdvice(basePackages = {
+        "com.microwind.knife.interfaces.controllers.sign",
+        "com.microwind.knife.interfaces.controllers.user",
+        "com.microwind.knife.interfaces.controllers.admin"
+})
 public class SignHeaderAdvice {
 
     private static final String HEADER_APP_CODE = "appCode";
@@ -45,7 +49,7 @@ public class SignHeaderAdvice {
         if (StringUtils.isAllBlank(appCode, sign, timeStr)) {
             log.debug("签名请求头缺失: appCode={}, sign={}, time={}", appCode, sign, timeStr);
             // 建议抛出自定义异常，如 throw new BusinessException(ErrorCode.SIGN_HEADER_MISSING);
-            // throw new IllegalArgumentException("Missing mandatory signature headers");
+             throw new IllegalArgumentException("Missing mandatory signature headers");
         }
 
         // 3. 解析时间戳

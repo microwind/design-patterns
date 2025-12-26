@@ -2,153 +2,279 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>DDD模式签名提交示例</title>
+    <title>签名验证流程演示</title>
     <style>
-        .container { max-width: 800px; margin: 50px auto; padding: 20px; }
-        .step { margin: 30px 0; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
-        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
-        .success { color: #3c763d; background: #dff0d8; }
-        .error { color: #a94442; background: #f2dede; }
-        button { padding: 8px 16px; background: #428bca; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:disabled { background: #999; cursor: not-allowed; }
+        .container { max-width: 900px; margin: 50px auto; padding: 20px; font-family: Arial, sans-serif; }
+        .step { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+        .step h3 { margin-top: 0; color: #333; }
+        .input-group { margin: 10px 0; }
+        .input-group label { display: inline-block; width: 120px; font-weight: bold; }
+        .input-group input, .input-group textarea { width: 500px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .input-group textarea { height: 80px; font-family: monospace; }
+        .result { margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+        .success { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; }
+        .error { color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; opacity: 0.6; }
+        .flow-btn { background: #28a745; }
+        .flow-btn:hover { background: #218838; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>签名提交流程演示</h2>
+    <h2>🔐 API 签名验证流程演示（客户端：ios1）</h2>
+    <p>本页面模拟客户端调用签名接口的完整流程。AppCode: <strong>ios1</strong></p>
 
     <!-- 步骤1：生成动态盐值 -->
     <div class="step">
-        <h3>1. 生成动态盐值</h3>
-        <input type="text" id="appCode" placeholder="输入appCode" value="APP001">
-        <input type="text" id="submitPath" placeholder="提交接口路径" value="/v1/submit">
-        <button onclick="generateDynamicSalt()">生成动态盐值</button>
-        <div id="saltResult" class="result"></div>
+        <h3>步骤 1：生成动态盐值</h3>
+        <div class="input-group">
+            <label>AppCode:</label>
+            <input type="text" id="appCode" value="ios1" readonly>
+        </div>
+        <div class="input-group">
+            <label>目标接口路径:</label>
+            <input type="text" id="submitPath" value="/api/sign/submit-test">
+        </div>
+        <button onclick="generateDynamicSalt()">🔑 生成动态盐值</button>
+        <div id="saltResult" class="result" style="display:none;"></div>
     </div>
 
     <!-- 步骤2：生成签名 -->
     <div class="step">
-        <h3>2. 生成签名</h3>
-        <button onclick="generateSign()" id="signBtn" disabled>生成签名</button>
-        <div id="signResult" class="result"></div>
+        <h3>步骤 2：生成签名</h3>
+        <div class="input-group">
+            <label>是否带参数:</label>
+            <select id="withParams">
+                <option value="false">否（不带参数）</option>
+                <option value="true">是（带参数）</option>
+            </select>
+        </div>
+        <div class="input-group" id="paramsGroup" style="display:none;">
+            <label>请求参数:</label>
+            <textarea id="requestParams">{"userId": 12345, "amount": 99.99, "orderName": "测试订单"}</textarea>
+        </div>
+        <button onclick="generateSign()" id="signBtn" disabled>✍️ 生成签名</button>
+        <div id="signResult" class="result" style="display:none;"></div>
     </div>
 
     <!-- 步骤3：提交数据 -->
     <div class="step">
-        <h3>3. 提交数据</h3>
-        <input type="text" id="submitData" placeholder="输入提交数据" value='{"name":"张三","phone":"13800138000"}'>
-        <button onclick="submitData()" id="submitBtn" disabled>提交数据</button>
-        <div id="submitResult" class="result"></div>
+        <h3>步骤 3：提交数据（带签名验证）</h3>
+        <button onclick="submitData()" id="submitBtn" disabled>📤 提交数据</button>
+        <div id="submitResult" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- 完整流程 -->
+    <div class="step">
+        <h3>🚀 一键执行完整流程</h3>
+        <button onclick="executeFullFlow()" class="flow-btn">执行完整签名验证流程</button>
+        <div id="fullFlowResult" class="result" style="display:none;"></div>
     </div>
 </div>
 
 <script>
     // 全局变量存储中间结果
     let dynamicSaltInfo = null; // 动态盐值信息
-    let signInfo = null;       // 签名信息
+    let signInfo = null;        // 签名信息
 
-    // 步骤1：根据用户身份和调用接口获取动态盐值
+    // 监听是否带参数的选择
+    document.getElementById('withParams').addEventListener('change', function() {
+        const paramsGroup = document.getElementById('paramsGroup');
+        paramsGroup.style.display = this.value === 'true' ? 'block' : 'none';
+    });
+
+    // 步骤1：生成动态盐值
     async function generateDynamicSalt() {
         const appCode = document.getElementById('appCode').value;
         const path = document.getElementById('submitPath').value;
         const saltResultEl = document.getElementById('saltResult');
+        saltResultEl.style.display = 'block';
+        saltResultEl.className = 'result';
+        saltResultEl.textContent = '⏳ 正在生成动态盐值...';
 
         try {
-            const headers = {
-                'Content-Type': 'application/json'
-                appCode: appCode,
-                path: path
-            };
-            const response = await fetch('/sign/dynamic-salt', {
+            const response = await fetch('/api/sign/dynamic-salt-generate', {
                 method: 'POST',
-                headers: headers
+                headers: {
+                    'Content-Type': 'application/json',
+                    'appCode': appCode,
+                    'path': path
+                },
+                body: JSON.stringify({})
             });
 
-            if (!response.ok) throw new Error('生成动态盐值失败');
-            dynamicSaltInfo = await response.json();
+            if (!response.ok) throw new Error('生成动态盐值失败：' + response.status);
+            const result = await response.json();
+
+            if (result.code !== 200) throw new Error(result.message || '生成失败');
+
+            dynamicSaltInfo = result.data;
 
             saltResultEl.className = 'result success';
-            saltResultEl.innerHTML = `
-                接口路径：${dynamicSaltInfo.path}<br>
-                动态盐值：${dynamicSaltInfo.dynamicSalt}<br>
-                生成时间：${new Date(dynamicSaltInfo.dynamicSaltTime).toLocaleString()}
-            `;
+            saltResultEl.textContent = `✅ 动态盐值生成成功！
+接口路径：${dynamicSaltInfo.path}
+动态盐值：${dynamicSaltInfo.dynamicSalt}
+盐值时间戳：${dynamicSaltInfo.dynamicSaltTime}
+生成时间：${new Date(dynamicSaltInfo.dynamicSaltTime).toLocaleString()}`;
+
             // 启用生成签名按钮
             document.getElementById('signBtn').disabled = false;
         } catch (err) {
             saltResultEl.className = 'result error';
-            saltResultEl.textContent = '错误：' + err.message;
+            saltResultEl.textContent = '❌ 错误：' + err.message;
         }
     }
 
     // 步骤2：生成签名
     async function generateSign() {
-        if (!dynamicSaltInfo) return alert('请先生成动态盐值');
+        if (!dynamicSaltInfo) {
+            alert('请先生成动态盐值');
+            return;
+        }
+
         const signResultEl = document.getElementById('signResult');
+        signResultEl.style.display = 'block';
+        signResultEl.className = 'result';
+        signResultEl.textContent = '⏳ 正在生成签名...';
+
+        const appCode = document.getElementById('appCode').value;
+        const withParams = document.getElementById('withParams').value === 'true';
+        let params = null;
 
         try {
-            const request = {
-                appCode: document.getElementById('appCode').value,
-                path: dynamicSaltInfo.path,
-                dynamicSalt: dynamicSaltInfo.dynamicSalt,
-                dynamicSaltTime: dynamicSaltInfo.dynamicSaltTime
-            };
+            if (withParams) {
+                params = JSON.parse(document.getElementById('requestParams').value);
+            }
 
-            const response = await fetch('/sign/sign-generate', {
+            const response = await fetch('/api/sign/generate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(request)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'appCode': appCode,
+                    'path': dynamicSaltInfo.path,
+                    'dynamicSalt': dynamicSaltInfo.dynamicSalt,
+                    'dynamicSaltTime': dynamicSaltInfo.dynamicSaltTime.toString(),
+                    'withParams': withParams.toString()
+                },
+                body: withParams ? JSON.stringify(params) : JSON.stringify({})
             });
 
-            if (!response.ok) throw new Error('生成签名失败');
-            signInfo = await response.json();
+            if (!response.ok) throw new Error('生成签名失败：' + response.status);
+            const result = await response.json();
+
+            if (result.code !== 200) throw new Error(result.message || '生成失败');
+
+            signInfo = result.data;
+            signInfo.withParams = withParams;
+            signInfo.params = params;
 
             signResultEl.className = 'result success';
-            signResultEl.innerHTML = `
-                接口路径：${signInfo.path}<br>
-                签名值：${signInfo.sign}<br>
-                签名时间：${new Date(signInfo.timestamp).toLocaleString()}
-            `;
+            signResultEl.textContent = `✅ 签名生成成功！
+接口路径：${signInfo.path}
+签名值：${signInfo.sign}
+签名时间戳：${signInfo.time}
+签名时间：${new Date(signInfo.time).toLocaleString()}
+过期时间：${new Date(signInfo.expireTime).toLocaleString()}
+是否带参数：${withParams ? '是' : '否'}`;
+
             // 启用提交按钮
             document.getElementById('submitBtn').disabled = false;
         } catch (err) {
             signResultEl.className = 'result error';
-            signResultEl.textContent = '错误：' + err.message;
+            signResultEl.textContent = '❌ 错误：' + err.message;
         }
     }
 
     // 步骤3：提交数据
     async function submitData() {
-        if (!signInfo) return alert('请先生成签名');
+        if (!signInfo) {
+            alert('请先生成签名');
+            return;
+        }
+
         const submitResultEl = document.getElementById('submitResult');
-        const data = JSON.parse(document.getElementById('submitData').value);
+        submitResultEl.style.display = 'block';
+        submitResultEl.className = 'result';
+        submitResultEl.textContent = '⏳ 正在提交数据...';
+
+        const appCode = document.getElementById('appCode').value;
 
         try {
-            // 请求header封装
             const headers = {
                 'Content-Type': 'application/json',
-                appCode: document.getElementById('appCode').value,
-                path: signInfo.path,
-                sign: signInfo.sign,
-                time: signInfo.time
+                'appCode': appCode,
+                'path': signInfo.path,
+                'sign': signInfo.sign,
+                'time': signInfo.time.toString(),
+                'withParams': signInfo.withParams.toString()
             };
 
-            // 签名提交测试
-            const response = await fetch('/sign/submit-test', {
+            const response = await fetch('/api/sign/submit-test', {
                 method: 'POST',
                 headers: headers,
-                body: data
+                body: signInfo.withParams ? JSON.stringify(signInfo.params) : JSON.stringify({})
             });
 
-            if (!response.ok) throw new Error('提交失败');
+            if (!response.ok) throw new Error('提交失败：' + response.status);
             const result = await response.json();
 
-            submitResultEl.className = 'result success';
-            submitResultEl.textContent = result.result;
+            submitResultEl.className = result.code === 200 ? 'result success' : 'result error';
+            submitResultEl.textContent = `${result.code === 200 ? '✅' : '❌'} ${result.message}
+响应数据：${JSON.stringify(result.data, null, 2)}`;
+
         } catch (err) {
             submitResultEl.className = 'result error';
-            submitResultEl.textContent = '错误：' + err.message;
+            submitResultEl.textContent = '❌ 错误：' + err.message;
         }
+    }
+
+    // 一键执行完整流程
+    async function executeFullFlow() {
+        const fullFlowResultEl = document.getElementById('fullFlowResult');
+        fullFlowResultEl.style.display = 'block';
+        fullFlowResultEl.className = 'result';
+        fullFlowResultEl.textContent = '🚀 开始执行完整流程...\n';
+
+        try {
+            // 步骤1：生成动态盐值
+            fullFlowResultEl.textContent += '\n📍 步骤1：生成动态盐值...\n';
+            await generateDynamicSalt();
+            await sleep(500);
+
+            if (!dynamicSaltInfo) {
+                throw new Error('动态盐值生成失败');
+            }
+            fullFlowResultEl.textContent += '✅ 动态盐值生成成功\n';
+
+            // 步骤2：生成签名
+            fullFlowResultEl.textContent += '\n📍 步骤2：生成签名...\n';
+            await generateSign();
+            await sleep(500);
+
+            if (!signInfo) {
+                throw new Error('签名生成失败');
+            }
+            fullFlowResultEl.textContent += '✅ 签名生成成功\n';
+
+            // 步骤3：提交数据
+            fullFlowResultEl.textContent += '\n📍 步骤3：提交数据...\n';
+            await submitData();
+            await sleep(500);
+
+            fullFlowResultEl.className = 'result success';
+            fullFlowResultEl.textContent += '\n🎉 完整流程执行完成！请查看上方各步骤的详细结果。';
+
+        } catch (err) {
+            fullFlowResultEl.className = 'result error';
+            fullFlowResultEl.textContent += '\n❌ 流程执行失败：' + err.message;
+        }
+    }
+
+    // 辅助函数：延迟
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 </script>
 </body>

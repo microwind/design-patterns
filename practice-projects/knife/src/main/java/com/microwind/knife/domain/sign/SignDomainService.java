@@ -7,6 +7,7 @@ import com.microwind.knife.application.dto.sign.SignDTO;
 import com.microwind.knife.utils.SignatureUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -51,14 +52,16 @@ public class SignDomainService {
      * @throws IllegalStateException 如果 SHA-256 算法不可用
      */
     public static String sha256(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (Exception e) {
-            log.error("SHA-256 计算失败: input={}", input, e);
-            throw new IllegalStateException("SHA-256 algorithm error", e);
-        }
+        // 内部实现：MessageDigest + 高性能位运算 Hex 转换
+        return DigestUtils.sha256Hex(input);
+//        try {
+//            MessageDigest md = MessageDigest.getInstance("SHA-256");
+//            byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
+//            return HexFormat.of().formatHex(hash);
+//        } catch (Exception e) {
+//            log.error("SHA-256 计算失败: input={}", input, e);
+//            throw new IllegalStateException("SHA-256 algorithm error", e);
+//        }
     }
 
     /**

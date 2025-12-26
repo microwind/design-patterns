@@ -132,5 +132,5 @@ sign:
 #    validate-from-database: true
   # 签名配置
   signature:
-    # 签名有效期（毫秒），默认10分钟
-    ttl: 600000
+    # 签名有效期（毫秒），默认30分钟
+    ttl: 1800000
