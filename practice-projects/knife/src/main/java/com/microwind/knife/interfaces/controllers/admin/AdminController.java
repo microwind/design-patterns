@@ -32,8 +32,8 @@ public class AdminController {
             method = {RequestMethod.GET, RequestMethod.POST}
     )
     public ApiResponse<Object> adminSignSubmit(
-            @ModelAttribute("signHeaders") SignHeaderRequest headers,
-            @RequestHeader(value = "withParams", required = false, defaultValue = "false") Boolean withParams,
+            @ModelAttribute("SignHeaders") SignHeaderRequest headers,
+            @RequestHeader(value = "Sign-withParams", required = false, defaultValue = "false") Boolean withParams,
             @RequestBody(required = false) Map<String, Object> params) {
 
             String sign = headers.getSign();

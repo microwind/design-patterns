@@ -1,8 +1,13 @@
+# prod Environment
 spring:
-  # server config
+  mvc:
+    throw-exception-if-no-handler-found: false
   server:
     port: 8080
     env: production
+#    error:
+#      include-message: never
+#      include-stacktrace: never
 
   # local Cache (commented out)
   # datasource:

@@ -8,7 +8,6 @@ import com.microwind.knife.application.services.sign.SignValidationService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.user.User;
 import com.microwind.knife.exception.ResourceNotFoundException;
-import com.microwind.knife.interfaces.annotation.IgnoreSignHeader;
 import com.microwind.knife.interfaces.vo.sign.SignHeaderRequest;
 import com.microwind.knife.interfaces.vo.user.CreateUserRequest;
 import com.microwind.knife.interfaces.vo.user.UpdateUserRequest;
@@ -39,12 +38,11 @@ public class UserController {
 
     // 根据用户ID查询
     @GetMapping("/{userId}")
-    @IgnoreSignHeader
     public ApiResponse<User> getUser(
-            @ModelAttribute("signHeaders") SignHeaderRequest signHeaders,
+            @ModelAttribute("SignHeaders") SignHeaderRequest signHeaders,
             @PathVariable Integer userId) {
         // return userService.getUserById(userId);
-        log.info("完整headers：appCode={}, sign={}, time={}, path={}",
+        log.info("完整headers：Sign-appCode={}, Sign-sign={}, Sign-time={}, Sign-path={}",
                 signHeaders.getAppCode(), signHeaders.getSign(), signHeaders.getTime(), signHeaders.getPath());
         SignDTO signDTO = signMapper.toDTO(signHeaders);
         boolean isValid = signValidationService.validate(signDTO);
@@ -60,14 +58,23 @@ public class UserController {
 
     // 更新接口
     @PutMapping("/{userId}")
-    public User updateUser(@PathVariable Integer userId, @RequestBody UpdateUserRequest request) {
-        return userService.updateUser(userId, request);
+    public ApiResponse<User> updateUser(
+            @ModelAttribute("SignHeaders") SignHeaderRequest signHeaders,
+            @PathVariable Integer userId,
+            @RequestBody UpdateUserRequest request) {
+        SignDTO signDTO = signMapper.toDTO(signHeaders);
+        boolean isValid = signValidationService.validate(signDTO);
+        if (!isValid) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "签名" + signHeaders + "校验失败。");
+        }
+        User user = userService.updateUser(userId, request);
+        return ApiResponse.success(user, "更新用户成功。");
     }
 
     // 删除接口，返回JSON
     @DeleteMapping("/{userId}")
     public ApiResponse<Void> removeUser(
-            @ModelAttribute("signHeaders") SignHeaderRequest headers,
+            @ModelAttribute("SignHeaders") SignHeaderRequest headers,
             @PathVariable Integer userId) {
         SignDTO signDTO = signMapper.toDTO(headers);
         boolean isValid = signValidationService.validate(signDTO);
@@ -87,14 +94,28 @@ public class UserController {
     // DELETE删除接口，返回no_content
     @DeleteMapping("/delete/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable Integer userId) {
+    public void deleteUser(
+            @ModelAttribute("SignHeaders") SignHeaderRequest headers,
+            @PathVariable Integer userId) {
+        SignDTO signDTO = signMapper.toDTO(headers);
+        boolean isValid = signValidationService.validate(signDTO);
+        if (!isValid) {
+            throw new IllegalArgumentException("签名" + signDTO + "校验失败。");
+        }
         userService.deleteUser(userId);
     }
 
     // 查询全部用户接口
     @GetMapping("")
-    public UserPageDTO getAllUsers(Pageable pageable) {
+    public ApiResponse<UserPageDTO> getAllUsers(
+            @ModelAttribute("SignHeaders") SignHeaderRequest headers,
+            Pageable pageable) {
+        SignDTO signDTO = signMapper.toDTO(headers);
+        boolean isValid = signValidationService.validate(signDTO);
+        if (!isValid) {
+            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "签名" + signDTO + "校验失败。");
+        }
         Page<User> userPages = userService.getAllUsers(pageable);
-        return new UserPageDTO(userPages);
+        return ApiResponse.success(new UserPageDTO(userPages), "查询成功。");
     }
 }

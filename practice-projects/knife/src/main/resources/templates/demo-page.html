@@ -241,8 +241,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appCode': appCode,
-                    'path': path
+                    'Sign-appCode': appCode,
+                    'Sign-path': path
                 },
                 body: JSON.stringify({})
             });
@@ -299,11 +299,11 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appCode': CONFIG.appCode,
-                    'path': state.targetPath,
-                    'dynamicSalt': state.dynamicSalt,
-                    'dynamicSaltTime': state.dynamicSaltTime.toString(),
-                    'withParams': withParams.toString()
+                    'Sign-appCode': CONFIG.appCode,
+                    'Sign-path': state.targetPath,
+                    'Sign-dynamicSalt': state.dynamicSalt,
+                    'Sign-dynamicSaltTime': state.dynamicSaltTime.toString(),
+                    'Sign-withParams': withParams.toString()
                 },
                 body: withParams ? JSON.stringify(params) : JSON.stringify({})
             });
@@ -351,11 +351,11 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appCode': CONFIG.appCode,
-                    'path': state.targetPath,
-                    'sign': state.sign,
-                    'time': state.signTime.toString(),
-                    'withParams': state.withParams.toString()
+                    'Sign-appCode': CONFIG.appCode,
+                    'Sign-path': state.targetPath,
+                    'Sign-sign': state.sign,
+                    'Sign-time': state.signTime.toString(),
+                    'Sign-withParams': state.withParams.toString()
                 },
                 body: state.withParams ? JSON.stringify(state.params) : JSON.stringify({})
             });

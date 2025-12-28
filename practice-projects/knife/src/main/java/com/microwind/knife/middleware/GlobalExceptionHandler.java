@@ -330,7 +330,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Internal Server Error",
-                ex.getMessage(),
+//                ex.getMessage(),
+                "Internal Error，Please concat administrator.",
                 ex
         );
     }

@@ -58,8 +58,8 @@ public class SignControllerTest {
     @DisplayName("生成动态盐值 - 通过 Header")
     void testGenerateDynamicSaltViaHeader() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
@@ -109,8 +109,8 @@ public class SignControllerTest {
     void testValidateDynamicSaltSuccess() throws Exception {
         // 先生成动态盐值
         MvcResult generateResult = mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andReturn();
@@ -165,11 +165,11 @@ public class SignControllerTest {
 
         // 生成签名
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -201,11 +201,11 @@ public class SignControllerTest {
 
         // 生成签名（带参数）
         mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -224,11 +224,11 @@ public class SignControllerTest {
         JsonNode saltData = objectMapper.readTree(saltResult.getResponse().getContentAsString()).get("data");
 
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
@@ -236,11 +236,11 @@ public class SignControllerTest {
 
         // 校验签名
         mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -262,11 +262,11 @@ public class SignControllerTest {
 
         // 生成签名（带参数）
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andReturn();
@@ -275,11 +275,11 @@ public class SignControllerTest {
 
         // 校验签名（带参数）
         mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -291,11 +291,11 @@ public class SignControllerTest {
     @DisplayName("校验签名 - 失败（错误的签名）")
     void testValidateSignFailure() throws Exception {
         mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", "invalid_signature")
-                        .header("time", System.currentTimeMillis())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", "invalid_signature")
+                        .header("Sign-time", System.currentTimeMillis())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -311,8 +311,8 @@ public class SignControllerTest {
 
         // 为 user-auth-list 路径生成动态盐值
         MvcResult saltResult = mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
@@ -322,11 +322,11 @@ public class SignControllerTest {
 
         // 生成签名
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -335,11 +335,11 @@ public class SignControllerTest {
 
         // 请求用户授权列表
         mockMvc.perform(post(userAuthPath)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -354,8 +354,8 @@ public class SignControllerTest {
 
         // 为 user-auth-list 路径生成动态盐值
         MvcResult saltResult = mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
@@ -366,11 +366,11 @@ public class SignControllerTest {
         // 简化测试：使用 GET 方法且不带参数，避免参数传递复杂性
         // 生成签名（不带参数）
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "false")  // 改为不带参数
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "false")  // 改为不带参数
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -379,11 +379,11 @@ public class SignControllerTest {
 
         // 使用 GET 方法请求用户授权列表
         mockMvc.perform(get(userAuthPath)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", userAuthPath)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", userAuthPath)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -400,11 +400,11 @@ public class SignControllerTest {
         JsonNode saltData = objectMapper.readTree(saltResult.getResponse().getContentAsString()).get("data");
 
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
@@ -412,11 +412,11 @@ public class SignControllerTest {
 
         // 提交数据
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -438,11 +438,11 @@ public class SignControllerTest {
         String paramsBody = objectMapper.writeValueAsString(params);
 
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andReturn();
@@ -451,11 +451,11 @@ public class SignControllerTest {
 
         // 提交数据（带参数）
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -467,11 +467,11 @@ public class SignControllerTest {
     @DisplayName("带签名的数据提交 - 失败（签名不匹配）")
     void testSubmitWithInvalidSign() throws Exception {
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", "invalid_signature")
-                        .header("time", System.currentTimeMillis())
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", "invalid_signature")
+                        .header("Sign-time", System.currentTimeMillis())
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())  // 修改为期望 200，因为签名校验失败也返回成功响应
                 .andExpect(jsonPath("$.data.isValid").value(false));
@@ -484,8 +484,8 @@ public class SignControllerTest {
     void testCompleteSignFlowWithoutParams() throws Exception {
         // 1. 生成动态盐值
         MvcResult saltResult = mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
@@ -511,11 +511,11 @@ public class SignControllerTest {
 
         // 3. 生成签名
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", dynamicSalt)
-                        .header("dynamicSaltTime", dynamicSaltTime)
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", dynamicSalt)
+                        .header("Sign-dynamicSaltTime", dynamicSaltTime)
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -526,22 +526,22 @@ public class SignControllerTest {
 
         // 4. 校验签名
         mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", sign)
-                        .header("time", time)
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", sign)
+                        .header("Sign-time", time)
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.isValid").value(true));
 
         // 5. 提交数据
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", sign)
-                        .header("time", time)
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", sign)
+                        .header("Sign-time", time)
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.isValid").value(true));
@@ -563,11 +563,11 @@ public class SignControllerTest {
 
         // 2. 生成签名（带参数）
         MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
+                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -577,11 +577,11 @@ public class SignControllerTest {
 
         // 3. 校验签名（带参数）
         mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -589,11 +589,11 @@ public class SignControllerTest {
 
         // 4. 提交数据（带参数）
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", signData.get("sign").asText())
-                        .header("time", signData.get("time").asLong())
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", signData.get("sign").asText())
+                        .header("Sign-time", signData.get("time").asLong())
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -620,11 +620,11 @@ public class SignControllerTest {
 
         // 4. 直接使用手动计算的签名请求接口
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", calculatedSign)
-                        .header("time", timestamp)
-                        .header("withParams", "false")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", calculatedSign)
+                        .header("Sign-time", timestamp)
+                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -654,11 +654,11 @@ public class SignControllerTest {
 
         // 5. 直接使用手动计算的签名请求接口
         mockMvc.perform(post(TEST_PATH)
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
-                        .header("sign", calculatedSign)
-                        .header("time", timestamp)
-                        .header("withParams", "true")
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", calculatedSign)
+                        .header("Sign-time", timestamp)
+                        .header("Sign-withParams", "true")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(paramsBody))
                 .andExpect(status().isOk())
@@ -674,8 +674,8 @@ public class SignControllerTest {
      */
     private MvcResult generateDynamicSalt() throws Exception {
         return mockMvc.perform(post("/api/sign/dynamic-salt-generate")
-                        .header("appCode", TEST_APP_CODE)
-                        .header("path", TEST_PATH)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        .header("Sign-path", TEST_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())

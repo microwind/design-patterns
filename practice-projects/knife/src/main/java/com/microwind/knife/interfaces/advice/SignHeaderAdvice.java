@@ -23,12 +23,12 @@ import java.util.Optional;
 })
 public class SignHeaderAdvice {
 
-    private static final String HEADER_APP_CODE = "appCode";
-    private static final String HEADER_SIGN = "sign";
-    private static final String HEADER_PATH = "path";
-    private static final String HEADER_TIME = "time";
+    private static final String HEADER_APP_CODE = "Sign-appCode";
+    private static final String HEADER_SIGN = "Sign-sign";
+    private static final String HEADER_PATH = "Sign-path";
+    private static final String HEADER_TIME = "Sign-time";
 
-    @ModelAttribute("signHeaders")
+    @ModelAttribute("SignHeaders")
     public SignHeaderRequest extractSignHeaders(HttpServletRequest request) {
         // 检查注解：支持在方法上或类上标注 @IgnoreSignHeader 的跳过检查
         HandlerMethod handlerMethod = (HandlerMethod)
@@ -47,7 +47,7 @@ public class SignHeaderAdvice {
 
         // 2. 快速失败校验 (Fast-Fail)
         if (StringUtils.isAllBlank(appCode, sign, timeStr)) {
-            log.debug("签名请求头缺失: appCode={}, sign={}, time={}", appCode, sign, timeStr);
+            log.debug("签名请求头缺失: Sign-appCode={}, Sign-sign={}, Sign-time={}", appCode, sign, timeStr);
             // 建议抛出自定义异常，如 throw new BusinessException(ErrorCode.SIGN_HEADER_MISSING);
              throw new IllegalArgumentException("Missing mandatory signature headers");
         }

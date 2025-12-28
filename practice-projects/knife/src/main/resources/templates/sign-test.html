@@ -99,8 +99,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appCode': appCode,
-                    'path': path
+                    'Sign-appCode': appCode,
+                    'Sign-path': path
                 },
                 body: JSON.stringify({})
             });
@@ -152,11 +152,11 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appCode': appCode,
-                    'path': dynamicSaltInfo.path,
-                    'dynamicSalt': dynamicSaltInfo.dynamicSalt,
-                    'dynamicSaltTime': dynamicSaltInfo.dynamicSaltTime.toString(),
-                    'withParams': withParams.toString()
+                    'Sign-appCode': appCode,
+                    'Sign-path': dynamicSaltInfo.path,
+                    'Sign-dynamicSalt': dynamicSaltInfo.dynamicSalt,
+                    'Sign-dynamicSaltTime': dynamicSaltInfo.dynamicSaltTime.toString(),
+                    'Sign-withParams': withParams.toString()
                 },
                 body: withParams ? JSON.stringify(params) : JSON.stringify({})
             });
@@ -204,11 +204,11 @@
         try {
             const headers = {
                 'Content-Type': 'application/json',
-                'appCode': appCode,
-                'path': signInfo.path,
-                'sign': signInfo.sign,
-                'time': signInfo.time.toString(),
-                'withParams': signInfo.withParams.toString()
+                'Sign-appCode': appCode,
+                'Sign-path': signInfo.path,
+                'Sign-sign': signInfo.sign,
+                'Sign-time': signInfo.time.toString(),
+                'Sign-withParams': signInfo.withParams.toString()
             };
 
             const response = await fetch('/api/sign/submit-test', {
