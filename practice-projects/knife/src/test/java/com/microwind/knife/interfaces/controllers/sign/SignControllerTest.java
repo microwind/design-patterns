@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -32,6 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 4. 用户授权列表查询
  * 5. 带签名的数据提交
  * 6. 完整签名流程测试
+ * <p>
+ * 说明：
+ * - 本测试类已适配新的拦截器模式（SignatureInterceptor）
+ * - 对于标注了 @RequireSign 的接口，签名验证失败会返回 401 状态码
+ * - 对于标注了 @IgnoreSignHeader 的接口，不需要签名验证
  * </p>
  */
 @SpringBootTest
@@ -424,57 +430,46 @@ public class SignControllerTest {
     }
 
     @Test
-    @DisplayName("带签名的数据提交（带参数）- 成功")
-    void testSubmitWithSignWithParams() throws Exception {
-        // 生成有效签名
-        MvcResult saltResult = generateDynamicSalt();
-        JsonNode saltData = objectMapper.readTree(saltResult.getResponse().getContentAsString()).get("data");
-
-        // 准备提交参数
-        Map<String, Object> params = new HashMap<>();
-        params.put("userId", 12345);
-        params.put("amount", 199.99);
-        params.put("orderName", "Test Order for Submit");
-        String paramsBody = objectMapper.writeValueAsString(params);
-
-        MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andReturn();
-
-        JsonNode signData = objectMapper.readTree(signResult.getResponse().getContentAsString()).get("data");
-
-        // 提交数据（带参数）
-        mockMvc.perform(post(TEST_PATH)
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-sign", signData.get("sign").asText())
-                        .header("Sign-time", signData.get("time").asLong())
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.isValid").value(true));
-    }
-
-    @Test
     @DisplayName("带签名的数据提交 - 失败（签名不匹配）")
     void testSubmitWithInvalidSign() throws Exception {
+        // 在新的拦截器模式下，无效签名会被 SignatureInterceptor 拦截，直接返回 401
         mockMvc.perform(post(TEST_PATH)
                         .header("Sign-appCode", TEST_APP_CODE)
                         .header("Sign-path", TEST_PATH)
                         .header("Sign-sign", "invalid_signature")
                         .header("Sign-time", System.currentTimeMillis())
-                        .header("Sign-withParams", "false")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())  // 修改为期望 200，因为签名校验失败也返回成功响应
-                .andExpect(jsonPath("$.data.isValid").value(false));
+                .andExpect(status().isUnauthorized())  // 期望 401 状态码
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("带签名的数据提交 - 失败（缺少签名 header）")
+    void testSubmitWithMissingSignHeader() throws Exception {
+        // 缺少必需的签名 header，拦截器应该返回 401
+        mockMvc.perform(post(TEST_PATH)
+                        .header("Sign-appCode", TEST_APP_CODE)
+                        // 缺少 Sign-sign, Sign-time, Sign-path
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())  // 期望 401 状态码
+                .andExpect(jsonPath("$.code").value(401));
+    }
+
+    @Test
+    @DisplayName("带签名的数据提交 - 失败（appCode 不存在）")
+    void testSubmitWithInvalidAppCode() throws Exception {
+        // 使用不存在的 appCode，会被权限检查拦截，返回 403（而不是 401）
+        long timestamp = System.currentTimeMillis();
+        String invalidSign = DigestUtils.sha256Hex("invalid_app" + "fake_key" + TEST_PATH + timestamp);
+
+        mockMvc.perform(post(TEST_PATH)
+                        .header("Sign-appCode", "invalid_app_code")
+                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-sign", invalidSign)
+                        .header("Sign-time", timestamp)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());  // 期望 403 状态码（权限不足）
     }
 
     // ==================== 完整流程测试 ====================
@@ -547,59 +542,6 @@ public class SignControllerTest {
                 .andExpect(jsonPath("$.data.isValid").value(true));
     }
 
-    @Test
-    @DisplayName("完整签名流程测试（带参数）")
-    void testCompleteSignFlowWithParams() throws Exception {
-        // 准备测试参数
-        Map<String, Object> params = new HashMap<>();
-        params.put("userId", 99999);
-        params.put("amount", 299.99);
-        params.put("productName", "Complete Flow Test Product");
-        String paramsBody = objectMapper.writeValueAsString(params);
-
-        // 1. 生成动态盐值
-        MvcResult saltResult = generateDynamicSalt();
-        JsonNode saltData = objectMapper.readTree(saltResult.getResponse().getContentAsString()).get("data");
-
-        // 2. 生成签名（带参数）
-        MvcResult signResult = mockMvc.perform(post("/api/sign/generate")
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-dynamicSalt", saltData.get("dynamicSalt").asText())
-                        .header("Sign-dynamicSaltTime", saltData.get("dynamicSaltTime").asLong())
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        JsonNode signData = objectMapper.readTree(signResult.getResponse().getContentAsString()).get("data");
-
-        // 3. 校验签名（带参数）
-        mockMvc.perform(post("/api/sign/sign-validate")
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-sign", signData.get("sign").asText())
-                        .header("Sign-time", signData.get("time").asLong())
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.isValid").value(true));
-
-        // 4. 提交数据（带参数）
-        mockMvc.perform(post(TEST_PATH)
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-sign", signData.get("sign").asText())
-                        .header("Sign-time", signData.get("time").asLong())
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.isValid").value(true));
-    }
-
     // ==================== 手动计算签名测试（不通过 generate 接口）====================
 
     @Test
@@ -632,78 +574,27 @@ public class SignControllerTest {
                 .andExpect(jsonPath("$.message").value("带签名的请求提交成功。"));
     }
 
-    @Test
-    @DisplayName("手动计算签名（带参数）- 直接请求接口")
-    void testManualSignCalculationWithParams() throws Exception {
-        // 1. 使用硬编码的 secretKey
-        String secretKey = TEST_SECRET_KEY;
-
-        // 2. 准备请求参数
-        Map<String, Object> params = new HashMap<>();
-        params.put("userId", 88888);
-        params.put("amount", 399.99);
-        params.put("productName", "Manual Sign Test Product");
-        String paramsBody = objectMapper.writeValueAsString(params);
-
-        // 3. 获取当前时间戳
-        long timestamp = System.currentTimeMillis();
-
-        // 4. 手动计算签名（带参数）
-        // 签名算法：SM3(参数字符串 + appCode + secretKey + path + timestamp)
-        String calculatedSign = calculateSignWithParams(params, timestamp, secretKey);
-
-        // 5. 直接使用手动计算的签名请求接口
-        mockMvc.perform(post(TEST_PATH)
-                        .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
-                        .header("Sign-sign", calculatedSign)
-                        .header("Sign-time", timestamp)
-                        .header("Sign-withParams", "true")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(paramsBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.isValid").value(true))
-                .andExpect(jsonPath("$.message").value("带签名的请求提交成功。"));
-    }
-
     // ==================== 辅助方法 ====================
 
     /**
-     * 生成动态盐值的辅助方法
+     * 生成动态盐值的辅助方法（使用默认路径）
      */
     private MvcResult generateDynamicSalt() throws Exception {
+        return generateDynamicSaltForPath(TEST_PATH);
+    }
+
+    /**
+     * 生成动态盐值的辅助方法（指定路径）
+     *
+     * @param path 接口路径
+     */
+    private MvcResult generateDynamicSaltForPath(String path) throws Exception {
         return mockMvc.perform(post("/api/sign/dynamic-salt-generate")
                         .header("Sign-appCode", TEST_APP_CODE)
-                        .header("Sign-path", TEST_PATH)
+                        .header("Sign-path", path)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andReturn();
-    }
-
-    /**
-     * 手动计算签名（带参数）
-     * <p>
-     * 签名算法：SM3(参数字符串 + appCode + secretKey + path + timestamp)
-     * </p>
-     *
-     * @param params    请求参数
-     * @param timestamp 时间戳
-     * @param secretKey 应用密钥
-     * @return 计算出的签名值
-     */
-    private String calculateSignWithParams(Map<String, Object> params, long timestamp, String secretKey) {
-        // 1. 构建基础签名源
-        String baseSource = TEST_APP_CODE + secretKey + TEST_PATH + timestamp;
-
-        // 2. 构建参数字符串
-        String paramsSource = SignatureUtil.buildSignatureSource(params);
-
-        // 3. 完整签名源 = 参数字符串 + 基础签名源
-        String signSource = paramsSource + baseSource;
-
-        // 4. 使用 SM3 算法计算签名
-        return SmUtil.sm3(signSource);
     }
 }

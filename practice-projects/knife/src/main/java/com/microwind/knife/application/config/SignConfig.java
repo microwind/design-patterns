@@ -22,6 +22,14 @@ public class SignConfig {
     public static final String REPOSITORY_TYPE_JDBC = "jdbc";
     public static final String REPOSITORY_TYPE_JPA = "jpa";
 
+    public static final String HEADER_APP_CODE = "Sign-appCode";
+    public static final String HEADER_SIGN = "Sign-sign";
+    public static final String HEADER_TIME = "Sign-time";
+    public static final String HEADER_PATH = "Sign-path";
+    public static final String HEADER_DYNAMIC_SALT = "Sign-dynamicSalt";
+    public static final String HEADER_DYNAMIC_SALT_TIME = "Sign-dynamicSaltTime";
+    public static final String HEADER_WITH_PARAMS = "Sign-withParams";
+
     /**
      * 动态盐值配置
      */
@@ -49,12 +57,23 @@ public class SignConfig {
     /**
      * 动态盐值生成接口路径，来自application.yml配置
      */
-    private String dynamicSaltGeneratePath;
+    public String dynamicSaltGeneratePath;
 
     /**
      * 签名生成接口路径，来自application.yml配置
      */
-    private String signGeneratePath;
+    public String signGeneratePath;
+
+    /**
+     * 需要缓存请求体的路径模式列表
+     * <p>
+     * 只有这些路径的请求才会被 CachedBodyFilter 缓存 body
+     * 支持 Ant 风格路径模式：
+     * - /api/payment/** : 匹配 /api/payment 下所有路径
+     * - /api/*\/sensitive : 匹配 /api/任意单层/sensitive
+     * - 留空则使用 header 检测模式（默认）
+     */
+    public java.util.List<String> cachedBodyPathPatterns;
 
     /**
      * 动态盐值配置
@@ -84,6 +103,14 @@ public class SignConfig {
          * 签名有效期（毫秒）
          */
         private Long ttl = DEFAULT_SIGNATURE_TTL;
+
+        /**
+         * 默认是否使用参数签名
+         * true: 签名计算包含请求参数（使用 SM3 算法）
+         * false: 签名计算不包含请求参数（使用 SHA-256 算法）
+         * 默认：false
+         */
+        private Boolean defaultWithParams = false;
     }
 
     /**
@@ -119,6 +146,13 @@ public class SignConfig {
      */
     public boolean isUseJpaRepository() {
         return REPOSITORY_TYPE_JPA.equalsIgnoreCase(repositoryType);
+    }
+
+    /**
+     * 获取默认的 withParams 配置
+     */
+    public boolean isDefaultWithParams() {
+        return signature != null && Boolean.TRUE.equals(signature.getDefaultWithParams());
     }
 }
 

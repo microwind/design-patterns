@@ -139,7 +139,7 @@
         </div>
         <div class="input-group">
             <label>目标接口路径</label>
-            <input type="text" id="targetPath" th:value="${path}" value="/api/sign/submit-test">
+            <input type="text" id="targetPath" th:value="${path}" value="/api/admin/admin-sign-submit">
         </div>
         <button onclick="generateDynamicSalt()">🔄 重新生成动态盐值</button>
         <div id="saltResult" class="result"></div>
@@ -150,7 +150,7 @@
     <h3>步骤 2: 生成签名</h3>
     <div class="step">
         <div class="input-group">
-            <label>是否携带参数</label>
+            <label>是否携带参数(请查看接口要求)</label>
             <select id="withParams">
                 <option value="false">否（不带参数）</option>
                 <option value="true">是（带参数）</option>
@@ -342,12 +342,13 @@
         }
 
         const submitResult = document.getElementById('submitResult');
+        const path = document.getElementById('targetPath').value;
         submitResult.style.display = 'block';
         submitResult.className = 'result';
         submitResult.innerHTML = '⏳ 正在提交数据...';
 
         try {
-            const response = await fetch(`${CONFIG.baseUrl}/api/sign/submit-test`, {
+            const response = await fetch(`${CONFIG.baseUrl}${path}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -10,11 +10,12 @@ import com.microwind.knife.application.services.sign.SignService;
 import com.microwind.knife.common.ApiResponse;
 import com.microwind.knife.domain.sign.SignUserAuth;
 import com.microwind.knife.interfaces.annotation.IgnoreSignHeader;
+import com.microwind.knife.interfaces.annotation.RequireSign;
+import com.microwind.knife.interfaces.annotation.WithParams;
 import com.microwind.knife.interfaces.vo.sign.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -56,8 +57,8 @@ public class SignController {
     @PostMapping("/dynamic-salt-generate")
     @IgnoreSignHeader
     public ApiResponse<DynamicSaltResponse> generateDynamicSalt(
-            @RequestHeader(value = "Sign-appCode", required = false) String appCode,
-            @RequestHeader(value = "Sign-path", required = false) String path,
+            @RequestHeader(value = SignConfig.HEADER_APP_CODE, required = false) String appCode,
+            @RequestHeader(value = SignConfig.HEADER_PATH, required = false) String path,
             @RequestBody(required = false) DynamicSaltRequest request
     ) {
         // 支持body参数传值【可选】
@@ -113,10 +114,10 @@ public class SignController {
     @PostMapping("/dynamic-salt-validate")
     @IgnoreSignHeader
     public ApiResponse<Map<String, Object>> validateDynamicSalt(
-            @RequestHeader(value = "Sign-appCode", required = false) String appCode,
-            @RequestHeader(value = "Sign-path", required = false) String path,
-            @RequestHeader(value = "Sign-dynamicSalt", required = false) String dynamicSalt,
-            @RequestHeader(value = "Sign-dynamicSaltTime", required = false) Long dynamicSaltTime,
+            @RequestHeader(value = SignConfig.HEADER_APP_CODE, required = false) String appCode,
+            @RequestHeader(value = SignConfig.HEADER_PATH, required = false) String path,
+            @RequestHeader(value = SignConfig.HEADER_DYNAMIC_SALT, required = false) String dynamicSalt,
+            @RequestHeader(value = SignConfig.HEADER_DYNAMIC_SALT_TIME, required = false) Long dynamicSaltTime,
             @RequestBody DynamicSaltVerfiyRequest request) {
         // 支持body参数传值【可选】
         if (appCode == null && request != null) {
@@ -189,11 +190,11 @@ public class SignController {
     @PostMapping("/generate")
     @IgnoreSignHeader
     public ApiResponse<SignResponse> generateSign(
-            @RequestHeader(value = "Sign-appCode", required = false) String appCode,
-            @RequestHeader(value = "Sign-path", required = false) String path,
-            @RequestHeader(value = "Sign-dynamicSalt", required = false) String dynamicSalt,
-            @RequestHeader(value = "Sign-dynamicSaltTime", required = false) Long dynamicSaltTime,
-            @RequestHeader(value = "Sign-withParams", required = false, defaultValue = "false") Boolean withParams,
+            @RequestHeader(value = SignConfig.HEADER_APP_CODE, required = false) String appCode,
+            @RequestHeader(value = SignConfig.HEADER_PATH, required = false) String path,
+            @RequestHeader(value = SignConfig.HEADER_DYNAMIC_SALT, required = false) String dynamicSalt,
+            @RequestHeader(value = SignConfig.HEADER_DYNAMIC_SALT_TIME, required = false) Long dynamicSaltTime,
+            @RequestHeader(value = SignConfig.HEADER_WITH_PARAMS, required = false, defaultValue = "false") Boolean withParams,
             @RequestBody(required = false) Map<String, Object> parameters) {
 
         SignRequest request = new SignRequest();
@@ -240,12 +241,13 @@ public class SignController {
      * @return 校验结果及签名信息
      */
     @PostMapping("/sign-validate")
+    @IgnoreSignHeader
     public ApiResponse<Map<String, Object>> validateSign(
-            @RequestHeader(value = "Sign-appCode", required = false) String appCode,
-            @RequestHeader(value = "Sign-path", required = false) String path,
-            @RequestHeader(value = "Sign-sign", required = false) String sign,
-            @RequestHeader(value = "Sign-time", required = false) Long time,
-            @RequestHeader(value = "Sign-withParams", required = false, defaultValue = "false") Boolean withParams,
+            @RequestHeader(value = SignConfig.HEADER_APP_CODE, required = false) String appCode,
+            @RequestHeader(value = SignConfig.HEADER_PATH, required = false) String path,
+            @RequestHeader(value = SignConfig.HEADER_SIGN, required = false) String sign,
+            @RequestHeader(value = SignConfig.HEADER_TIME, required = false) Long time,
+            @RequestHeader(value = SignConfig.HEADER_WITH_PARAMS, required = false, defaultValue = "false") Boolean withParams,
             @RequestBody(required = false) Map<String, Object> parameters) {
 
         SignVerifyRequest request = new SignVerifyRequest();
@@ -292,87 +294,68 @@ public class SignController {
     /**
      * 获取调用方全部api列表
      * @param signHeaders sign请求头信息
-     * @param withParams [header] 是否携带参数校验，true表示携带参数，false或不传表示不携带参数
-     * @param parameters 其他参数【可选】
+     * @param body 其他参数【可选】
      * @return 请求结果
      */
+    @RequireSign  // 需要签名验证（使用默认 withParams 配置）
     @RequestMapping(
             value = "/user-auth-list",
             method = {RequestMethod.GET, RequestMethod.POST}
     )
     public ApiResponse<Object> userAuthList(
             @ModelAttribute("SignHeaders") SignHeaderRequest signHeaders,
-            @RequestHeader(value = "Sign-withParams", required = false, defaultValue = "false") Boolean withParams,
-            @RequestBody(required = false) Map<String, Object> parameters) {
+            @RequestBody(required = false) Map<String, Object> body) {
         log.info("完整headers：Sign-appCode={}, Sign-sign={}, Sign-time={}, Sign-path={}",
                 signHeaders.getAppCode(), signHeaders.getSign(), signHeaders.getTime(), signHeaders.getPath());
         SignDTO signDTO = signMapper.toDTO(signHeaders);
-        boolean isValid;
-        // 根据 header 中的 withParams 显式指定是否携带参数
-        if (Boolean.TRUE.equals(withParams)) {
-            isValid = signService.validateSignWithParams(signDTO, parameters);
-        } else {
-            isValid = signService.validateSign(signDTO);
-        }
+
+        // 签名验证由拦截器完成，这里直接处理业务逻辑
         Map<String, Object> response = new HashMap<>();
-        response.put("parameters", parameters);
+        response.put("body", body);
         response.put("request", signHeaders);
-        if (isValid) {
-            SignUserAuth signUserAuth = signService.getSignUserAuth(signDTO.getAppCode());
-            // 脱敏 secretKey
-            SignUserAuth maskedAuth = new SignUserAuth(
-                    signUserAuth.appCode(),
-                    "***",  // 脱敏 secretKey
-                    signUserAuth.permitPaths(),
-                    signUserAuth.forbiddenPath()
-            );
-            response.put("signUserAuth", maskedAuth);
-            return ApiResponse.success(response, "请求提交成功。");
-        } else {
-            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), response, "签名校验失败。");
-        }
+
+        SignUserAuth signUserAuth = signService.getSignUserAuth(signDTO.getAppCode());
+        // 脱敏 secretKey
+        SignUserAuth maskedAuth = new SignUserAuth(
+                signUserAuth.appCode(),
+                "***",  // 脱敏 secretKey
+                signUserAuth.permitPaths(),
+                signUserAuth.forbiddenPath()
+        );
+        response.put("signUserAuth", maskedAuth);
+        return ApiResponse.success(response, "请求提交成功。");
     }
 
     /**
-     * 带签名的数据提交接口（测试）
+     * 带签名的数据提交接口（测试 - 不带参数）
      * <p>
-     * 功能：验证签名并提交业务数据
+     * 功能：验证签名并提交业务数据（不包含参数签名）
      * <p>
      * 流程：
-     * 1. 校验应用权限
-     * 2. 验证签名的有效性和时效性
-     * 3. 执行业务逻辑（保存数据等）
+     * 1. 拦截器校验应用权限
+     * 2. 拦截器验证签名的有效性和时效性（不包含参数）
+     * 3. Controller 执行业务逻辑（保存数据等）
      * <p>
      * 使用说明：
      * - 此为测试接口，其他业务接口可参考此实现
      * - 必须携带有效的签名才能提交数据
-     * - 通过 header 中的 withParams 显式指定是否携带参数校验
+     * - 签名验证由拦截器自动完成，Controller 只需处理业务逻辑
      *
-     * @param withParams [header] 是否携带参数校验，true表示携带参数，false或不传表示不携带参数
      * @return 提交结果
      * @header 包含 appCode, path, sign, time 签名请求
      */
+    @RequireSign(withParams = WithParams.FALSE)
     @PostMapping("/submit-test")
     public ApiResponse<Map<String, Object>> submitTest(
             @ModelAttribute("SignHeaders") SignHeaderRequest signHeaders,
-            @RequestHeader(value = "Sign-withParams", required = false, defaultValue = "false") Boolean withParams,
             HttpServletRequest request,
             @RequestBody(required = false) Map<String, Object> parameters) {
         SignDTO signDTO = signMapper.toDTO(signHeaders);
-        boolean isValid;
-        // 根据 header 中的 withParams 显式指定是否携带参数
-        if (Boolean.TRUE.equals(withParams)) {
-            isValid = signService.validateSignWithParams(signDTO, parameters);
-        } else {
-            isValid = signService.validateSign(signDTO);
-        }
+
+        // 签名验证由拦截器完成，这里直接处理业务逻辑
         Map<String, Object> response = new HashMap<>();
-        response.put("isValid", isValid);
+        response.put("isValid", true);  // 能到这里说明签名已通过验证
         response.put("parameters", parameters);
-        if (isValid) {
-            return ApiResponse.success(response, "带签名的请求提交成功。");
-        } else {
-            return ApiResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), response, "带签名的请求校验失败。");
-        }
+        return ApiResponse.success(response, "带签名的请求提交成功。");
     }
 }

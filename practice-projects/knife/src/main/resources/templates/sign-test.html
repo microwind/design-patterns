@@ -45,7 +45,7 @@
     <div class="step">
         <h3>步骤 2：生成签名</h3>
         <div class="input-group">
-            <label>是否带参数:</label>
+            <label>是否带参数(请查看接口要求):</label>
             <select id="withParams">
                 <option value="false">否（不带参数）</option>
                 <option value="true">是（带参数）</option>
@@ -210,8 +210,8 @@
                 'Sign-time': signInfo.time.toString(),
                 'Sign-withParams': signInfo.withParams.toString()
             };
-
-            const response = await fetch('/api/sign/submit-test', {
+            const path = document.getElementById('submitPath').value;
+            const response = await fetch(path, {
                 method: 'POST',
                 headers: headers,
                 body: signInfo.withParams ? JSON.stringify(signInfo.params) : JSON.stringify({})

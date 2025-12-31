@@ -20,18 +20,16 @@ public class SignPageController {
 
     // 签名测试页面
     @GetMapping("/sign-test")
-    @IgnoreSignHeader
     public String signTest() {
         return "sign-test";
     }
 
     // 签名页面 - 下发动态盐值
     @GetMapping("/sign-page")
-    @IgnoreSignHeader
     public String demoPage(Model model) {
-        // 为 /api/sign/submit-test 接口生成动态盐值
+        // 为接口生成动态盐值
         String appCode = "ios1";
-        String path = "/api/sign/submit-test";
+        String path = "/api/admin/admin-sign-submit";
 
         try {
             // 注意 DynamicSaltService.generate 返回 DynamicSaltDTO

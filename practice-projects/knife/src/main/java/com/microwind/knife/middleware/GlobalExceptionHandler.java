@@ -37,6 +37,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public GlobalExceptionHandler() {
         System.out.println("============ GlobalExceptionHandler 初始化成功 ============");
     }
+
+    public static String maskStackTrace(String msg) {
+        return msg.replaceAll(
+                "com(\\.[a-zA-Z0-9_]+)+\\.([a-zA-Z0-9_]+\\(\\))",
+                "com.***.$2"
+        );
+    }
+
     /**
      * 构建标准化错误响应
      *
@@ -60,8 +68,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 problemDetail = ProblemDetail.forStatusAndDetail(status, detail.toString());
             }
             problemDetail.setTitle(title);
-            if (error != null) {
-                problemDetail.setProperty("error", error.toString());
+            if (error != null && error.toString() != null) {
+                // 替换包名和路径
+                String errorMsg = maskStackTrace(error.toString());
+                problemDetail.setProperty("error", errorMsg);
             }
             // 增加一个code返回值
             problemDetail.setProperty("code", status.value());

@@ -1,5 +1,6 @@
 package com.microwind.knife.interfaces.advice;
 
+import com.microwind.knife.application.config.SignConfig;
 import com.microwind.knife.interfaces.annotation.IgnoreSignHeader;
 import com.microwind.knife.interfaces.vo.sign.SignHeaderRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,20 +14,21 @@ import org.springframework.web.servlet.HandlerMapping;
 import java.util.Optional;
 
 /**
- * 控制器增强：自动提取并校验签名相关请求头
+ * 控制器增强：自动提取签名相关请求头
+ * <p>
+ * 职责：仅负责提取和封装签名 header 信息，不负责验证
+ * <p>
+ * 说明：
+ * - 签名验证由 SignatureInterceptor 统一处理
+ * - 此类只是为了方便 Controller 通过 @ModelAttribute 获取签名信息
+ * - 如果方法上有 @IgnoreSignHeader 注解，返回 null
+ * - 如果签名 header 缺失，返回 null（由拦截器处理验证）
  */
 @Slf4j
 @ControllerAdvice(basePackages = {
-        "com.microwind.knife.interfaces.controllers.sign",
-        "com.microwind.knife.interfaces.controllers.user",
-        "com.microwind.knife.interfaces.controllers.admin"
+        "com.microwind.knife.interfaces.controllers"
 })
 public class SignHeaderAdvice {
-
-    private static final String HEADER_APP_CODE = "Sign-appCode";
-    private static final String HEADER_SIGN = "Sign-sign";
-    private static final String HEADER_PATH = "Sign-path";
-    private static final String HEADER_TIME = "Sign-time";
 
     @ModelAttribute("SignHeaders")
     public SignHeaderRequest extractSignHeaders(HttpServletRequest request) {
@@ -40,16 +42,15 @@ public class SignHeaderAdvice {
         }
 
         // 1. 提取基础请求头
-        String appCode = request.getHeader(HEADER_APP_CODE);
-        String sign = request.getHeader(HEADER_SIGN);
-        String timeStr = request.getHeader(HEADER_TIME);
-        String clientPath = request.getHeader(HEADER_PATH);
+        String appCode = request.getHeader(SignConfig.HEADER_APP_CODE);
+        String sign = request.getHeader(SignConfig.HEADER_SIGN);
+        String timeStr = request.getHeader(SignConfig.HEADER_TIME);
+        String clientPath = request.getHeader(SignConfig.HEADER_PATH);
 
-        // 2. 快速失败校验 (Fast-Fail)
+        // 2. 如果所有签名 header 都缺失，返回 null（不抛出异常，由拦截器处理验证）
         if (StringUtils.isAllBlank(appCode, sign, timeStr)) {
             log.debug("签名请求头缺失: Sign-appCode={}, Sign-sign={}, Sign-time={}", appCode, sign, timeStr);
-            // 建议抛出自定义异常，如 throw new BusinessException(ErrorCode.SIGN_HEADER_MISSING);
-             throw new IllegalArgumentException("Missing mandatory signature headers");
+            return null;
         }
 
         // 3. 解析时间戳
@@ -65,11 +66,10 @@ public class SignHeaderAdvice {
         String serverPath = Optional.ofNullable(templatePath)
                 .orElseGet(() -> requestURI.substring(contextPath.length()));
 
-        // 5. 路径一致性校验
-        // 如果客户端传了 path，必须与服务端识别的路径一致，防止重放攻击或路径欺骗
+        // 5. 路径一致性检查（仅记录，不验证）
+        // 实际验证由 SignatureInterceptor 处理
         if (StringUtils.isNoneBlank(clientPath) && !clientPath.equals(serverPath)) {
             log.debug("路径不匹配: 客户端传输={}, 服务端识别={}", clientPath, serverPath);
-//            throw new IllegalArgumentException("Request path mismatch for signature");
         }
 
         // 6. 构建并返回
@@ -81,6 +81,12 @@ public class SignHeaderAdvice {
                 .build();
     }
 
+    /**
+     * 安全解析 Long 类型的时间戳
+     * <p>
+     * 注意：此方法只负责解析，不负责验证
+     * 如果格式错误，返回 null，由拦截器处理验证
+     */
     private Long parseLongSafe(String value) {
         if (StringUtils.isBlank(value)) {
             return null;
@@ -88,7 +94,8 @@ public class SignHeaderAdvice {
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid timestamp format");
+            log.debug("时间戳格式错误: {}", value);
+            return null;  // 不抛出异常，由拦截器处理验证
         }
     }
 }

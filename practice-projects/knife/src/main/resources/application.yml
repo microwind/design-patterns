@@ -124,6 +124,12 @@ sign:
   dynamic-salt-generate-path: "/api/sign/dynamic-salt-generate"
   # 签名生成路径
   sign-generate-path: "/api/sign/generate"
+  # 需要缓存请求体的路径模式列表（使用 Ant 风格路径模式）
+  # 只有这些路径的请求才会被 CachedBodyFilter 缓存 body
+  cached-body-path-patterns:
+    - "/api/**"  # 缓存所有 /api/ 下的请求
+#    - "/api/admin/**"  # 示例：只缓存支付相关请求
+#    - "/api/order/**"    # 示例：只缓存订单相关请求
   # 动态盐值配置
   dynamic-salt:
     # 动态盐值有效期（毫秒），默认24小时
@@ -134,3 +140,7 @@ sign:
   signature:
     # 签名有效期（毫秒），默认30分钟
     ttl: 1800000
+    # 默认是否使用参数签名（默认 false）
+    # false: 签名计算不包含请求参数（使用 SHA-256 算法）
+    # true: 签名计算包含请求参数（使用 SM3 算法）
+    default-with-params: false
