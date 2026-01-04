@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: microwind.springboot4ddd
+
+  # 测试环境使用H2内存数据库
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # Redis测试配置 - 使用嵌入式或mock
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.github.microwind.springboot4ddd: DEBUG
