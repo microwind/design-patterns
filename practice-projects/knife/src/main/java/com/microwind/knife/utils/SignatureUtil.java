@@ -37,9 +37,7 @@ public class SignatureUtil {
         if (appCode != null && !appCode.isEmpty()) {
             signatureSource += appCode;
         }
-        if (secretKey != null && !secretKey.isEmpty()) {
-            signatureSource += secretKey;
-        }
+        signatureSource += secretKey;
         if (time != null) {
             signatureSource += time;
         }
@@ -156,9 +154,9 @@ public class SignatureUtil {
         /* === 测试例子1：正常参数 === */
         Map<String, Object> requestParams = new HashMap<>();
         requestParams.put("userName", "张三");
-        requestParams.put("emptyNo", ""); // 空串不参与签名
+        requestParams.put("emptyNo", ""); // 空串不签名
         requestParams.put("mobile", "19212341234");
-        requestParams.put("emptyParam", null); // null不参与签名
+        requestParams.put("emptyParam", null); // null不签名
         requestParams.put("userId", "321123");
         requestParams.put("nonce", "5w5sd2fe9iexadfsvafsadact3wh");
         requestParams.put("list", new ArrayList<>()); // 复杂类型不参与签名

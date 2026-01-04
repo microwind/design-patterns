@@ -15,34 +15,85 @@ java-web/
 │   │   │   │   │   └── knife            # 项目名，若项目较大，可以再建立模块目录
 │   │   │   │   │        ├── application/          # 应用层（协调领域逻辑，处理业务用例）
 │   │   │   │   │        │   ├── services/         # 服务层，业务逻辑目录
-│   │   │   │   │        │   │   ├── OrderService.java   # 订单应用服务
-│   │   │   │   │        │   │   └── SampleService.java    # 书本应用服务
-│   │   │   │   │        │   └── dto/              # 数据传输对象（DTO）
-│   │   │   │   │        │   │   ├── OrderDTO.java # 订单数据交换对象
-│   │   │   │   │        │   │   └── BookDTO.java  # 书本数据交换对象
+│   │   │   │   │        │   │   ├── order/               # 订单应用服务
+│   │   │   │   │        │   │   │   └── OrderService.java   # 订单应用服务
+│   │   │   │   │        │   │   ├── sign/                # 签名应用服务
+│   │   │   │   │        │   │   │   ├── SignService.java         # 签名核心服务
+│   │   │   │   │        │   │   │   ├── SignValidationService.java # 签名验证服务
+│   │   │   │   │        │   │   │   ├── DynamicSaltService.java    # 动态盐值服务
+│   │   │   │   │        │   │   │   └── strategy/                  # 签名策略模式
+│   │   │   │   │        │   │   │       ├── secretkey/             # 密钥获取策略
+│   │   │   │   │        │   │   │       ├── dynamicsalt/           # 动态盐值策略
+│   │   │   │   │        │   │   │       └── interfacesalt/         # 接口盐值策略
+│   │   │   │   │        │   │   └── user/                # 用户应用服务
+│   │   │   │   │        │   ├── dto/              # 数据传输对象（DTO）
+│   │   │   │   │        │   │   ├── order/               # 订单数据交换对象
+│   │   │   │   │        │   │   │   └── OrderDTO.java
+│   │   │   │   │        │   │   ├── sign/                # 签名数据交换对象
+│   │   │   │   │        │   │   │   ├── SignDTO.java         # 签名DTO
+│   │   │   │   │        │   │   │   ├── DynamicSaltDTO.java  # 动态盐值DTO
+│   │   │   │   │        │   │   │   └── SignMapper.java      # 签名对象映射器
+│   │   │   │   │        │   │   └── user/                # 用户数据交换对象
+│   │   │   │   │        │   └── config/            # 应用配置
+│   │   │   │   │        │       ├── SignConfig.java      # 签名配置类
+│   │   │   │   │        │       └── ApiAuthConfig.java   # API认证配置
 │   │   │   │   │        ├── domain/               # 领域层（核心业务逻辑和接口定义）
-│   │   │   │   │        │   └── order/            # 订单聚合（聚合根和业务逻辑）
-│   │   │   │   │        │   │   ├── Order.java    # 订单实体（聚合根），包含核心业务逻辑
-│   │   │   │   │        │   └── book/                 # 书本聚合（聚合根和业务逻辑）
-│   │   │   │   │        │   └── repository/           # 仓库接口
-│   │   │   │   │        │   │   ├── Repository.java    # [可选]仓库通用接口
-│   │   │   │   │        │   │   ├── OrderRepository.java       # 订单仓储接口，继承通用接口
+│   │   │   │   │        │   ├── order/            # 订单聚合（聚合根和业务逻辑）
+│   │   │   │   │        │   │   └── Order.java    # 订单实体（聚合根），包含核心业务逻辑
+│   │   │   │   │        │   ├── sign/             # 签名领域
+│   │   │   │   │        │   │   ├── Sign.java            # 签名领域对象
+│   │   │   │   │        │   │   ├── SignUserAuth.java    # 签名用户授权
+│   │   │   │   │        │   │   ├── SignUserInfo.java    # 签名用户信息
+│   │   │   │   │        │   │   ├── DynamicSalt.java     # 动态盐值领域对象
+│   │   │   │   │        │   │   └── SignDomainService.java # 签名领域服务
+│   │   │   │   │        │   ├── user/             # 用户聚合
+│   │   │   │   │        │   └── repository/       # 仓库接口
+│   │   │   │   │        │       ├── Repository.java         # [可选]仓库通用接口
+│   │   │   │   │        │       ├── OrderRepository.java    # 订单仓储接口
+│   │   │   │   │        │       ├── SignRepository.java     # 签名仓储接口
+│   │   │   │   │        │       └── apiauth/                # API认证仓储接口
 │   │   │   │   │        ├── infrastructure/       # 基础设施层（实现领域层定义的接口）
 │   │   │   │   │        │   ├── repository/       # 仓储实现
 │   │   │   │   │        │   │   ├── OrderRepositoryImpl.java # 订单仓储实现
+│   │   │   │   │        │   │   └── SignRepositoryImpl.java  # 签名仓储实现
 │   │   │   │   │        │   ├── messaging/        # 消息队列实现
 │   │   │   │   │        │   └── configuration/    # 基础配置（与外部系统相关）
-│   │   │   │   │        │   │   ├── DatabaseConfig.java  # [可选]数据库配置
+│   │   │   │   │        │       ├── DatabaseConfig.java         # [可选]数据库配置
+│   │   │   │   │        │       └── ApiAuthDataSourceConfig.java # API认证数据源配置
 │   │   │   │   │        ├── interfaces/           # 接口层（处理外部请求，如HTTP接口）
 │   │   │   │   │        │   ├── controllers/      # RESTful API接口
-│   │   │   │   │        │   │   ├── OrderController.java  # 订单相关的HTTP接口
+│   │   │   │   │        │   │   ├── order/               # 订单相关控制器
+│   │   │   │   │        │   │   │   └── OrderController.java
+│   │   │   │   │        │   │   ├── sign/                # 签名相关控制器
+│   │   │   │   │        │   │   │   ├── SignController.java     # 签名API接口
+│   │   │   │   │        │   │   │   └── SignPageController.java # 签名页面接口
+│   │   │   │   │        │   │   ├── user/                # 用户相关控制器
+│   │   │   │   │        │   │   └── apiauth/             # API认证相关控制器
+│   │   │   │   │        │   ├── annotation/       # 注解定义
+│   │   │   │   │        │   │   ├── RequireSign.java         # 需要签名验证注解
+│   │   │   │   │        │   │   ├── IgnoreSignHeader.java    # 忽略签名验证注解
+│   │   │   │   │        │   │   └── WithParams.java           # 签名参数模式枚举
+│   │   │   │   │        │   ├── advice/            # 切面增强
+│   │   │   │   │        │   │   └── SignHeaderAdvice.java    # 签名Header参数绑定
+│   │   │   │   │        │   └── vo/                # 视图对象（View Object）
+│   │   │   │   │        │       ├── order/               # 订单视图对象
+│   │   │   │   │        │       ├── sign/                # 签名视图对象
+│   │   │   │   │        │       │   ├── SignRequest.java        # 签名请求VO
+│   │   │   │   │        │       │   ├── SignResponse.java       # 签名响应VO
+│   │   │   │   │        │       │   ├── SignHeaderRequest.java  # 签名Header请求VO
+│   │   │   │   │        │       │   └── DynamicSaltRequest.java # 动态盐值请求VO
+│   │   │   │   │        │       └── user/                # 用户视图对象
 │   │   │   │   │        ├── middleware/           # 中间件（例如：鉴权、日志、拦截等）
-│   │   │   │   │        │   └── LoggingFilter.java # 日志中间件，java通常使用Filter
-│   │   │   │   │        └── common/               # 通用组件（通用的服务类）
-│   │   │   │   │        └── config/               # 通用配置（管理服务器和应用信息）
-│   │   │   │   │        │   └── WebConfig.java    # 服务通用配置
-│   │   │   │   │        └── utils/                # 实用工具
-│   │   │   │   │        │   └── DataUtils.java    # 日期工具
+│   │   │   │   │        │   ├── LoggingFilter.java        # 日志中间件
+│   │   │   │   │        │   ├── SignatureInterceptor.java # 签名验证拦截器
+│   │   │   │   │        │   └── CachedBodyFilter.java     # 请求体缓存过滤器
+│   │   │   │   │        ├── common/               # 通用组件（通用的服务类）
+│   │   │   │   │        │   └── ApiResponse.java          # 统一响应对象
+│   │   │   │   │        ├── config/               # 通用配置（管理服务器和应用信息）
+│   │   │   │   │        │   └── WebConfig.java            # 服务通用配置
+│   │   │   │   │        ├── utils/                # 实用工具
+│   │   │   │   │        │   ├── DataUtils.java            # 日期工具
+│   │   │   │   │        │   └── SignatureUtil.java        # 签名工具类
 │   │   │   │   │        └── Application.java      # 应用启动类
 │   │   │   └── resources/
 │   │   │   │   └── application.yml         # 配置文件
@@ -53,6 +104,8 @@ java-web/
 │   │            │   └── knife
 │   │            │        ├── application/       # 应用层的测试
 │   │            │        ├── interfaces/        # 接口层的测试
+│   │            │            └── controllers/
+│   │            │                └── sign/      # 签名接口测试
 │── pom.xml                      # Maven 配置文件（如果使用 Maven）
 │── build.gradle                 # Gradle 配置文件（如果使用 Gradle）
 ```
@@ -62,6 +115,19 @@ java-web/
 - 如果项目属于中小型，则不再区分模块目录，相关文件按照层级放在一起，只是domain按模块区分目录。
 - 如果项目较大，则可以按照模块再分别建立目录，每个模块包括这四层。
 - 在微服务理念下，单个项目没有必要太大，过大既影响运行速度也影响开发效率，如果项目太大了，不如进行项目拆分。
+
+### Sign 签名验证模块
+本项目实现了完整的 API 签名验证机制，用于保护接口安全，防止数据篡改和重放攻击。
+
+**核心组件**：
+- **接口层**：`@RequireSign`、`@IgnoreSignHeader` 注解，SignController API 接口
+- **中间件层**：SignatureInterceptor 拦截器，CachedBodyFilter 请求体缓存过滤器
+- **应用层**：SignService、DynamicSaltService、SignValidationService
+- **策略模式**：SecretKeyStrategy、DynamicSaltStrategy、InterfaceSaltStrategy
+- **领域层**：Sign、DynamicSalt、SignUserAuth 领域对象
+- **工具类**：SignatureUtil 签名工具类（支持 MD5、SHA1、SHA256、SM3）
+
+**详细文档**：请参考 [SIGN.md](SIGN.md) 了解签名机制的详细说明、配置方式和使用示例。
   
 ### application
 - service：封装应用业务逻辑，如订单创建、处理。
