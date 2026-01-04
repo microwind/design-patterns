@@ -23,6 +23,17 @@ rocketmq:
   producer:
     group: springboot4ddd-producer
 
+# 签名配置
+sign:
+  # 签名相关配置
+  signature:
+    ttl: 600000  # 签名有效期（毫秒），10分钟
+    default-with-params: false  # 默认不使用参数签名
+  # 需要缓存请求体的路径模式
+  cached-body-path-patterns:
+    - /api/order/**
+    - /api/payment/**
+
 # 服务器配置
 server:
   port: 8080

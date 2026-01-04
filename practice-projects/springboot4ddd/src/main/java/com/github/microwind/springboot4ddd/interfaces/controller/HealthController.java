@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.interfaces.rest;
+package com.github.microwind.springboot4ddd.interfaces.controller;
 
 import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
