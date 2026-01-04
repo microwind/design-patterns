@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: microwind.springboot4ddd
