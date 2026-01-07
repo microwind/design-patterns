@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.application.dto;
+package com.github.microwind.springboot4ddd.application.dto.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -3,6 +3,7 @@ package com.github.microwind.springboot4ddd.infrastructure.middleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.microwind.springboot4ddd.infrastructure.config.ApiAuthConfig;
 import com.github.microwind.springboot4ddd.infrastructure.config.SignConfig;
 import com.github.microwind.springboot4ddd.infrastructure.util.SignatureUtil;
 import com.github.microwind.springboot4ddd.interfaces.annotation.IgnoreSignHeader;
@@ -35,13 +36,8 @@ import java.util.Map;
 public class SignatureInterceptor implements HandlerInterceptor {
 
     private final SignConfig signConfig;
+    private final ApiAuthConfig apiAuthConfig;
     private final ObjectMapper objectMapper;
-
-    // 模拟应用配置（实际应从数据库或配置文件读取）
-    private static final Map<String, String> APP_SECRETS = new HashMap<>();
-    static {
-        APP_SECRETS.put("test-app", "test-secret-key-123");
-    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -94,11 +90,17 @@ public class SignatureInterceptor implements HandlerInterceptor {
             throw new IllegalArgumentException("签名已过期");
         }
 
-        // 获取密钥
-        String secretKey = APP_SECRETS.get(appCode);
-        if (secretKey == null) {
+        // 从ApiAuthConfig获取应用配置
+        ApiAuthConfig.AppConfig appConfig = apiAuthConfig.getAppConfigByCode(appCode);
+        if (appConfig == null) {
             log.warn("签名验证失败：未知的 appCode={}", appCode);
             throw new IllegalArgumentException("未知的应用编码");
+        }
+
+        String secretKey = appConfig.getSecretKey();
+        if (secretKey == null) {
+            log.warn("签名验证失败：appCode={} 未配置密钥", appCode);
+            throw new IllegalArgumentException("应用未配置密钥");
         }
 
         // 获取请求路径
@@ -106,6 +108,12 @@ public class SignatureInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         String contextPath = request.getContextPath();
         String serverPath = (templatePath != null) ? templatePath : requestURI.substring(contextPath.length());
+
+        // 验证权限
+        if (!apiAuthConfig.hasPermission(appCode, serverPath)) {
+            log.warn("签名验证失败：appCode={} 无权访问路径 {}", appCode, serverPath);
+            throw new IllegalArgumentException("无权访问该接口");
+        }
 
         // 执行签名验证
         boolean isValid;

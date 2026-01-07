@@ -1,0 +1,43 @@
+# spring settings
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: false
+
+  server:
+    port: 8080
+    env: production
+#    error:
+#      include-message: never
+#      include-stacktrace: never
+
+  # local Cache (commented out)
+  # datasource:
+  #   url: jdbc:h2:mem:orderdb
+  #   driverClassName: org.h2.Driver
+  #   username: sa
+  #   password:
+
+  # H2 (commented out)
+  # h2:
+  #   console:
+  #     enabled: true
+  #     path: /h2-console
+
+  # MySQL config - User database
+  user:
+    datasource:
+      jdbc-url: jdbc:mysql://localhost:3306/frog?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+      username: frog_admin
+      password: frog798
+
+  # PostgreSQL config - order database
+  order:
+    datasource:
+      jdbc-url: jdbc:postgresql://localhost:5432/seed
+      username: postgres
+      password: lego798
+
+# 日志级别配置
+logging:
+  level:
+    root: INFO

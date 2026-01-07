@@ -1,5 +1,7 @@
 package com.github.microwind.springboot4ddd.infrastructure.common;
 
+import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;
+import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -22,8 +24,23 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     /**
-     * 处理参数校验异常
+     * 处理资源未找到异常
      */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        return ApiResponse.error(404, ex.getMessage());
+    }
+
+    /**
+     * 处理业务异常
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ApiResponse<Void> handleBusinessException(BusinessException ex) {
+        log.warn("Business exception: code={}, message={}", ex.getCode(), ex.getMessage());
+        return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException ex) {

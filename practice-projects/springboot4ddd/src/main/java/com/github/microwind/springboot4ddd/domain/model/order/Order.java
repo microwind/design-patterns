@@ -1,7 +1,8 @@
-package com.github.microwind.springboot4ddd.domain.model;
+package com.github.microwind.springboot4ddd.domain.model.order;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
@@ -26,16 +27,19 @@ public class Order {
     /**
      * 订单号
      */
+    @Column("order_no")
     private String orderNo;
 
     /**
      * 用户ID
      */
+    @Column("user_id")
     private Long userId;
 
     /**
      * 订单总金额
      */
+    @Column("total_amount")
     private BigDecimal totalAmount;
 
     /**
@@ -46,11 +50,13 @@ public class Order {
     /**
      * 创建时间
      */
+    @Column("created_at")
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
+    @Column("updated_at")
     private LocalDateTime updatedAt;
 
     /**

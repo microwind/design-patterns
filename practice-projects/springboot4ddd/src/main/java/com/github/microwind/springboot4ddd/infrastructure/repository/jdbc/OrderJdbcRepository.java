@@ -1,6 +1,6 @@
-package com.github.microwind.springboot4ddd.infrastructure.repository;
+package com.github.microwind.springboot4ddd.infrastructure.repository.jdbc;
 
-import com.github.microwind.springboot4ddd.domain.model.Order;
+import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

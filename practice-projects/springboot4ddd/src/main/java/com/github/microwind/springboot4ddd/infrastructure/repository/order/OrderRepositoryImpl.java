@@ -1,12 +1,15 @@
-package com.github.microwind.springboot4ddd.infrastructure.repository;
+package com.github.microwind.springboot4ddd.infrastructure.repository.order;
 
-import com.github.microwind.springboot4ddd.domain.model.Order;
-import com.github.microwind.springboot4ddd.domain.repository.OrderRepository;
+import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
+import com.github.microwind.springboot4ddd.infrastructure.repository.jdbc.OrderJdbcRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -17,8 +20,10 @@ import java.util.stream.StreamSupport;
  */
 @Component
 @RequiredArgsConstructor
+@Transactional(transactionManager = "orderTransactionManager")
 public class OrderRepositoryImpl implements OrderRepository {
 
+    // 使用Spring Data JDBC实现数据操作
     private final OrderJdbcRepository orderJdbcRepository;
 
     @Override
@@ -43,8 +48,10 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findAll() {
+//        return StreamSupport.stream(orderJdbcRepository.findAll().spliterator(), false)
+//                .toList();
         return StreamSupport.stream(orderJdbcRepository.findAll().spliterator(), false)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override

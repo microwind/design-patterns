@@ -1,11 +1,11 @@
-package com.github.microwind.springboot4ddd.interfaces.controller;
+package com.github.microwind.springboot4ddd.interfaces.controller.order;
 
-import com.github.microwind.springboot4ddd.application.dto.OrderDTO;
-import com.github.microwind.springboot4ddd.application.service.OrderApplicationService;
+import com.github.microwind.springboot4ddd.application.dto.order.OrderDTO;
+import com.github.microwind.springboot4ddd.application.service.order.OrderService;
 import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
 import com.github.microwind.springboot4ddd.interfaces.annotation.RequireSign;
 import com.github.microwind.springboot4ddd.interfaces.annotation.WithParams;
-import com.github.microwind.springboot4ddd.interfaces.vo.CreateOrderRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +18,11 @@ import java.util.List;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderService orderService;
 
     /**
      * 创建订单（需要签名验证，带参数）
@@ -30,7 +30,7 @@ public class OrderController {
     @PostMapping("/create")
     @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
-        OrderDTO order = orderApplicationService.createOrder(request);
+        OrderDTO order = orderService.createOrder(request);
         return ApiResponse.success(order);
     }
 
@@ -38,14 +38,10 @@ public class OrderController {
      * 获取订单详情（需要签名验证，不带参数）
      */
     @GetMapping("/{id}")
-    @RequireSign(withParams = WithParams.FALSE)
+//    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderDTO> getOrder(@PathVariable Long id) {
-        try {
-            OrderDTO order = orderApplicationService.getOrder(id);
-            return ApiResponse.success(order);
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        OrderDTO order = orderService.getOrder(id);
+        return ApiResponse.success(order);
     }
 
     /**
@@ -54,7 +50,7 @@ public class OrderController {
     @GetMapping("/user/{userId}")
     @RequireSign
     public ApiResponse<List<OrderDTO>> getUserOrders(@PathVariable Long userId) {
-        List<OrderDTO> orders = orderApplicationService.getUserOrders(userId);
+        List<OrderDTO> orders = orderService.getUserOrders(userId);
         return ApiResponse.success(orders);
     }
 
@@ -62,9 +58,9 @@ public class OrderController {
      * 获取所有订单
      */
     @GetMapping("/list")
-    @RequireSign
+//    @RequireSign
     public ApiResponse<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> orders = orderApplicationService.getAllOrders();
+        List<OrderDTO> orders = orderService.getAllOrders();
         return ApiResponse.success(orders);
     }
 
@@ -74,12 +70,8 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> cancelOrder(@PathVariable Long id) {
-        try {
-            OrderDTO order = orderApplicationService.cancelOrder(id);
-            return ApiResponse.success(order);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        OrderDTO order = orderService.cancelOrder(id);
+        return ApiResponse.success(order);
     }
 
     /**
@@ -88,12 +80,8 @@ public class OrderController {
     @PostMapping("/{id}/pay")
     @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> payOrder(@PathVariable Long id) {
-        try {
-            OrderDTO order = orderApplicationService.payOrder(id);
-            return ApiResponse.success(order);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        OrderDTO order = orderService.payOrder(id);
+        return ApiResponse.success(order);
     }
 
     /**
@@ -102,12 +90,8 @@ public class OrderController {
     @PostMapping("/{id}/complete")
     @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> completeOrder(@PathVariable Long id) {
-        try {
-            OrderDTO order = orderApplicationService.completeOrder(id);
-            return ApiResponse.success(order);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        OrderDTO order = orderService.completeOrder(id);
+        return ApiResponse.success(order);
     }
 
     /**
@@ -116,11 +100,7 @@ public class OrderController {
     @DeleteMapping("/{id}")
     @RequireSign
     public ApiResponse<Void> deleteOrder(@PathVariable Long id) {
-        try {
-            orderApplicationService.deleteOrder(id);
-            return ApiResponse.success(null);
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        orderService.deleteOrder(id);
+        return ApiResponse.success(null);
     }
 }

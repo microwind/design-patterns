@@ -1,10 +1,10 @@
-package com.github.microwind.springboot4ddd.application.service;
+package com.github.microwind.springboot4ddd.application.service.order;
 
-import com.github.microwind.springboot4ddd.application.dto.OrderDTO;
-import com.github.microwind.springboot4ddd.application.dto.OrderMapper;
-import com.github.microwind.springboot4ddd.domain.model.Order;
-import com.github.microwind.springboot4ddd.domain.repository.OrderRepository;
-import com.github.microwind.springboot4ddd.interfaces.vo.CreateOrderRequest;
+import com.github.microwind.springboot4ddd.application.dto.order.OrderDTO;
+import com.github.microwind.springboot4ddd.application.dto.order.OrderMapper;
+import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,8 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderApplicationService {
+@Transactional(transactionManager = "orderTransactionManager")
+public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
@@ -33,7 +34,7 @@ public class OrderApplicationService {
      * @param request 创建订单请求
      * @return 订单DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "orderTransactionManager")
     public OrderDTO createOrder(CreateOrderRequest request) {
         log.info("创建订单，userId={}, totalAmount={}", request.getUserId(), request.getTotalAmount());
 
@@ -83,6 +84,7 @@ public class OrderApplicationService {
      * @param userId 用户ID
      * @return 订单DTO列表
      */
+    @Transactional("orderTransactionManager")
     public List<OrderDTO> getUserOrders(Long userId) {
         log.info("查询用户订单列表，userId={}", userId);
 
@@ -95,6 +97,7 @@ public class OrderApplicationService {
      *
      * @return 订单DTO列表
      */
+    @Transactional("orderTransactionManager")
     public List<OrderDTO> getAllOrders() {
         log.info("查询所有订单");
 
@@ -108,7 +111,7 @@ public class OrderApplicationService {
      * @param id 订单ID
      * @return 订单DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "orderTransactionManager")
     public OrderDTO cancelOrder(Long id) {
         log.info("取消订单，id={}", id);
 
@@ -131,7 +134,7 @@ public class OrderApplicationService {
      * @param id 订单ID
      * @return 订单DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "orderTransactionManager")
     public OrderDTO payOrder(Long id) {
         log.info("支付订单，id={}", id);
 
@@ -154,7 +157,7 @@ public class OrderApplicationService {
      * @param id 订单ID
      * @return 订单DTO
      */
-    @Transactional
+    @Transactional(transactionManager = "orderTransactionManager")
     public OrderDTO completeOrder(Long id) {
         log.info("完成订单，id={}", id);
 
@@ -176,7 +179,7 @@ public class OrderApplicationService {
      *
      * @param id 订单ID
      */
-    @Transactional
+    @Transactional(transactionManager = "orderTransactionManager")
     public void deleteOrder(Long id) {
         log.info("删除订单，id={}", id);
 

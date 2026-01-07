@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.interfaces.vo;
+package com.github.microwind.springboot4ddd.interfaces.vo.order;
 
 import lombok.Data;
 

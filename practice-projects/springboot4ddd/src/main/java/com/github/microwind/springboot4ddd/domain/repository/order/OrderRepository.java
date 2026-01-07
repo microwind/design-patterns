@@ -1,6 +1,6 @@
-package com.github.microwind.springboot4ddd.domain.repository;
+package com.github.microwind.springboot4ddd.domain.repository.order;
 
-import com.github.microwind.springboot4ddd.domain.model.Order;
+import com.github.microwind.springboot4ddd.domain.model.order.Order;
 
 import java.util.List;
 import java.util.Optional;

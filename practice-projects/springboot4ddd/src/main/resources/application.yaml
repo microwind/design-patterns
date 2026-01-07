@@ -2,12 +2,50 @@ spring:
   application:
     name: microwind.springboot4ddd
 
-  # 数据库配置
-  datasource:
-    url: jdbc:postgresql://localhost:5432/springboot4ddd
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+  profiles:
+    active: dev
+
+  # Spring Boot level
+  logging:
+    level:
+      root: INFO
+      org.springframework: DEBUG
+
+    file:
+      name: logs/app.log
+      path: logs
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+  # MySQL - User database (Secondary)
+  user:
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SELECT 1
+      pool-name: UserDB-Pool
+
+  # PostgreSQL - order database (Third)
+  order:
+    datasource:
+      driver-class-name: org.postgresql.Driver
+      minimum-idle: 3
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SELECT 1
+      pool-name: OrdersDB-Pool
 
   # Redis配置
   data:

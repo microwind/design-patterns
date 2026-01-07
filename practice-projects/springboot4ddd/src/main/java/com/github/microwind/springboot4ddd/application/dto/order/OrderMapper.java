@@ -1,6 +1,6 @@
-package com.github.microwind.springboot4ddd.application.dto;
+package com.github.microwind.springboot4ddd.application.dto.order;
 
-import com.github.microwind.springboot4ddd.domain.model.Order;
+import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

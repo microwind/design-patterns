@@ -3,7 +3,6 @@ package com.github.microwind.springboot4ddd.infrastructure.util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
