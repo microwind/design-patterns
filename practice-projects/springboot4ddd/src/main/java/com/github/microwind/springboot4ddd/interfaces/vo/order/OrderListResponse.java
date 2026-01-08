@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderListResponse {
@@ -26,8 +27,11 @@ public class OrderListResponse {
      * 订单基本信息
      * @JsonUnwrapped 会将 order 对象的所有字段展开到当前层级
      */
-    @JsonUnwrapped  // ✅ 关键注解
-    private OrderResponse order;
+    // 扁平化数据可以通过继承或组合来实现
+    // 1. 继承OrderResponse对象，通过@SuperBuilder替代@Builder注解
+    // 2. 或组合对象数据，不要继承，通过JsonUnwrapped注解使得对象扁平化
+     @JsonUnwrapped
+     private OrderResponse order;
 
     /**
      * 用户姓名（跨库查询）

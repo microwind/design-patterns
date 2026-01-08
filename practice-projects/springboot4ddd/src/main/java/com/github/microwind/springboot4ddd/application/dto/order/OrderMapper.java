@@ -92,14 +92,15 @@ public class OrderMapper {
 //                .id(order.getId())
 //                .orderNo(order.getOrderNo())
 //                .userId(order.getUserId())
-                .order(toOrderResponse(order))
-                .userName(userName)
-                .userPhone(userPhone)
 //                .totalAmount(order.getTotalAmount())
 //                .status(order.getStatus())
 //                .statusDesc(getStatusDescription(order.getStatus()))
 //                .createdAt(order.getCreatedAt())
 //                .updatedAt(order.getUpdatedAt())
+                .userName(userName)
+                .userPhone(userPhone)
+                // 如果是组合方式则仅写入对象
+                .order(toOrderResponse(order))
                 .build();
     }
 
