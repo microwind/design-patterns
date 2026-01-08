@@ -1,7 +1,11 @@
-# default Environment
+# spring settings
 spring:
+  application:
+    name: microwind.knife
+
   profiles:
-    active: prod
+    active: dev
+
   mvc:
     throw-exception-if-no-handler-found: true
 
@@ -56,9 +60,9 @@ spring:
   # MySQL - Order database (Primary)
   order:
     datasource:
-      jdbc-url: ${spring.order.datasource.jdbc-url}
-      username: ${spring.order.datasource.username}
-      password: ${spring.order.datasource.password}
+#      jdbc-url: ${spring.order.datasource.jdbc-url}
+#      username: ${spring.order.datasource.username}
+#      password: ${spring.order.datasource.password}
       driver-class-name: com.mysql.cj.jdbc.Driver
       minimum-idle: 5
       maximum-pool-size: 20
@@ -73,9 +77,9 @@ spring:
   # MySQL - User database (Secondary)
   user:
     datasource:
-      jdbc-url: ${spring.user.datasource.jdbc-url}
-      username: ${spring.user.datasource.username}
-      password: ${spring.user.datasource.password}
+#      jdbc-url: ${spring.user.datasource.jdbc-url}
+#      username: ${spring.user.datasource.username}
+#      password: ${spring.user.datasource.password}
       driver-class-name: com.mysql.cj.jdbc.Driver
       minimum-idle: 5
       maximum-pool-size: 20
@@ -90,9 +94,9 @@ spring:
   # PostgreSQL - API Auth database (Third)
   apiauth:
     datasource:
-      jdbc-url: ${spring.apiauth.datasource.jdbc-url}
-      username: ${spring.apiauth.datasource.username}
-      password: ${spring.apiauth.datasource.password}
+#      jdbc-url: ${spring.apiauth.datasource.jdbc-url}
+#      username: ${spring.apiauth.datasource.username}
+#      password: ${spring.apiauth.datasource.password}
       driver-class-name: org.postgresql.Driver
       minimum-idle: 3
       maximum-pool-size: 10
