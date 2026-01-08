@@ -69,7 +69,7 @@ sign:
     default-with-params: false  # 默认不使用参数签名
   # 需要缓存请求体的路径模式
   cached-body-path-patterns:
-    - /api/order/**
+    - /api/orders/**
     - /api/payment/**
 
 # 服务器配置

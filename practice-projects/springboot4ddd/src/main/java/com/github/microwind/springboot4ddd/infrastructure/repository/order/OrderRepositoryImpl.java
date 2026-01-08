@@ -5,7 +5,6 @@ import com.github.microwind.springboot4ddd.domain.repository.order.OrderReposito
 import com.github.microwind.springboot4ddd.infrastructure.repository.jdbc.OrderJdbcRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,13 +13,13 @@ import java.util.stream.StreamSupport;
 
 /**
  * 订单仓储实现（适配器模式）
+ * 注意：Repository 层不应该管理事务，事务由 Service 层控制
  *
  * @author jarry
  * @since 1.0.0
  */
 @Component
 @RequiredArgsConstructor
-@Transactional(transactionManager = "orderTransactionManager")
 public class OrderRepositoryImpl implements OrderRepository {
 
     // 使用Spring Data JDBC实现数据操作

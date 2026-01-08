@@ -1,8 +1,8 @@
 package com.github.microwind.springboot4ddd.interfaces.controller.user;
 
-import com.github.microwind.springboot4ddd.application.dto.user.CreateUserRequest;
-import com.github.microwind.springboot4ddd.application.dto.user.UpdateUserRequest;
-import com.github.microwind.springboot4ddd.application.dto.user.UserResponse;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.CreateUserRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.UpdateUserRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.UserResponse;
 import com.github.microwind.springboot4ddd.application.service.user.UserService;
 import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
 import jakarta.validation.Valid;

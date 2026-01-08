@@ -1,6 +1,8 @@
 package com.github.microwind.springboot4ddd.application.dto.order;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -46,6 +48,59 @@ public class OrderMapper {
         return orders.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 为OrderDTO填充用户信息（用于跨库查询）
+     */
+    public void enrichUserInfo(OrderDTO orderDTO, String userName, String userPhone) {
+        if (orderDTO != null) {
+            orderDTO.setUserName(userName);
+            orderDTO.setUserPhone(userPhone);
+        }
+    }
+
+    /**
+     * 将Order实体转换为OrderResponse（不含用户信息）
+     */
+    public OrderResponse toOrderResponse(Order order) {
+        if (order == null) {
+            return null;
+        }
+
+        return OrderResponse.builder()
+                .id(order.getId())
+                .orderNo(order.getOrderNo())
+                .userId(order.getUserId())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .statusDesc(getStatusDescription(order.getStatus()))
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .build();
+    }
+
+    /**
+     * 将Order实体转换为OrderListResponse（包含用户信息）
+     */
+    public OrderListResponse toListResponse(Order order, String userName, String userPhone) {
+        if (order == null) {
+            return null;
+        }
+
+        return OrderListResponse.builder()
+//                .id(order.getId())
+//                .orderNo(order.getOrderNo())
+//                .userId(order.getUserId())
+                .order(toOrderResponse(order))
+                .userName(userName)
+                .userPhone(userPhone)
+//                .totalAmount(order.getTotalAmount())
+//                .status(order.getStatus())
+//                .statusDesc(getStatusDescription(order.getStatus()))
+//                .createdAt(order.getCreatedAt())
+//                .updatedAt(order.getUpdatedAt())
+                .build();
     }
 
     /**

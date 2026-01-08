@@ -1,8 +1,8 @@
 package com.github.microwind.springboot4ddd.application.service.user;
 
-import com.github.microwind.springboot4ddd.application.dto.user.CreateUserRequest;
-import com.github.microwind.springboot4ddd.application.dto.user.UpdateUserRequest;
-import com.github.microwind.springboot4ddd.application.dto.user.UserResponse;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.CreateUserRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.UpdateUserRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.user.UserResponse;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
 import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;

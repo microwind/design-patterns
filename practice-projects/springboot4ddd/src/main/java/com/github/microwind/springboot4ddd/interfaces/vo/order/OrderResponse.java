@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.application.dto.order;
+package com.github.microwind.springboot4ddd.interfaces.vo.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 订单数据传输对象
+ * 订单详情响应对象
+ * 用于返回单个订单的详细信息（不含用户详情）
  *
  * @author jarry
  * @since 1.0.0
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDTO {
+public class OrderResponse {
 
     /**
      * 订单ID
@@ -34,18 +35,6 @@ public class OrderDTO {
      * 用户ID
      */
     private Long userId;
-
-    /**
-     * 用户姓名（跨库查询）
-     * 仅在列表查询时返回
-     */
-    private String userName;
-
-    /**
-     * 用户电话（跨库查询）
-     * 仅在列表查询时返回
-     */
-    private String userPhone;
 
     /**
      * 订单总金额

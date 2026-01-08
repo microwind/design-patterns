@@ -6,6 +6,8 @@ import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
 import com.github.microwind.springboot4ddd.interfaces.annotation.RequireSign;
 import com.github.microwind.springboot4ddd.interfaces.annotation.WithParams;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
+import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,31 +38,34 @@ public class OrderController {
 
     /**
      * 获取订单详情（需要签名验证，不带参数）
+     * 不返回用户详情（因为没有跨库查询）
      */
     @GetMapping("/{id}")
 //    @RequireSign(withParams = WithParams.FALSE)
-    public ApiResponse<OrderDTO> getOrder(@PathVariable Long id) {
-        OrderDTO order = orderService.getOrder(id);
+    public ApiResponse<OrderResponse> getOrder(@PathVariable Long id) {
+        OrderResponse order = orderService.getOrderDetail(id);
         return ApiResponse.success(order);
     }
 
     /**
      * 获取用户订单列表（需要签名验证）
+     * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/user/{userId}")
     @RequireSign
-    public ApiResponse<List<OrderDTO>> getUserOrders(@PathVariable Long userId) {
-        List<OrderDTO> orders = orderService.getUserOrders(userId);
+    public ApiResponse<List<OrderListResponse>> getUserOrders(@PathVariable Long userId) {
+        List<OrderListResponse> orders = orderService.getUserOrderList(userId);
         return ApiResponse.success(orders);
     }
 
     /**
      * 获取所有订单
+     * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/list")
 //    @RequireSign
-    public ApiResponse<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> orders = orderService.getAllOrders();
+    public ApiResponse<List<OrderListResponse>> getAllOrders() {
+        List<OrderListResponse> orders = orderService.getAllOrderList();
         return ApiResponse.success(orders);
     }
 

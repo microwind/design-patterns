@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.application.dto.user;
+package com.github.microwind.springboot4ddd.interfaces.vo.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
