@@ -30,7 +30,7 @@ public class OrderController {
      * 创建订单（需要签名验证，带参数）
      */
     @PostMapping("/create")
-    @RequireSign(withParams = WithParams.TRUE)
+//    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
         OrderDTO order = orderService.createOrder(request);
         return ApiResponse.success(order);

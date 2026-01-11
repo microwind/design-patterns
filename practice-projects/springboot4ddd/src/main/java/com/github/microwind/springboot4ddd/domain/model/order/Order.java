@@ -1,12 +1,20 @@
 package com.github.microwind.springboot4ddd.domain.model.order;
 
+import com.github.microwind.springboot4ddd.domain.event.DomainEvent;
+import com.github.microwind.springboot4ddd.domain.event.order.OrderCancelledEvent;
+import com.github.microwind.springboot4ddd.domain.event.order.OrderCompletedEvent;
+import com.github.microwind.springboot4ddd.domain.event.order.OrderCreatedEvent;
+import com.github.microwind.springboot4ddd.domain.event.order.OrderPaidEvent;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 订单领域模型（聚合根）
@@ -60,6 +68,12 @@ public class Order {
     private LocalDateTime updatedAt;
 
     /**
+     * 领域事件列表（不持久化到数据库）
+     */
+    @Transient
+    private List<DomainEvent> domainEvents = new ArrayList<>();
+
+    /**
      * 订单状态枚举
      */
     public enum OrderStatus {
@@ -90,7 +104,22 @@ public class Order {
         order.setStatus(OrderStatus.PENDING.name());
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
+
+        // 记录订单创建事件（注意：此时订单ID可能为null，需要在保存后再记录事件）
         return order;
+    }
+
+    /**
+     * 记录订单创建事件（在订单保存后调用）
+     */
+    public void recordCreatedEvent() {
+        this.recordEvent(new OrderCreatedEvent(
+            this.id,
+            this.orderNo,
+            this.userId,
+            this.totalAmount,
+            this.status
+        ));
     }
 
     /**
@@ -109,6 +138,15 @@ public class Order {
         }
         this.status = OrderStatus.CANCELLED.name();
         this.updatedAt = LocalDateTime.now();
+
+        // 记录订单取消事件
+        this.recordEvent(new OrderCancelledEvent(
+            this.id,
+            this.orderNo,
+            this.userId,
+            this.totalAmount,
+            this.status
+        ));
     }
 
     /**
@@ -120,6 +158,15 @@ public class Order {
         }
         this.status = OrderStatus.PAID.name();
         this.updatedAt = LocalDateTime.now();
+
+        // 记录订单支付事件
+        this.recordEvent(new OrderPaidEvent(
+            this.id,
+            this.orderNo,
+            this.userId,
+            this.totalAmount,
+            this.status
+        ));
     }
 
     /**
@@ -131,5 +178,42 @@ public class Order {
         }
         this.status = OrderStatus.COMPLETED.name();
         this.updatedAt = LocalDateTime.now();
+
+        // 记录订单完成事件
+        this.recordEvent(new OrderCompletedEvent(
+            this.id,
+            this.orderNo,
+            this.userId,
+            this.totalAmount,
+            this.status
+        ));
+    }
+
+    /**
+     * 记录领域事件
+     *
+     * @param event 领域事件
+     */
+    private void recordEvent(DomainEvent event) {
+        if (this.domainEvents == null) {
+            this.domainEvents = new ArrayList<>();
+        }
+        this.domainEvents.add(event);
+    }
+
+    /**
+     * 获取领域事件列表
+     *
+     * @return 领域事件列表
+     */
+    public List<DomainEvent> getDomainEvents() {
+        return new ArrayList<>(this.domainEvents);
+    }
+
+    /**
+     * 清空领域事件列表
+     */
+    public void clearDomainEvents() {
+        this.domainEvents.clear();
     }
 }

@@ -59,7 +59,15 @@ spring:
 rocketmq:
   name-server: localhost:9876
   producer:
-    group: springboot4ddd-producer
+    group: test-producer
+    send-message-timeout: 3000  # 发送消息超时时间（毫秒）
+    compress-message-body-threshold: 4096  # 消息体压缩阈值（字节）
+    access-key: RocketMQ  # AccessKey（需要在 RocketMQ 中配置对应的 ACL）
+    secret-key: 12345678  # SecretKey
+  consumer:
+    group: test-consumer  # 默认消费者组
+    access-key: RocketMQ  # AccessKey
+    secret-key: 12345678  # SecretKey
 
 # 签名配置
 sign:
@@ -67,7 +75,7 @@ sign:
   signature:
     ttl: 600000  # 签名有效期（毫秒），10分钟
     default-with-params: false  # 默认不使用参数签名
-  # 需要缓存请求体的路径模式
+  # 需要缓存请求体的路径模式，此处为示例
   cached-body-path-patterns:
     - /api/orders/**
     - /api/payment/**

@@ -1,0 +1,29 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  mode: "debug" # debug, release, test
+
+database:
+  driver: "mysql" # mysql, postgres
+  host: "localhost"
+  port: 3306
+  username: "root"
+  password: "password"
+  database: "gin_ddd"
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 3600 # 秒
+
+logger:
+  level: "info" # debug, info, warn, error
+  format: "text" # json, text
+
+rocketmq:
+  enabled: true
+  nameserver: "localhost:9876"
+  group_name: "gin-ddd-group"
+  instance_name: "gin-ddd-instance"
+  retry_times: 3
+  topics:
+    order_event: "order-event-topic"
+    user_event: "user-event-topic"

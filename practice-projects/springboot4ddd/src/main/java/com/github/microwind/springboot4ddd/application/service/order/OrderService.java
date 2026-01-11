@@ -2,10 +2,12 @@ package com.github.microwind.springboot4ddd.application.service.order;
 
 import com.github.microwind.springboot4ddd.application.dto.order.OrderDTO;
 import com.github.microwind.springboot4ddd.application.dto.order.OrderMapper;
+import com.github.microwind.springboot4ddd.domain.event.DomainEvent;
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.producer.OrderEventProducer;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
@@ -34,6 +36,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;  // 注入用户仓储，用于跨库查询
+    private final OrderEventProducer orderEventProducer;  // 注入订单事件生产者
 
     /**
      * 创建订单
@@ -50,6 +53,12 @@ public class OrderService {
 
         // 持久化订单
         Order savedOrder = orderRepository.save(order);
+
+        // 订单保存成功后记录创建事件
+        savedOrder.recordCreatedEvent();
+
+        // 发布领域事件到 RocketMQ
+        publishDomainEvents(savedOrder);
 
         log.info("订单创建成功，orderNo={}", savedOrder.getOrderNo());
         return orderMapper.toDTO(savedOrder);
@@ -255,6 +264,9 @@ public class OrderService {
         // 持久化订单
         Order updatedOrder = orderRepository.save(order);
 
+        // 发布领域事件到 RocketMQ
+        publishDomainEvents(updatedOrder);
+
         log.info("订单取消成功，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
     }
@@ -277,6 +289,9 @@ public class OrderService {
 
         // 持久化订单
         Order updatedOrder = orderRepository.save(order);
+
+        // 发布领域事件到 RocketMQ
+        publishDomainEvents(updatedOrder);
 
         log.info("订单支付成功，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
@@ -301,6 +316,9 @@ public class OrderService {
         // 持久化订单
         Order updatedOrder = orderRepository.save(order);
 
+        // 发布领域事件到 RocketMQ
+        publishDomainEvents(updatedOrder);
+
         log.info("订单完成，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
     }
@@ -320,5 +338,28 @@ public class OrderService {
 
         orderRepository.deleteById(id);
         log.info("订单删除成功，id={}", id);
+    }
+
+    /**
+     * 发布领域事件到 RocketMQ
+     *
+     * @param order 订单聚合根
+     */
+    private void publishDomainEvents(Order order) {
+        List<DomainEvent> events = order.getDomainEvents();
+        if (events == null || events.isEmpty()) {
+            return;
+        }
+
+        try {
+            // 批量发布事件
+            orderEventProducer.publishEvents(events);
+            // 清空已发布的事件
+            order.clearDomainEvents();
+        } catch (Exception e) {
+            log.error("发布订单领域事件失败，orderNo={}", order.getOrderNo(), e);
+            // 根据业务需求决定是否重新抛出异常导致事务回滚
+            throw e;
+        }
     }
 }
