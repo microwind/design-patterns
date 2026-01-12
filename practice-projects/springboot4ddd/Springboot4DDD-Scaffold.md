@@ -4,18 +4,18 @@
 
 ## 🎯 这是什么？
 
-**Springboot4DDD** 是一个生产就绪的 DDD 工程脚手架，帮助开发者快速搭建符合领域驱动设计原则的企业级应用。
+**Springboot4DDD** 是一个开箱即用的 Java DDD 工程脚手架，帮助开发者快速搭建符合领域驱动设计原则的Web应用。结构简单清晰，帮助你快速上手Java开发。
+源码地址：https://github.com/microwind/design-patterns/tree/main/practice-projects/springboot4ddd
 
 ### 核心特点
-
-✅ **严格的 DDD 四层架构** - 领域层、应用层、基础设施层、接口层分离清晰
-✅ **事件驱动架构** - 集成 RocketMQ，支持领域事件发布和消费
-✅ **多数据源支持** - 开箱支持 MySQL + PostgreSQL 双数据源
-✅ **双持久化方案** - JdbcTemplate 和 Spring Data JDBC 两种方式可选
-✅ **API 签名验证** - 内置完整的接口安全认证机制
-✅ **统一响应格式** - 标准化的 API 响应结构
-✅ **全局异常处理** - 优雅的错误捕获和响应
-✅ **参数校验** - 基于 Jakarta Validation 的数据验证
+✅ **严格的 DDD 四层架构** - 领域层、应用层、基础设施层、接口层分离清晰<br>
+✅ **事件驱动架构** - 集成 RocketMQ，支持领域事件发布和消费<br>
+✅ **多数据源支持** - 开箱支持 MySQL + PostgreSQL 双数据源<br>
+✅ **双持久化方案** - JdbcTemplate 和 Spring Data JDBC 两种方式可选<br>
+✅ **API 签名验证** - 内置完整的接口安全认证机制<br>
+✅ **统一响应格式** - 标准化的 API 响应结构<br>
+✅ **全局异常处理** - 优雅的错误捕获和响应<br>
+✅ **参数校验** - 基于 Jakarta Validation 的数据验证<br>
 ✅ **生产就绪** - 完整的日志、配置、事务管理
 
 ### 技术栈
@@ -484,7 +484,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Product getProductById(Long id) {
         return productRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("商品不存在"));
+                .orElseThrow(() -> new ResourceNotFoundException("商品不存在"));
     }
 
     @Transactional(readOnly = true)
@@ -524,9 +524,9 @@ public class ProductController {
     @PostMapping
     public ApiResponse<Product> createProduct(@RequestBody CreateProductRequest request) {
         Product product = productService.createProduct(
-            request.getName(),
-            request.getPrice(),
-            request.getStock()
+                request.getName(),
+                request.getPrice(),
+                request.getStock()
         );
         return ApiResponse.success(product);
     }
@@ -875,7 +875,7 @@ public class OrderCreatedEvent extends DomainEvent {
     private String status;
 
     public OrderCreatedEvent(Long orderId, String orderNo, Long userId,
-                           BigDecimal totalAmount, String status) {
+                             BigDecimal totalAmount, String status) {
         super(orderId, "Order");
         this.orderNo = orderNo;
         this.userId = userId;
@@ -917,8 +917,8 @@ public class Order {
     // 记录订单创建事件（在保存后调用）
     public void recordCreatedEvent() {
         this.domainEvents.add(new OrderCreatedEvent(
-            this.id, this.orderNo, this.userId,
-            this.totalAmount, this.status
+                this.id, this.orderNo, this.userId,
+                this.totalAmount, this.status
         ));
     }
 
@@ -1265,46 +1265,53 @@ jps -l | grep rocketmq
 
 # 2. 创建订单（会自动发布 OrderCreatedEvent 消息）
 curl -X POST http://localhost:8080/api/orders/create \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
-    "totalAmount": 999.99
-  }'
+-H "Content-Type: application/json" \
+-d '{
+"userId": 1,
+"totalAmount": 999.99
+}'
 
 # 响应示例：
 {
-  "code": 200,
-  "message": "success",
-  "data": {
-    "id": 1,
-    "orderNo": "ORD1736121708403",
-    "userId": 1,
-    "totalAmount": 999.99,
-    "status": "PENDING",
-    "createdAt": "2026-01-11T13:45:08"
-  }
+"code": 200,
+"message": "success",
+"data": {
+"id": 1,
+"orderNo": "ORD1736121708403",
+"userId": 1,
+"totalAmount": 999.99,
+"status": "PENDING",
+"createdAt": "2026-01-11T13:45:08"
+}
 }
 
 # 3. 支付订单（会自动发布 OrderPaidEvent 消息）
 curl -X POST http://localhost:8080/api/orders/1/pay
 
 # 4. 查看应用日志，可以看到：
-# - 订单创建成功日志
-# - 订单事件已发送，eventId=xxx, eventType=OrderCreatedEvent, msgId=xxx
-# - 收到订单创建消息：{"eventId":"xxx",...}
-# - 【模拟通知】向用户 1 发送订单创建通知，订单号：ORD1736121708403
-# - 订单创建消息处理完成，eventId=xxx
+- 订单创建成功日志
+- 订单事件已发送，eventId=xxx, eventType=OrderCreatedEvent, msgId=xxx
+- 收到订单创建消息：{"eventId":"xxx",...}
+- 【模拟通知】向用户 1 发送订单创建通知，订单号：ORD1736121708403
+- 订单创建消息处理完成，eventId=xxx
 
 # 5. 使用 RocketMQ 命令行工具查看消息
-cd rocketmq-all-5.3.2-bin-release
+```shell
+$ cd rocketmq-all-5.3.2-bin-release
+```
 
 # 查看 Topic
-sh bin/mqadmin topicList -n 127.0.0.1:9876
+```shell
+$ sh bin/mqadmin topicList -n 127.0.0.1:9876
+```
 
 # 查看 Topic 统计
+```shell
 sh bin/mqadmin topicStatus -n 127.0.0.1:9876 -t order-events
+```
 
 # 消费消息（验证）
+```shell
 sh bin/mqadmin consumeMessage \
   -n 127.0.0.1:9876 \
   -t order-events \
@@ -1314,14 +1321,15 @@ sh bin/mqadmin consumeMessage \
 ### 预期日志输出
 
 **生产者日志**：
-```
+
+```shell
 2026-01-11 13:45:08 INFO  OrderService - 创建订单，userId=1, totalAmount=999.99
 2026-01-11 13:45:08 INFO  OrderService - 订单创建成功，orderNo=ORD1736121708403
 2026-01-11 13:45:08 INFO  OrderEventProducer - 订单事件已发送，eventId=a1b2c3..., eventType=OrderCreatedEvent, msgId=7F00000100002A9F...
 ```
 
 **消费者日志**：
-```
+```shell
 2026-01-11 13:45:08 INFO  OrderCreatedConsumer - 收到订单创建消息：{"eventId":"a1b2c3...","orderId":1,"orderNo":"ORD1736121708403"...}
 2026-01-11 13:45:08 INFO  OrderCreatedConsumer - 【模拟通知】向用户 1 发送订单创建通知，订单号：ORD1736121708403
 2026-01-11 13:45:08 INFO  OrderCreatedConsumer - 订单创建消息处理完成，eventId=a1b2c3...
@@ -1474,9 +1482,9 @@ rocketmq:
 - **GitHub 仓库**: https://github.com/microwind/design-patterns/tree/main/practice-projects/springboot4ddd
 - **问题反馈**: https://github.com/microwind/design-patterns/issues
 - **参考资料**:
-  - [Spring Boot 文档](https://docs.spring.io/spring-boot/)
-  - [Spring Data JDBC 文档](https://docs.spring.io/spring-data/jdbc/)
-  - [领域驱动设计](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
+    - [Spring Boot 文档](https://docs.spring.io/spring-boot/)
+    - [Spring Data JDBC 文档](https://docs.spring.io/spring-data/jdbc/)
+    - [领域驱动设计](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
 
 ---
 
@@ -1521,4 +1529,10 @@ A: 如果不需要事件驱动功能，可以移除 RocketMQ 相关依赖，或�
 
 ---
 
-**作者**: Jarry
+**作者**: JarryLi
+
+源码下载：
+https://github.com/microwind/design-patterns/tree/main/practice-projects/springboot4ddd
+```
+https://github.com/microwind/design-patterns/tree/main/practice-projects/springboot4ddd
+```
