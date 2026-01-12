@@ -30,6 +30,11 @@ public class SignConfig {
     private SignatureConfig signature = new SignatureConfig();
 
     /**
+     * 是否允许缓存body
+     */
+    private Boolean allowCachedBody = false;
+
+    /**
      * 需要缓存请求体的路径模式列表
      * <p>
      * 只有这些路径的请求才会被 CachedBodyFilter 缓存 body

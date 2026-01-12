@@ -75,6 +75,8 @@ sign:
   signature:
     ttl: 600000  # 签名有效期（毫秒），10分钟
     default-with-params: false  # 默认不使用参数签名
+  # 是否允许缓存对象
+  allow-cached-body: true
   # 需要缓存请求体的路径模式，此处为示例
   cached-body-path-patterns:
     - /api/orders/**

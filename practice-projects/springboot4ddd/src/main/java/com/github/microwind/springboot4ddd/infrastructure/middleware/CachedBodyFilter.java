@@ -50,6 +50,12 @@ public class CachedBodyFilter implements Filter {
      * 判断当前请求是否需要缓存请求体（Body）
      */
     private boolean shouldCacheBody(HttpServletRequest request) {
+
+        // 先读取是否允许缓存标识
+        if (signConfig.getAllowCachedBody() == false) {
+            return false;
+        }
+
         // 1. 提取并校验签名 Header
         String appCode = request.getHeader(SignConfig.HEADER_APP_CODE);
         String sign = request.getHeader(SignConfig.HEADER_SIGN);
