@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.infrastructure.messaging.producer;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,11 +8,11 @@ import com.github.microwind.springboot4ddd.domain.event.order.OrderCancelledEven
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCompletedEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCreatedEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderPaidEvent;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.converter.OrderEventMessageMapper;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCancelledMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCompletedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCreatedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderPaidMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.converter.OrderEventMessageMapper;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCancelledMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCompletedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCreatedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderPaidMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;

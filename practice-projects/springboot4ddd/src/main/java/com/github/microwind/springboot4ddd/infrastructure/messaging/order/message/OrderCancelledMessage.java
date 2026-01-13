@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.infrastructure.messaging.message;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 订单完成消息
+ * 订单取消消息
  * 用于 RocketMQ 消息传输
  *
  * @author jarry
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCompletedMessage implements Serializable {
+public class OrderCancelledMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,4 +1,4 @@
-package com.github.microwind.springboot4ddd.infrastructure.messaging.message;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

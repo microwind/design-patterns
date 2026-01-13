@@ -7,7 +7,7 @@ import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.producer.OrderEventProducer;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.producer.OrderEventProducer;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;

@@ -1,11 +1,11 @@
-package com.github.microwind.springboot4ddd.infrastructure.messaging.consumer;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCancelledMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCompletedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCreatedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderPaidMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCancelledMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCompletedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCreatedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderPaidMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

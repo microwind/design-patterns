@@ -945,7 +945,7 @@ public class Order {
 
 ```java
 // OrderCreatedMessage.java
-package com.github.microwind.springboot4ddd.infrastructure.messaging.message;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -974,10 +974,10 @@ public class OrderCreatedMessage implements Serializable {
 
 ```java
 // OrderEventMessageMapper.java
-package com.github.microwind.springboot4ddd.infrastructure.messaging.converter;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.converter;
 
 import com.github.microwind.springboot4ddd.domain.event.order.*;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.*;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -1003,12 +1003,12 @@ public class OrderEventMessageMapper {
 
 ```java
 // OrderEventProducer.java
-package com.github.microwind.springboot4ddd.infrastructure.messaging.producer;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.microwind.springboot4ddd.domain.event.DomainEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.*;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.converter.OrderEventMessageMapper;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.converter.OrderEventMessageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -1068,10 +1068,10 @@ public class OrderEventProducer {
 
 ```java
 // OrderEventConsumer.java
-package com.github.microwind.springboot4ddd.infrastructure.messaging.consumer;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.*;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

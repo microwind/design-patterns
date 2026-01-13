@@ -1,13 +1,13 @@
-package com.github.microwind.springboot4ddd.infrastructure.messaging.converter;
+package com.github.microwind.springboot4ddd.infrastructure.messaging.order.converter;
 
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCancelledEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCompletedEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCreatedEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderPaidEvent;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCancelledMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCompletedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderCreatedMessage;
-import com.github.microwind.springboot4ddd.infrastructure.messaging.message.OrderPaidMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCancelledMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCompletedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderCreatedMessage;
+import com.github.microwind.springboot4ddd.infrastructure.messaging.order.message.OrderPaidMessage;
 import org.springframework.stereotype.Component;
 
 /**
