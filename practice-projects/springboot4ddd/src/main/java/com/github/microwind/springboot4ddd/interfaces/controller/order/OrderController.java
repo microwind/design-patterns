@@ -3,6 +3,7 @@ package com.github.microwind.springboot4ddd.interfaces.controller.order;
 import com.github.microwind.springboot4ddd.application.dto.order.OrderDTO;
 import com.github.microwind.springboot4ddd.application.service.order.OrderService;
 import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
+import com.github.microwind.springboot4ddd.interfaces.annotation.IgnoreSignHeader;
 import com.github.microwind.springboot4ddd.interfaces.annotation.RequireSign;
 import com.github.microwind.springboot4ddd.interfaces.annotation.WithParams;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
@@ -30,7 +31,7 @@ public class OrderController {
      * 创建订单（需要签名验证，带参数）
      */
     @PostMapping("/create")
-//    @RequireSign(withParams = WithParams.FALSE)
+    @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
         OrderDTO order = orderService.createOrder(request);
         return ApiResponse.success(order);
@@ -41,7 +42,6 @@ public class OrderController {
      * 不返回用户详情（因为没有跨库查询）
      */
     @GetMapping("/{id}")
-//    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderResponse> getOrder(@PathVariable Long id) {
         OrderResponse order = orderService.getOrderDetail(id);
         return ApiResponse.success(order);
@@ -52,7 +52,6 @@ public class OrderController {
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/user/{userId}")
-    @RequireSign
     public ApiResponse<List<OrderListResponse>> getUserOrders(@PathVariable Long userId) {
         List<OrderListResponse> orders = orderService.getUserOrderList(userId);
         return ApiResponse.success(orders);
@@ -70,10 +69,10 @@ public class OrderController {
     }
 
     /**
-     * 取消订单（需要签名验证，带参数）
+     * 取消订单（需要签名验证，不带参数测试）
      */
     @PostMapping("/{id}/cancel")
-    @RequireSign(withParams = WithParams.TRUE)
+    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderDTO> cancelOrder(@PathVariable Long id) {
         OrderDTO order = orderService.cancelOrder(id);
         return ApiResponse.success(order);
@@ -83,7 +82,7 @@ public class OrderController {
      * 支付订单（需要签名验证，带参数）
      */
     @PostMapping("/{id}/pay")
-    @RequireSign(withParams = WithParams.TRUE)
+    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderDTO> payOrder(@PathVariable Long id) {
         OrderDTO order = orderService.payOrder(id);
         return ApiResponse.success(order);
@@ -93,7 +92,7 @@ public class OrderController {
      * 完成订单（需要签名验证，带参数）
      */
     @PostMapping("/{id}/complete")
-    @RequireSign(withParams = WithParams.TRUE)
+    @RequireSign(withParams = WithParams.FALSE)
     public ApiResponse<OrderDTO> completeOrder(@PathVariable Long id) {
         OrderDTO order = orderService.completeOrder(id);
         return ApiResponse.success(order);

@@ -10,8 +10,10 @@ apiauth:
       secretKey: secret&!_caller1
       description: "调用方1"
       permissions:
-        - "/api/users"
-        - "/api/orders"
+        - "/api/orders/{id}/cancel"
+        - "/api/orders/{id}/pay"
+        - "/api/orders/{id}"
+        - "/api/orders/users/{userId}"
         - "/api/users/{userId}"
         - "/api/admin/admin-sign-submit"
     - appCode: h5
@@ -25,9 +27,11 @@ apiauth:
 
   # 接口盐值配置
   interface-salts:
-    - path: "/api/users"
+    - path: "/api/orders/{id}/cancel"
       salt: "t3!@$$"
-    - path: "/api/users/{userId}"
+    - path: "/api/orders/{id}/pay"
+      salt: "t3!@de"
+    - path: "/api/orders/{id}"
       salt: "ngx#124"
     - path: "/api/admin/admin-sign-submit"
       salt: "a6x_T@"

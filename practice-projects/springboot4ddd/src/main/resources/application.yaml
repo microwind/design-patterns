@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: "optional:classpath:apiauth-config.yaml"
   application:
     name: microwind.springboot4ddd
 

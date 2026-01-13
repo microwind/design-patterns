@@ -135,6 +135,7 @@ public class SignatureInterceptor implements HandlerInterceptor {
         }
     }
 
+    // 是否需要参数签名，方法注解 > 类注解 > 默认设置
     private boolean determineWithParams(RequireSign methodAnnotation, RequireSign classAnnotation) {
         if (methodAnnotation != null && methodAnnotation.withParams() != WithParams.DEFAULT) {
             return methodAnnotation.withParams() == WithParams.TRUE;
