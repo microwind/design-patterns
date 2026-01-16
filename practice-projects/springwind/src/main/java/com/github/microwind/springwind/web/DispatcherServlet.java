@@ -1,8 +1,6 @@
 package com.github.microwind.springwind.web;
 
-import com.github.microwind.springwind.annotation.Controller;
-import com.github.microwind.springwind.annotation.RequestMapping;
-import com.github.microwind.springwind.annotation.RequestParam;
+import com.github.microwind.springwind.annotation.*;
 import com.github.microwind.springwind.core.SpringWindApplicationContext;
 
 import jakarta.servlet.RequestDispatcher;
@@ -14,9 +12,9 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,10 +35,10 @@ public class DispatcherServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(DispatcherServlet.class.getName());
 
     /**
-     * 映射表：Key = "HTTP_METHOD:/normalized/path"，Value = HandlerMapping
-     * 例如: "GET:/home/index" -> HandlerMapping(controllerInstance, method)
+     * 映射表：存储所有路径模式的 Handler
+     * Key = "HTTP_METHOD"，Value = List<HandlerMapping>（按注册顺序）
      */
-    private final Map<String, HandlerMapping> handlerMappings = new HashMap<>();
+    private final Map<String, List<HandlerMapping>> handlerMappings = new HashMap<>();
 
     private SpringWindApplicationContext applicationContext;
 
@@ -62,7 +60,10 @@ public class DispatcherServlet extends HttpServlet {
             // 3. 初始化 handler 映射
             initHandlerMappings();
 
-            log.info("[DispatcherServlet] 初始化完成，已注册映射数量: " + handlerMappings.size());
+            int totalMappings = handlerMappings.values().stream()
+                    .mapToInt(List::size)
+                    .sum();
+            log.info("[DispatcherServlet] 初始化完成，已注册映射数量: " + totalMappings);
         } catch (ClassNotFoundException e) {
             throw new ServletException("找不到配置类：" + getInitParameter("configClass"), e);
         } catch (Exception e) {
@@ -71,14 +72,13 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 扫描所有 @Controller Bean 并根据 @RequestMapping 构建映射表
+     * 扫描所有 @Controller Bean 并根据映射注解构建映射表
+     * 支持 @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping
      */
     private void initHandlerMappings() {
-        // 从 SpringWindApplicationContext 获取被 @Controller 注解的 bean（name -> instance）
         Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(Controller.class);
 
         if (controllers == null || controllers.isEmpty()) {
-            // 选择抛出异常以便尽早发现问题（如果希望容错可改为返回）
             throw new RuntimeException("未扫描到任何 @Controller 注解的 Bean，请检查包扫描范围和配置类");
         }
 
@@ -94,32 +94,78 @@ public class DispatcherServlet extends HttpServlet {
             }
             basePath = normalizePath(basePath);
 
-            // 遍历 public 方法（包含继承的方法）
+            // 遍历 public 方法
             for (Method method : clazz.getMethods()) {
-                if (!method.isAnnotationPresent(RequestMapping.class)) {
+                // 处理各种映射注解
+                MappingInfo mappingInfo = extractMappingInfo(method);
+                if (mappingInfo == null) {
                     continue;
                 }
-                RequestMapping methodMapping = method.getAnnotation(RequestMapping.class);
-                String methodPath = normalizePath(methodMapping.value());
+
+                String methodPath = normalizePath(mappingInfo.path);
                 String fullPath = combinePaths(basePath, methodPath);
+                String httpMethod = mappingInfo.httpMethod.toUpperCase(Locale.ROOT);
 
-                // 解析HTTP方法（若未指定，默认GET）
-                String httpMethod = methodMapping.method() == null ? "" : methodMapping.method().trim();
-                if (httpMethod.isEmpty()) httpMethod = "GET";
-                httpMethod = httpMethod.toUpperCase(Locale.ROOT);
+                // 创建 HandlerMapping 并添加到列表
+                HandlerMapping handlerMapping = new HandlerMapping(controller, method, fullPath);
+                handlerMappings.computeIfAbsent(httpMethod, k -> new ArrayList<>())
+                        .add(handlerMapping);
 
-                String mappingKey = httpMethod + ":" + normalizePath(fullPath);
-
-                // 检查重复映射
-                if (handlerMappings.containsKey(mappingKey)) {
-                    throw new RuntimeException("存在重复的请求映射：" + mappingKey);
-                }
-
-                handlerMappings.put(mappingKey, new HandlerMapping(controller, method));
-                log.info("[DispatcherServlet] 生成请求映射：" + mappingKey + " -> " +
-                        clazz.getName() + "#" + method.getName());
+                log.info("[DispatcherServlet] 注册映射: " + httpMethod + ":" + fullPath +
+                        " -> " + clazz.getSimpleName() + "#" + method.getName());
             }
         }
+    }
+
+    /**
+     * 从方法中提取映射信息（支持多种映射注解）
+     */
+    private static class MappingInfo {
+        String path;
+        String httpMethod;
+
+        MappingInfo(String path, String httpMethod) {
+            this.path = path;
+            this.httpMethod = httpMethod;
+        }
+    }
+
+    private MappingInfo extractMappingInfo(Method method) {
+        // @GetMapping
+        if (method.isAnnotationPresent(GetMapping.class)) {
+            GetMapping mapping = method.getAnnotation(GetMapping.class);
+            return new MappingInfo(mapping.value(), "GET");
+        }
+
+        // @PostMapping
+        if (method.isAnnotationPresent(PostMapping.class)) {
+            PostMapping mapping = method.getAnnotation(PostMapping.class);
+            return new MappingInfo(mapping.value(), "POST");
+        }
+
+        // @PutMapping
+        if (method.isAnnotationPresent(PutMapping.class)) {
+            PutMapping mapping = method.getAnnotation(PutMapping.class);
+            return new MappingInfo(mapping.value(), "PUT");
+        }
+
+        // @DeleteMapping
+        if (method.isAnnotationPresent(DeleteMapping.class)) {
+            DeleteMapping mapping = method.getAnnotation(DeleteMapping.class);
+            return new MappingInfo(mapping.value(), "DELETE");
+        }
+
+        // @RequestMapping
+        if (method.isAnnotationPresent(RequestMapping.class)) {
+            RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+            String httpMethod = mapping.method();
+            if (httpMethod == null || httpMethod.trim().isEmpty()) {
+                httpMethod = "GET";
+            }
+            return new MappingInfo(mapping.value(), httpMethod);
+        }
+
+        return null;
     }
 
     /**
@@ -129,7 +175,7 @@ public class DispatcherServlet extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // 获取请求路径（兼容 servletPath/pathInfo/requestURI），并进行归一化
+        // 获取请求路径并进行归一化
         String path = req.getPathInfo();
         if (path == null || path.isEmpty()) {
             path = req.getServletPath();
@@ -144,19 +190,34 @@ public class DispatcherServlet extends HttpServlet {
         path = normalizePath(path);
 
         String httpMethod = req.getMethod().toUpperCase(Locale.ROOT);
-        String requestKey = httpMethod + ":" + path;
 
-        log.fine("[DispatcherServlet] 当前请求Key：" + requestKey);
+        log.fine("[DispatcherServlet] 请求: " + httpMethod + " " + path);
 
-        HandlerMapping handlerMapping = handlerMappings.get(requestKey);
-        if (handlerMapping != null) {
+        // 查找匹配的 Handler
+        List<HandlerMapping> handlers = handlerMappings.get(httpMethod);
+        HandlerMapping matchedHandler = null;
+        Map<String, String> pathVariables = null;
+
+        if (handlers != null) {
+            for (HandlerMapping handler : handlers) {
+                if (handler.getPathMatcher().matches(path)) {
+                    matchedHandler = handler;
+                    pathVariables = handler.getPathMatcher().extractPathVariables(path);
+                    break;
+                }
+            }
+        }
+
+        if (matchedHandler != null) {
             try {
-                // 1. 解析方法参数（支持 HttpServletRequest/HttpServletResponse/HttpSession 和 @RequestParam）
-                Object[] methodArgs = resolveMethodParameters(handlerMapping.getMethod(), req, resp);
+                // 1. 解析方法参数（支持路径参数、请求参数、Servlet对象）
+                Object[] methodArgs = resolveMethodParameters(
+                        matchedHandler.getMethod(), req, resp, pathVariables);
                 log.fine("[DispatcherServlet] 解析到的参数数量：" + methodArgs.length);
 
                 // 2. 反射调用 Controller 方法
-                Object result = handlerMapping.getMethod().invoke(handlerMapping.getController(), methodArgs);
+                Object result = matchedHandler.getMethod().invoke(
+                        matchedHandler.getController(), methodArgs);
                 log.fine("[DispatcherServlet] Controller 返回类型：" +
                         (result == null ? "null" : result.getClass().getName()));
 
@@ -164,7 +225,6 @@ public class DispatcherServlet extends HttpServlet {
                 handleResult(result, req, resp);
 
             } catch (InvocationTargetException e) {
-                // Controller 方法内部抛出的异常
                 Throwable target = e.getTargetException();
                 log.log(Level.SEVERE, "Controller 方法执行异常", target);
                 writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -183,30 +243,30 @@ public class DispatcherServlet extends HttpServlet {
             } catch (Exception e) {
                 log.log(Level.SEVERE, "处理请求失败", e);
                 writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "处理请求[" + requestKey + "]失败：" + e.getMessage());
+                        "处理请求失败：" + e.getMessage());
                 return;
             }
         } else {
-            // 未找到映射：返回 404 明确提示
+            // 未找到映射：返回 404
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.setContentType("text/html;charset=UTF-8");
             PrintWriter writer = resp.getWriter();
-            writer.write("Not Found: " + requestKey);
+            writer.write("Not Found: " + httpMethod + " " + path);
             writer.flush();
         }
     }
 
     /**
-     * 解析方法参数：支持 HttpServletRequest, HttpServletResponse, HttpSession, @RequestParam
-     * - 无参方法返回空数组
+     * 解析方法参数：支持 HttpServletRequest, HttpServletResponse, HttpSession, @RequestParam, @PathVariable
      */
-    private Object[] resolveMethodParameters(Method method, HttpServletRequest req, HttpServletResponse resp) {
-        Class<?>[] paramTypes = method.getParameterTypes();
-        Annotation[][] paramAnnotations = method.getParameterAnnotations();
-        Object[] args = new Object[paramTypes.length];
+    private Object[] resolveMethodParameters(Method method, HttpServletRequest req,
+                                            HttpServletResponse resp, Map<String, String> pathVariables) {
+        Parameter[] parameters = method.getParameters();
+        Object[] args = new Object[parameters.length];
 
-        for (int i = 0; i < paramTypes.length; i++) {
-            Class<?> paramType = paramTypes[i];
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
+            Class<?> paramType = parameter.getType();
 
             // 支持 Servlet 原生对象
             if (HttpServletRequest.class.isAssignableFrom(paramType)) {
@@ -222,19 +282,27 @@ public class DispatcherServlet extends HttpServlet {
                 continue;
             }
 
-            // 检查 @RequestParam 注解
-            RequestParam rp = null;
-            for (Annotation a : paramAnnotations[i]) {
-                if (a instanceof RequestParam) {
-                    rp = (RequestParam) a;
-                    break;
+            // 检查 @PathVariable 注解
+            PathVariable pathVar = parameter.getAnnotation(PathVariable.class);
+            if (pathVar != null) {
+                String varName = pathVar.value();
+                if (varName == null || varName.isEmpty()) {
+                    varName = parameter.getName();
                 }
+                String value = pathVariables != null ? pathVariables.get(varName) : null;
+                if (value == null && pathVar.required()) {
+                    throw new IllegalArgumentException("缺少必须的路径参数：" + varName);
+                }
+                args[i] = convertType(value, paramType);
+                continue;
             }
 
-            if (rp != null) {
-                String paramName = rp.value();
-                String defaultValue = rp.defaultValue();
-                boolean required = rp.required();
+            // 检查 @RequestParam 注解
+            RequestParam reqParam = parameter.getAnnotation(RequestParam.class);
+            if (reqParam != null) {
+                String paramName = reqParam.value();
+                String defaultValue = reqParam.defaultValue();
+                boolean required = reqParam.required();
 
                 String paramValue = req.getParameter(paramName);
                 if (paramValue == null || paramValue.isEmpty()) {
@@ -245,11 +313,12 @@ public class DispatcherServlet extends HttpServlet {
                 }
 
                 args[i] = convertType(paramValue, paramType);
-            } else {
-                // 不支持的复杂类型，传 null（或可扩展支持 Body -> 对象绑定）
-                args[i] = null;
-                log.fine("[DispatcherServlet] 不支持的参数类型：" + paramType.getName() + "，暂传null");
+                continue;
             }
+
+            // 不支持的复杂类型，传 null
+            args[i] = null;
+            log.fine("[DispatcherServlet] 不支持的参数类型：" + paramType.getName() + "，暂传null");
         }
         return args;
     }
@@ -538,25 +607,8 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * HandlerMapping 封装
+     * HandlerMapping 已移至独立类文件
      */
-    private static class HandlerMapping {
-        private final Object controller;
-        private final Method method;
-
-        public HandlerMapping(Object controller, Method method) {
-            this.controller = controller;
-            this.method = method;
-        }
-
-        public Object getController() {
-            return controller;
-        }
-
-        public Method getMethod() {
-            return method;
-        }
-    }
 
     @Override
     public void destroy() {

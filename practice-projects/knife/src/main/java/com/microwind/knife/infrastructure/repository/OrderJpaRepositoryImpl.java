@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 /**
  * 自定义订单仓储实现（基于JPA）
  * Infrastructure层实现，依赖Domain层接口，符合DIP原则
+ * Spring Data Jpa模式，代码更加简单，数据可持久化
  *
  * 优化点：
  * 1. JPQL集中管理，避免硬编码
@@ -30,11 +31,13 @@ import java.util.stream.Collectors;
  * 3. 补充事务边界控制
  * 4. 添加性能优化提示
  */
+@Repository("jpaRepository")
 @Primary
-@Repository
 public class OrderJpaRepositoryImpl implements CustomOrderJpaRepository {
 
     // JPQL常量集中管理
+    private static final String FIND_BY_ORDER_ID_JPQL =
+            "SELECT o FROM Order o WHERE o.orderId = :orderId";
     private static final String FIND_BY_ORDER_NO_JPQL =
             "SELECT o FROM Order o WHERE o.orderNo = :orderNo";
     private static final String FIND_BY_ORDER_NO_WITH_ITEMS_JPQL =
@@ -53,6 +56,25 @@ public class OrderJpaRepositoryImpl implements CustomOrderJpaRepository {
     // Spring会自动查找对应数据库配置
     @PersistenceContext
     private EntityManager entityManager;
+
+    /**
+     * 根据订单ID精确查询（使用只读事务优化）
+     * @throws IllegalArgumentException 如果orderId为空
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Order> findByOrderId(Long orderId) {
+        Assert.notNull(orderId, "Order ID must not be null");
+
+        try {
+            return Optional.of(entityManager
+                    .createQuery(FIND_BY_ORDER_ID_JPQL, Order.class)
+                    .setParameter("orderId", orderId)
+                    .getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 
     /**
      * 根据订单号精确查询（使用只读事务优化）
@@ -189,5 +211,51 @@ public class OrderJpaRepositoryImpl implements CustomOrderJpaRepository {
                 .setParameter("status", status)
                 .setParameter("orderNo", orderNo)
                 .executeUpdate();
+    }
+
+    /**
+     * 分页查询所有订单（直接调用 findAllOrders）
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Order> findAll(Pageable pageable) {
+        return findAllOrders(pageable);
+    }
+
+    /**
+     * 保存订单（新增或更新）
+     */
+    @Override
+    @Transactional
+    public Order save(Order order) {
+        Assert.notNull(order, "Order must not be null");
+
+        if (order.getOrderId() == null) {
+            // 新增
+            entityManager.persist(order);
+            return order;
+        } else {
+            // 更新
+            return entityManager.merge(order);
+        }
+    }
+
+    /**
+     * 删除订单
+     */
+    @Override
+    @Transactional
+    public void delete(Order order) {
+        Assert.notNull(order, "Order must not be null");
+
+        if (entityManager.contains(order)) {
+            entityManager.remove(order);
+        } else {
+            // 如果订单不在持久化上下文中，先查找再删除
+            Order managedOrder = entityManager.find(Order.class, order.getOrderId());
+            if (managedOrder != null) {
+                entityManager.remove(managedOrder);
+            }
+        }
     }
 }

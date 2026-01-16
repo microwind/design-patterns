@@ -1,0 +1,15 @@
+app:
+  name: user-demo
+  version: 1.0.0
+
+user:
+  datasource:
+    jdbc-url: jdbc:mysql://localhost:3306/frog?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+    username: frog_admin
+    password: frog798
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    maximum-pool-size: 10
+    minimum-idle: 5
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000

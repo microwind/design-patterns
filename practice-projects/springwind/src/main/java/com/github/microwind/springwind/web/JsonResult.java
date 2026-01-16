@@ -3,10 +3,12 @@ package com.github.microwind.springwind.web;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Map;
 
 /**
  * JSON 响应结果
+ * 支持对象、Map、List 的 JSON 序列化
  */
 public class JsonResult implements ViewResult {
     private final Object data;
@@ -32,18 +34,7 @@ public class JsonResult implements ViewResult {
         response.setCharacterEncoding(encoding);
         response.setContentType(contentType);
 
-        String jsonStr;
-        if (data == null) {
-            jsonStr = "null";
-        } else if (data instanceof String) {
-            // 如果已经是 JSON 字符串，直接返回
-            jsonStr = (String) data;
-        } else if (data instanceof Map) {
-            jsonStr = toJson((Map<?, ?>) data);
-        } else {
-            // 其他类型转为字符串并加引号
-            jsonStr = "\"" + escapeJsonString(String.valueOf(data)) + "\"";
-        }
+        String jsonStr = toJson(data);
 
         PrintWriter writer = response.getWriter();
         writer.write(jsonStr);
@@ -52,39 +43,118 @@ public class JsonResult implements ViewResult {
     }
 
     /**
-     * 简单的 Map 转 JSON 实现
+     * 将对象转换为 JSON 字符串（支持嵌套对象）
      */
-    private String toJson(Map<?, ?> dataMap) {
-        if (dataMap == null || dataMap.isEmpty()) {
+    private String toJson(Object obj) {
+        if (obj == null) {
+            return "null";
+        }
+
+        if (obj instanceof String) {
+            return "\"" + escapeJsonString((String) obj) + "\"";
+        }
+
+        if (obj instanceof Number || obj instanceof Boolean) {
+            return String.valueOf(obj);
+        }
+
+        if (obj instanceof Map) {
+            return mapToJson((Map<?, ?>) obj);
+        }
+
+        if (obj instanceof Collection) {
+            return collectionToJson((Collection<?>) obj);
+        }
+
+        if (obj.getClass().isArray()) {
+            return arrayToJson(obj);
+        }
+
+        // 其他对象转为字符串
+        return "\"" + escapeJsonString(String.valueOf(obj)) + "\"";
+    }
+
+    /**
+     * Map 转 JSON
+     */
+    private String mapToJson(Map<?, ?> map) {
+        if (map == null || map.isEmpty()) {
             return "{}";
         }
 
         StringBuilder json = new StringBuilder("{");
-        for (Map.Entry<?, ?> entry : dataMap.entrySet()) {
+        boolean first = true;
+
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (!first) {
+                json.append(",");
+            }
+            first = false;
+
             String key = escapeJsonString(String.valueOf(entry.getKey()));
             json.append("\"").append(key).append("\":");
-
-            Object value = entry.getValue();
-            if (value == null) {
-                json.append("null");
-            } else if (value instanceof String) {
-                String strValue = escapeJsonString(String.valueOf(value));
-                json.append("\"").append(strValue).append("\"");
-            } else if (value instanceof Number || value instanceof Boolean) {
-                json.append(value);
-            } else {
-                String otherValue = escapeJsonString(String.valueOf(value));
-                json.append("\"").append(otherValue).append("\"");
-            }
-
-            json.append(",");
+            json.append(toJson(entry.getValue()));
         }
 
-        if (json.length() > 1 && json.charAt(json.length() - 1) == ',') {
-            json.deleteCharAt(json.length() - 1);
-        }
         json.append("}");
+        return json.toString();
+    }
 
+    /**
+     * Collection 转 JSON
+     */
+    private String collectionToJson(Collection<?> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return "[]";
+        }
+
+        StringBuilder json = new StringBuilder("[");
+        boolean first = true;
+
+        for (Object item : collection) {
+            if (!first) {
+                json.append(",");
+            }
+            first = false;
+            json.append(toJson(item));
+        }
+
+        json.append("]");
+        return json.toString();
+    }
+
+    /**
+     * 数组转 JSON
+     */
+    private String arrayToJson(Object array) {
+        if (array == null) {
+            return "null";
+        }
+
+        StringBuilder json = new StringBuilder("[");
+
+        if (array instanceof Object[]) {
+            Object[] objArray = (Object[]) array;
+            for (int i = 0; i < objArray.length; i++) {
+                if (i > 0) json.append(",");
+                json.append(toJson(objArray[i]));
+            }
+        } else if (array instanceof int[]) {
+            int[] intArray = (int[]) array;
+            for (int i = 0; i < intArray.length; i++) {
+                if (i > 0) json.append(",");
+                json.append(intArray[i]);
+            }
+        } else if (array instanceof long[]) {
+            long[] longArray = (long[]) array;
+            for (int i = 0; i < longArray.length; i++) {
+                if (i > 0) json.append(",");
+                json.append(longArray[i]);
+            }
+        }
+        // 可以添加其他基本类型数组的支持
+
+        json.append("]");
         return json.toString();
     }
 

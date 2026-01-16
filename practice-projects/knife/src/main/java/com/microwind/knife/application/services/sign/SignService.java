@@ -8,8 +8,8 @@ import com.microwind.knife.domain.repository.SignRepository;
 import com.microwind.knife.domain.sign.Sign;
 import com.microwind.knife.domain.sign.SignDomainService;
 import com.microwind.knife.domain.sign.SignUserAuth;
+import com.microwind.knife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -141,13 +141,13 @@ public class SignService {
      *
      * @param appCode 调用方身份标识
      * @return SignUserAuth - 包含 secretKey、允许访问路径列表、禁止访问路径列表
-     * @throws ResourceNotFoundException 如果找不到对应的 appCode，则抛出异常
+     * @throws RuntimeException 如果找不到对应的 appCode，则抛出异常
      *
      * <p>说明：
      * 1. 直接返回聚合对象 SignUserAuth，而不是 Optional。
      */
     public SignUserAuth getSignUserAuth(String appCode) {
         return signRepository.findByAppCode(appCode)
-                .orElseThrow(() -> new ResourceNotFoundException("没有找到对应AppCode。"));
+                .orElseThrow(() -> new ResourceNotFoundException("没有找到对应AppCode: " + appCode));
     }
 }

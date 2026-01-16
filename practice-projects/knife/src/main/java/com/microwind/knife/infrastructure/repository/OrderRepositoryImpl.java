@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
 
 /**
  * 基础设施层 - 基于 JdbcTemplate 的订单仓储实现
- * 适用场景：需精细控制 SQL 或对性能要求较高的操作
+ * 适用场景：采用Spring jdbcTemplate模式，需精细控制 SQL 或对性能要求较高的操作
  */
-@Repository
-@Primary
+@Repository("jdbcTemplate")
+//@Primary
 public class OrderRepositoryImpl implements OrderRepository {
 
     // 表名及列名常量，便于维护

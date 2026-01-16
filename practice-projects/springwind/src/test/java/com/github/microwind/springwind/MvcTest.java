@@ -166,15 +166,28 @@ public class MvcTest {
     // 测试6：HandlerMapping初始化
     @Test
     public void testHandlerMappings() throws Exception {
-        Map<String, HandlerMapping> handlerMappings = (Map<String, HandlerMapping>)
-                getPrivateField(dispatcherServlet, "handlerMappings");
+        Map<String, java.util.List<HandlerMapping>> handlerMappings =
+                (Map<String, java.util.List<HandlerMapping>>) getPrivateField(dispatcherServlet, "handlerMappings");
 
         assertNotNull("Handler mappings should not be null", handlerMappings);
-        assertTrue("Should contain GET:/api/user", handlerMappings.containsKey("GET:/api/user"));
-        assertTrue("Should contain GET:/api/data", handlerMappings.containsKey("GET:/api/data"));
-        assertTrue("Should contain GET:/api/redirect", handlerMappings.containsKey("GET:/api/redirect"));
-        assertTrue("Should contain GET:/api/forward", handlerMappings.containsKey("GET:/api/forward"));
-        assertTrue("Should contain GET:/api/error", handlerMappings.containsKey("GET:/api/error"));
+        assertTrue("Should contain GET method mappings", handlerMappings.containsKey("GET"));
+
+        // 验证 GET 方法下有映射
+        java.util.List<HandlerMapping> getMappings = handlerMappings.get("GET");
+        assertNotNull("GET mappings should not be null", getMappings);
+        assertTrue("Should have at least 5 GET mappings", getMappings.size() >= 5);
+
+        // 验证特定路径的映射存在
+        assertTrue("Should contain /api/user mapping",
+            getMappings.stream().anyMatch(hm -> hm.getPathMatcher().getPattern().equals("/api/user")));
+        assertTrue("Should contain /api/data mapping",
+            getMappings.stream().anyMatch(hm -> hm.getPathMatcher().getPattern().equals("/api/data")));
+        assertTrue("Should contain /api/redirect mapping",
+            getMappings.stream().anyMatch(hm -> hm.getPathMatcher().getPattern().equals("/api/redirect")));
+        assertTrue("Should contain /api/forward mapping",
+            getMappings.stream().anyMatch(hm -> hm.getPathMatcher().getPattern().equals("/api/forward")));
+        assertTrue("Should contain /api/error mapping",
+            getMappings.stream().anyMatch(hm -> hm.getPathMatcher().getPattern().equals("/api/error")));
     }
 
     // 测试7：内容协商
