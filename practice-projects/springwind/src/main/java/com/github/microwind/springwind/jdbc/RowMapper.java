@@ -6,6 +6,7 @@ import java.sql.*;
  * 行映射器接口
  * 用于将数据库结果集中的每一行映射为一个对象
  */
+@FunctionalInterface
 public interface RowMapper<T> {
     /**
      * 将结果集中的当前行映射为一个对象
@@ -16,3 +17,4 @@ public interface RowMapper<T> {
      */
     T mapRow(ResultSet rs, int rowNum) throws SQLException;
 }
+

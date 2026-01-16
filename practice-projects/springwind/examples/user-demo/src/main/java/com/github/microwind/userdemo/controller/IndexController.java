@@ -15,7 +15,7 @@ public class IndexController {
     @RequestMapping("")
     public ViewResult index() {
         String html = "<html>" +
-                "<head><title>学生信息管理系统</title></head>" +
+                "<head><title>信息管理系统</title></head>" +
                 "<body style='font-family: Arial, sans-serif; margin: 40px;'>" +
                 "<h1 style='color: #333;'>欢迎使用学生信息管理系统</h1>" +
                 "<p>这是一个基于 SpringWind 框架构建的示例应用。</p>" +

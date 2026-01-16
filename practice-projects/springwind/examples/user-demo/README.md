@@ -1,6 +1,8 @@
 # User Demo - 学生信息管理系统
 
-这是一个基于SpringWind框架的简单学生信息管理系统示例，用于演示SpringWind框架的核心功能。
+这是一个基于SpringWind框架的综合示例项目，包含内存存储和数据库操作两个模块：
+- **Student/Class**: 原有的学生信息管理系统（内存存储）
+- **User**: 新增的用户管理系统（数据库存储，使用 JdbcTemplate）
 
 ## 项目说明
 
@@ -10,30 +12,48 @@
 - **依赖注入**: 使用@Autowired自动注入依赖
 - **组件扫描**: 自动扫描@Controller、@Service、@Repository注解的类
 - **分层架构**: Controller -> Service -> Dao 的标准三层架构
+- **数据库操作**: 使用 JdbcTemplate 进行数据库 CRUD 操作
+- **连接池管理**: HikariCP 高性能连接池配置
 
 ## 项目结构
 
 ```
 user-demo/
 ├── pom.xml
-└── src/main/java/com/github/microwind/userdemo/
-    ├── UserDemoApplication.java  # 启动类
-    ├── controller/               # 控制器层
-    │   ├── AuthController.java   # 用户登录
-    │   ├── StudentController.java # 学生信息查询
-    │   └── ClassController.java  # 班级信息查询
-    ├── service/                  # 服务层
-    │   ├── StudentService.java
-    │   └── ClassService.java
-    ├── dao/                      # 数据访问层
-    │   ├── StudentDao.java
-    │   └── ClassDao.java
-    └── model/                    # 数据模型
-        ├── Student.java
-        └── ClassInfo.java
+├── init-db.sql                              # 数据库初始化脚本
+├── DATABASE_OPERATIONS.md                   # 数据库操作详细文档
+├── QUICK_START.md                           # 快速开始指南
+├── test-user-api.sh                         # API 自动化测试脚本
+├── src/main/
+│   ├── java/com/github/microwind/userdemo/
+│   │   ├── UserDemoApplication.java         # 启动类
+│   │   ├── config/                          # 配置层
+│   │   │   └── DataSourceConfig.java        # 数据源和 JdbcTemplate 配置
+│   │   ├── controller/                      # 控制器层
+│   │   │   ├── AuthController.java          # 用户登录（原有）
+│   │   │   ├── StudentController.java       # 学生信息查询（原有）
+│   │   │   ├── ClassController.java         # 班级信息查询（原有）
+│   │   │   └── UserController.java          # 用户管理（新增，数据库）
+│   │   ├── service/                         # 服务层
+│   │   │   ├── StudentService.java          # 学生服务（原有）
+│   │   │   ├── ClassService.java            # 班级服务（原有）
+│   │   │   └── UserService.java             # 用户服务（新增，数据库）
+│   │   ├── dao/                             # 数据访问层
+│   │   │   ├── StudentDao.java              # 学生 DAO（原有，内存）
+│   │   │   ├── ClassDao.java                # 班级 DAO（原有，内存）
+│   │   │   └── UserDao.java                 # 用户 DAO（新增，数据库）
+│   │   └── model/                           # 数据模型
+│   │       ├── Student.java                 # 学生实体（原有）
+│   │       ├── ClassInfo.java               # 班级实体（原有）
+│   │       └── User.java                    # 用户实体（新增）
+│   └── resources/
+│       └── application.properties            # 应用配置（新增）
+└── target/                                  # 编译输出
 ```
 
 ## 功能列表
+
+### 原有功能（内存存储）
 
 1. **用户登录** (`/auth/login`)
    - 简单的用户名密码验证
@@ -47,7 +67,40 @@ user-demo/
    - 获取所有班级信息
    - 演示List数据的处理
 
+### 新增功能（数据库操作 - JdbcTemplate）
+
+1. **用户管理** - 完整的 CRUD 操作
+   - `GET /user/list` - 获取所有用户
+   - `GET /user/get?id=1` - 根据 ID 获取用户
+   - `GET /user/getByUsername?username=admin` - 根据用户名获取用户
+   - `GET /user/active` - 获取激活的用户
+   - `GET /user/count` - 获取用户总数
+   - `POST /user/create` - 创建用户
+   - `POST /user/update` - 更新用户
+   - `POST /user/delete?id=1` - 删除用户
+   - `POST /user/login` - 用户登录验证
+
 ## 快速开始
+
+### 数据库操作示例
+
+如果您只对数据库操作感兴趣，请查看详细指南：
+
+- **快速开始**: [QUICK_START.md](QUICK_START.md)
+- **详细文档**: [DATABASE_OPERATIONS.md](DATABASE_OPERATIONS.md)
+
+基本步骤：
+
+1. 创建 MySQL 数据库和用户
+2. 执行 `init-db.sql` 初始化表和数据
+3. 修改 `DataSourceConfig.java` 中的数据库连接信息（如需要）
+4. 启动应用：`mvn exec:java -Dexec.args="--web"`
+5. 访问 API：`http://localhost:8080/user/list`
+
+### 原有示例
+
+继续按照以下方式运行原有的学生管理示例：
+
 
 ### 前置条件
 

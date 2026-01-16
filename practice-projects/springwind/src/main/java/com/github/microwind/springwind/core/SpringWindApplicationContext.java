@@ -16,7 +16,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.github.microwind.springwind.annotation.Autowired;
+import com.github.microwind.springwind.annotation.Bean;
 import com.github.microwind.springwind.annotation.Component;
+import com.github.microwind.springwind.annotation.Configuration;
 import com.github.microwind.springwind.annotation.Controller;
 import com.github.microwind.springwind.annotation.Repository;
 import com.github.microwind.springwind.annotation.Service;
@@ -45,6 +47,10 @@ public class SpringWindApplicationContext {
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
     // 构造器缓存（性能优化）
     private final Map<Class<?>, Constructor<?>> constructorCache = new ConcurrentHashMap<>();
+    // @Configuration 类实例（用于 @Bean 方法调用）
+    private final Map<Class<?>, Object> configurationInstances = new ConcurrentHashMap<>();
+    // @Bean 方法定义（类 -> 方法列表）
+    private final Map<Class<?>, List<Method>> beanMethods = new ConcurrentHashMap<>();
 
     public SpringWindApplicationContext(Class<?> configClass) {
         // 扫描包路径下的组件
@@ -163,6 +169,12 @@ public class SpringWindApplicationContext {
                 logger.debug("注册Bean: {}", clazz.getSimpleName());
             }
 
+            // @Configuration 类处理
+            if (clazz.isAnnotationPresent(Configuration.class)) {
+                registerConfigurationClass(clazz);
+                logger.debug("注册Configuration类: {}", clazz.getSimpleName());
+            }
+
             // BeanPostProcessor 注册
             if (BeanPostProcessor.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
                 try {
@@ -204,6 +216,60 @@ public class SpringWindApplicationContext {
     }
 
     /**
+     * 注册@Configuration类及其@Bean方法
+     * 
+     * @param configClass Configuration类
+     */
+    private void registerConfigurationClass(Class<?> configClass) {
+        try {
+            // 创建配置类实例
+            Object configInstance = configClass.getDeclaredConstructor().newInstance();
+            configurationInstances.put(configClass, configInstance);
+
+            // 扫描@Bean方法
+            List<Method> beanMethodList = new ArrayList<>();
+            for (Method method : configClass.getDeclaredMethods()) {
+                if (method.isAnnotationPresent(Bean.class)) {
+                    method.setAccessible(true);
+                    beanMethodList.add(method);
+                    
+                    // 注册@Bean方法返回的Bean定义
+                    registerBeanMethodDefinition(method, configClass);
+                }
+            }
+            beanMethods.put(configClass, beanMethodList);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            logger.error("无法创建Configuration实例: {}", configClass.getName(), e);
+            throw new BeanCreationException(configClass.getSimpleName(), 
+                    "创建Configuration实例失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 注册@Bean方法定义
+     * 
+     * @param method 被@Bean标注的方法
+     * @param configClass Configuration类
+     */
+    private void registerBeanMethodDefinition(Method method, Class<?> configClass) {
+        Bean beanAnnotation = method.getAnnotation(Bean.class);
+        
+        // 获取bean名称，优先使用@Bean注解中的value，否则使用方法名
+        String beanName = beanAnnotation.value();
+        if (beanName == null || beanName.isEmpty()) {
+            beanName = method.getName();
+        }
+        
+        // 创建bean定义，记录方法返回类型和所在的配置类
+        BeanMethodDefinition beanMethodDef = new BeanMethodDefinition(beanName, method.getReturnType());
+        beanMethodDef.setMethod(method);
+        beanMethodDef.setConfigClass(configClass);
+        
+        beanDefinitionMap.put(beanName, beanMethodDef);
+        logger.debug("注册@Bean方法: {}.{}()", configClass.getSimpleName(), method.getName());
+    }
+
+    /**
      * 获取Bean名称
      * 
      * @param clazz Bean类
@@ -234,33 +300,8 @@ public class SpringWindApplicationContext {
     private void createSingletonBeans() {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
             if ("singleton".equals(beanDefinition.getScope())) {
-                String beanName = beanDefinition.getBeanName();
-
-                // 检测循环依赖
-                if (singletonsCurrentlyInCreation.contains(beanName)) {
-                    throw new CircularDependencyException(beanName, singletonsCurrentlyInCreation);
-                }
-
-                // 标记为正在创建
-                singletonsCurrentlyInCreation.add(beanName);
-
-                try {
-                    Object bean = createBeanInstance(beanDefinition.getBeanClass());
-                    // 将早期Bean放入二级缓存（用于解决循环依赖）
-                    earlySingletonObjects.put(beanName, bean);
-
-                    // 执行BeanPostProcessor前置处理
-                    bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
-                    beanDefinition.setBeanInstance(bean);
-                    singletonObjects.put(beanName, bean);
-
-                    logger.debug("创建单例Bean: {}", beanName);
-                } finally {
-                    // 创建完成，移出正在创建集合
-                    singletonsCurrentlyInCreation.remove(beanName);
-                    // 移出早期缓存
-                    earlySingletonObjects.remove(beanName);
-                }
+                // 通过getBean方法创建，它会自动处理依赖注入
+                getBean(beanDefinition.getBeanName());
             }
         }
     }
@@ -299,28 +340,61 @@ public class SpringWindApplicationContext {
     }
 
     /**
-     * 创建Bean实例
+     * 调用@Bean方法创建Bean实例，支持构造函数参数注入
      * 
-     * @param beanDefinition Bean定义
+     * @param methodDef @Bean方法定义
      * @return Bean实例
      */
-    private Object createBeanInstance(BeanDefinition beanDefinition) {
+    private Object invokeBeanMethod(BeanMethodDefinition methodDef) {
         try {
-            // 使用 getDeclaredConstructor().newInstance() 替代过时的 newInstance()
-            return beanDefinition.getBeanClass().getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException
-                | InvocationTargetException e) {
-            throw new RuntimeException("创建Bean实例失败: " + beanDefinition.getBeanName(), e);
+            Method method = methodDef.getMethod();
+            Object configInstance = configurationInstances.get(methodDef.getConfigClass());
+            
+            if (configInstance == null) {
+                throw new BeanCreationException(methodDef.getBeanName(),
+                        "配置类实例不存在: " + methodDef.getConfigClass().getName());
+            }
+            
+            // 获取方法的参数类型
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            
+            if (parameterTypes.length == 0) {
+                // 无参数方法，直接调用
+                return method.invoke(configInstance);
+            } else {
+                // 有参数方法，需要依赖注入
+                Object[] parameters = new Object[parameterTypes.length];
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> paramType = parameterTypes[i];
+                    Object paramBean = getBean(paramType);
+                    if (paramBean == null) {
+                        throw new BeanNotFoundException(paramType);
+                    }
+                    parameters[i] = paramBean;
+                }
+                return method.invoke(configInstance, parameters);
+            }
+        } catch (InvocationTargetException e) {
+            throw new BeanCreationException(methodDef.getBeanName(),
+                    "@Bean方法执行失败: " + e.getTargetException().getMessage(), e);
+        } catch (IllegalAccessException e) {
+            throw new BeanCreationException(methodDef.getBeanName(),
+                    "无法访问@Bean方法: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 依赖注入
+     * 依赖注入（在创建所有Bean后执行）
+     * 此方法只对普通的@Component/@Service/@Repository/@Controller类执行field注入
+     * @Bean方法产生的Bean已在invokeBeanMethod中完成了构造参数注入
      */
     private void dependencyInjection() {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
-            Object bean = getBean(beanDefinition.getBeanName());
-            doDependencyInjection(bean);
+            // 只对非@Bean方法产生的Bean执行字段注入
+            if (!(beanDefinition instanceof BeanMethodDefinition)) {
+                Object bean = getBean(beanDefinition.getBeanName());
+                doDependencyInjection(bean);
+            }
         }
     }
 
@@ -361,25 +435,12 @@ public class SpringWindApplicationContext {
 
     /**
      * 执行初始化方法（@PostConstruct标注的方法）
+     * 注：Bean初始化已经在getBean()方法中执行过了，此方法为备用
      */
     private void invokeInitMethods() {
-        for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
-            if (beanDefinition.getInitMethod() != null) {
-                try {
-                    Object bean = getBean(beanDefinition.getBeanName());
-                    // 调用@PostConstruct标注的初始化方法
-                    beanDefinition.getInitMethod().invoke(bean);
-                    // 执行BeanPostProcessor后置处理（初始化后）
-                    bean = applyBeanPostProcessorsAfterInitialization(bean, beanDefinition.getBeanName());
-                    // 更新处理后的Bean实例到定义和单例缓存
-                    beanDefinition.setBeanInstance(bean);
-                    singletonObjects.put(beanDefinition.getBeanName(), bean);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    System.err.println("Error invoking init method for bean: " + beanDefinition.getBeanName());
-                    e.printStackTrace();
-                }
-            }
-        }
+        // 由于getBean()已经在创建Bean时执行了初始化和BeanPostProcessor处理
+        // 此方法现已不需要额外处理，保留以兼容原有框架设计
+        // 如果后续需要延迟初始化，可以在此实现
     }
 
     /**
@@ -495,11 +556,73 @@ public class SpringWindApplicationContext {
         }
 
         if ("singleton".equals(beanDefinition.getScope())) {
-            return singletonObjects.get(beanName);
+            // 检查是否已经在单例缓存中
+            Object bean = singletonObjects.get(beanName);
+            if (bean != null) {
+                return bean;
+            }
+            
+            // 检测循环依赖
+            if (singletonsCurrentlyInCreation.contains(beanName)) {
+                throw new CircularDependencyException(beanName, singletonsCurrentlyInCreation);
+            }
+            
+            // 标记为正在创建
+            singletonsCurrentlyInCreation.add(beanName);
+            
+            try {
+                // 创建Bean实例
+                if (beanDefinition instanceof BeanMethodDefinition) {
+                    BeanMethodDefinition methodDef = (BeanMethodDefinition) beanDefinition;
+                    bean = invokeBeanMethod(methodDef);
+                } else {
+                    bean = createBeanInstance(beanDefinition.getBeanClass());
+                }
+                
+                // 将早期Bean放入二级缓存（用于解决循环依赖）
+                earlySingletonObjects.put(beanName, bean);
+                
+                // 做依赖注入（对于普通Bean）
+                if (!(beanDefinition instanceof BeanMethodDefinition)) {
+                    doDependencyInjection(bean);
+                }
+                
+                // 执行BeanPostProcessor前置处理
+                bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
+                beanDefinition.setBeanInstance(bean);
+                singletonObjects.put(beanName, bean);
+                
+                // 执行初始化方法
+                if (beanDefinition.getInitMethod() != null) {
+                    try {
+                        beanDefinition.getInitMethod().invoke(bean);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new BeanCreationException(beanName, "执行初始化方法失败", e);
+                    }
+                }
+                
+                // 执行BeanPostProcessor后置处理
+                bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+                singletonObjects.put(beanName, bean);
+                
+                logger.debug("创建单例Bean: {}", beanName);
+                return bean;
+            } finally {
+                // 创建完成，移出正在创建集合
+                singletonsCurrentlyInCreation.remove(beanName);
+                // 移出早期缓存
+                earlySingletonObjects.remove(beanName);
+            }
         } else {
             // 原型模式，每次创建新实例
-            Object bean = createBeanInstance(beanDefinition.getBeanClass());
-            doDependencyInjection(bean);
+            Object bean;
+            if (beanDefinition instanceof BeanMethodDefinition) {
+                BeanMethodDefinition methodDef = (BeanMethodDefinition) beanDefinition;
+                bean = invokeBeanMethod(methodDef);
+            } else {
+                bean = createBeanInstance(beanDefinition.getBeanClass());
+                doDependencyInjection(bean);
+            }
             return bean;
         }
     }
@@ -518,7 +641,8 @@ public class SpringWindApplicationContext {
 
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
             if (requiredType.isAssignableFrom(beanDefinition.getBeanClass())) {
-                return (T) getBean(beanDefinition.getBeanName());
+                Object bean = getBean(beanDefinition.getBeanName());
+                return requiredType.cast(bean);
             }
         }
 
@@ -537,12 +661,12 @@ public class SpringWindApplicationContext {
                     Object bean = getBean(beanDefinition.getBeanName());
                     beanDefinition.getDestroyMethod().invoke(bean);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    System.err.println("Error invoking destroy method for bean: " + beanDefinition.getBeanName());
-                    e.printStackTrace();
+                    logger.error("执行销毁方法失败: {}", beanDefinition.getBeanName(), e);
                 }
             }
         }
         singletonObjects.clear();
         beanDefinitionMap.clear();
+        logger.info("容器已关闭");
     }
 }
