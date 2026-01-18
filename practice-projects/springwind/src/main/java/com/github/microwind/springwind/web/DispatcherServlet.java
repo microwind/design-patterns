@@ -257,12 +257,15 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 解析方法参数：支持 HttpServletRequest, HttpServletResponse, HttpSession, @RequestParam, @PathVariable
+     * 解析方法参数：支持 HttpServletRequest, HttpServletResponse, HttpSession, @RequestParam, @PathVariable, @RequestBody
      */
     private Object[] resolveMethodParameters(Method method, HttpServletRequest req,
                                             HttpServletResponse resp, Map<String, String> pathVariables) {
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
+
+        // 缓存请求体内容（因为流只能读取一次）
+        String requestBody = null;
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
@@ -280,6 +283,41 @@ public class DispatcherServlet extends HttpServlet {
             if (HttpSession.class.isAssignableFrom(paramType)) {
                 args[i] = req.getSession();
                 continue;
+            }
+
+            // 检查 @RequestBody 注解
+            RequestBody requestBodyAnnotation = parameter.getAnnotation(RequestBody.class);
+            if (requestBodyAnnotation != null) {
+                try {
+                    // 懒加载：只在第一次遇到 @RequestBody 时读取请求体
+                    if (requestBody == null) {
+                        requestBody = HttpRequestUtil.getRequestBody(req);
+                    }
+
+                    if (requestBody == null || requestBody.trim().isEmpty()) {
+                        if (requestBodyAnnotation.required()) {
+                            throw new IllegalArgumentException("请求体不能为空");
+                        }
+                        args[i] = null;
+                        continue;
+                    }
+
+                    // 根据参数类型进行转换
+                    if (paramType == String.class) {
+                        // 直接返回原始字符串
+                        args[i] = requestBody;
+                    } else if (Map.class.isAssignableFrom(paramType)) {
+                        // 解析为 Map
+                        args[i] = JsonUtil.parseToMap(requestBody);
+                    } else {
+                        // 解析为自定义对象
+                        args[i] = JsonUtil.parseToObject(requestBody, paramType);
+                    }
+                    continue;
+                } catch (IOException e) {
+                    log.log(Level.WARNING, "读取请求体失败", e);
+                    throw new IllegalStateException("读取请求体失败: " + e.getMessage(), e);
+                }
             }
 
             // 检查 @PathVariable 注解

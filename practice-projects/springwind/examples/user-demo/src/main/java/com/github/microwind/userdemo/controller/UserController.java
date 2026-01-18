@@ -7,15 +7,12 @@ import com.github.microwind.userdemo.exception.DuplicateKeyException;
 import com.github.microwind.userdemo.service.UserService;
 import com.github.microwind.userdemo.model.User;
 import com.github.microwind.userdemo.utils.ApiResponse;
-import com.github.microwind.userdemo.utils.JsonUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 用户控制器 - RESTful 风格
- * 使用 ApiResponse 直接返回，支持路径参数
+ * 使用 @RequestBody 注解自动解析请求体
  */
 @Controller
 @RequestMapping("/user")
@@ -111,20 +108,19 @@ public class UserController {
      */
     @PostMapping("")
     @ResponseBody
-    public ViewResult create(HttpServletRequest request) throws IOException {
+    public ViewResult create(@RequestBody Map<String, Object> data) {
         try {
-            String body = getRequestBody(request);
-            Map<String, Object> data = JsonUtil.parseJson(body);
-
             String name = (String) data.get("name");
             String email = (String) data.get("email");
             String phone = (String) data.get("phone");
+            String wechat = (String) data.get("wechat");
+            String address = (String) data.get("address");
 
             if (name == null || name.isEmpty()) {
                 return ApiResponse.badRequest("用户名不能为空");
             }
 
-            User user = new User(name, email, phone);
+            User user = new User(name, email, phone, wechat, address);
             userService.createUser(user);  // 可能抛出 DuplicateKeyException
 
             // 重新查询用户以获取生成的 ID
@@ -149,11 +145,8 @@ public class UserController {
      */
     @PutMapping("/{id}")
     @ResponseBody
-    public ViewResult update(@PathVariable("id") Long id, HttpServletRequest request) throws IOException {
+    public ViewResult update(@PathVariable("id") Long id, @RequestBody Map<String, Object> data) {
         try {
-            String body = getRequestBody(request);
-            Map<String, Object> data = JsonUtil.parseJson(body);
-
             User user = userService.getUserById(id);
             if (user == null) {
                 return ApiResponse.notFound("用户不存在");
@@ -212,11 +205,8 @@ public class UserController {
      */
     @PostMapping("/login")
     @ResponseBody
-    public ViewResult login(HttpServletRequest request) throws IOException {
+    public ViewResult login(@RequestBody Map<String, Object> data) {
         try {
-            String body = getRequestBody(request);
-            Map<String, Object> data = JsonUtil.parseJson(body);
-
             String name = (String) data.get("name");
             String password = (String) data.get("password");
 
@@ -235,18 +225,5 @@ public class UserController {
         } catch (Exception e) {
             return ApiResponse.failure("登录失败: " + e.getMessage());
         }
-    }
-
-    /**
-     * 获取请求体内容
-     */
-    private String getRequestBody(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = request.getInputStream().read(buffer)) != -1) {
-            sb.append(new String(buffer, 0, len, "UTF-8"));
-        }
-        return sb.toString();
     }
 }

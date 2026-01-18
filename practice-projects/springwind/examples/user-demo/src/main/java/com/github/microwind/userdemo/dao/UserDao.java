@@ -1,9 +1,10 @@
 package com.github.microwind.userdemo.dao;
 
-import com.github.microwind.springwind.annotation.Repository;
 import com.github.microwind.springwind.annotation.Autowired;
+import com.github.microwind.springwind.annotation.Repository;
 import com.github.microwind.springwind.jdbc.JdbcTemplate;
 import com.github.microwind.userdemo.model.User;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -24,6 +25,8 @@ public class UserDao {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_PHONE = "phone";
+    public static final String FIELD_WECHAT = "wechat";
+    public static final String FIELD_ADDRESS = "address";
     public static final String FIELD_CREATED_TIME = "created_time";
     public static final String FIELD_UPDATED_TIME = "updated_time";
 
@@ -37,12 +40,15 @@ public class UserDao {
     public int create(User user) {
         String sql = "INSERT INTO " + TABLE_USER + " (" +
                 FIELD_NAME + ", " + FIELD_EMAIL + ", " + FIELD_PHONE + ", " +
+                FIELD_WECHAT + ", " + FIELD_ADDRESS + ", " +
                 FIELD_CREATED_TIME + ", " + FIELD_UPDATED_TIME +
-                ") VALUES (?, ?, ?, ?, ?)";
+                ") VALUES (?, ?, ?, ?, ?, ?, ?)";
         return jdbcTemplate.update(sql,
                 user.getName(),
                 user.getEmail(),
                 user.getPhone(),
+                user.getWechat(),
+                user.getAddress(),
                 new Timestamp(user.getCreatedTime()),
                 new Timestamp(user.getUpdatedTime()));
     }
@@ -100,7 +106,7 @@ public class UserDao {
      */
     public List<User> findAll() {
         String sql = "SELECT " + FIELD_ID + ", " + FIELD_NAME + ", " + FIELD_EMAIL + ", " +
-                FIELD_PHONE + ", " + FIELD_CREATED_TIME + ", " + FIELD_UPDATED_TIME +
+                FIELD_PHONE + ", " + FIELD_WECHAT + ", " + FIELD_ADDRESS + ", " + FIELD_CREATED_TIME + ", " + FIELD_UPDATED_TIME +
                 " FROM " + TABLE_USER;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             User user = new User();
@@ -108,6 +114,8 @@ public class UserDao {
             user.setName(rs.getString(FIELD_NAME));
             user.setEmail(rs.getString(FIELD_EMAIL));
             user.setPhone(rs.getString(FIELD_PHONE));
+            user.setWechat(rs.getString(FIELD_WECHAT));
+            user.setAddress(rs.getString(FIELD_ADDRESS));
 
             Timestamp created = rs.getTimestamp(FIELD_CREATED_TIME);
             user.setCreatedTime(created != null ? created.getTime() : 0L);
@@ -164,14 +172,15 @@ public class UserDao {
 
     /**
      * 分页查询用户
-     * @param page 页码，从1开始
+     *
+     * @param page     页码，从1开始
      * @param pageSize 每页大小
      * @return 用户列表
      */
     public List<User> findByPage(int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         String sql = "SELECT " + FIELD_ID + ", " + FIELD_NAME + ", " + FIELD_EMAIL + ", " +
-                FIELD_PHONE + ", " + FIELD_CREATED_TIME + ", " + FIELD_UPDATED_TIME +
+                FIELD_PHONE + ", " + FIELD_WECHAT + ", " + FIELD_ADDRESS + ", " + FIELD_CREATED_TIME + ", " + FIELD_UPDATED_TIME +
                 " FROM " + TABLE_USER + " LIMIT ? OFFSET ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             User user = new User();
@@ -179,6 +188,8 @@ public class UserDao {
             user.setName(rs.getString(FIELD_NAME));
             user.setEmail(rs.getString(FIELD_EMAIL));
             user.setPhone(rs.getString(FIELD_PHONE));
+            user.setWechat(rs.getString(FIELD_WECHAT));
+            user.setAddress(rs.getString(FIELD_ADDRESS));
 
             Timestamp created = rs.getTimestamp(FIELD_CREATED_TIME);
             user.setCreatedTime(created != null ? created.getTime() : 0L);

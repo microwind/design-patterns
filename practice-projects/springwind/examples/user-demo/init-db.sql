@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL UNIQUE COMMENT '用户名',
     email VARCHAR(100) COMMENT '邮箱',
     phone VARCHAR(20) COMMENT '手机号',
+    wechat VARCHAR(100) COMMENT '微信',
+    address VARCHAR(255) COMMENT '详细地址'
     created_time BIGINT NOT NULL COMMENT '创建时间',
     updated_time BIGINT NOT NULL COMMENT '更新时间',
     PRIMARY KEY (id),

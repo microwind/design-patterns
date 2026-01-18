@@ -8,6 +8,8 @@ public class User {
     private String name;
     private String email;
     private String phone;
+    private String wechat;
+    private String address;
     private Long createdTime;
     private Long updatedTime;
 
@@ -18,6 +20,16 @@ public class User {
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.createdTime = System.currentTimeMillis();
+        this.updatedTime = System.currentTimeMillis();
+    }
+
+    public User(String name, String email, String phone, String wechat, String address) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.wechat = wechat;
+        this.address = address;
         this.createdTime = System.currentTimeMillis();
         this.updatedTime = System.currentTimeMillis();
     }
@@ -54,6 +66,22 @@ public class User {
         this.phone = phone;
     }
 
+    public void setWechat(String wechat) {
+        this.wechat = wechat;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getWechat() {
+        return wechat;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
     public Long getCreatedTime() {
         return createdTime;
     }
@@ -77,6 +105,8 @@ public class User {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
+                ", wechat ='" + wechat + '\'' +
+                ", address ='" + address + '\'' +
                 ", createdTime=" + createdTime +
                 ", updatedTime=" + updatedTime +
                 '}';

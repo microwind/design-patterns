@@ -71,7 +71,9 @@ public class PageResult<T> {
     public static <T> PageResult<T> of(List<T> list, int page, int pageSize, long total) {
         PageResult<T> result = new PageResult<>();
         result.list = list;
-        result.page = page;
+        if (page > 0) {
+            result.page = page;
+        }
         result.pageSize = pageSize;
         result.total = total;
 
