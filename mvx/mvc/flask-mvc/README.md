@@ -1,4 +1,4 @@
-# 舞界AI舞蹈算法检测
+# Flask MVC 项目示例
 
 # 安装依赖
 $ pip install -r requirements.txt
