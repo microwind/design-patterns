@@ -145,6 +145,10 @@ spring:
 - 保持领域层纯净，不依赖框架
 - 所有对外接口使用统一响应格式 `ApiResponse`
 
+### 脚手架使用指南
+
+[Springboot4DDD-Scaffold.md](./Springboot4DDD-Scaffold.md)
+
 ## License
 
 MIT License
