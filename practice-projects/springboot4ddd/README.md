@@ -1,6 +1,8 @@
-# Spring Boot 4 DDD 项目
+# 基于 Spring Boot 4 的 DDD 工程脚手架
 
-基于 Spring Boot 4.0.1 和领域驱动设计（DDD）的示例项目。
+基于 Spring Boot 4.0.1 和领域驱动设计（DDD）的脚手架，开箱即用，让你快速搭建Java Web工程。本项目旨在让Java后端项目变得和Go、NodeJS、Python一样简单，易于上手。
+
+源码地址：https://github.com/microwind/design-patterns
 
 ## 技术栈
 
