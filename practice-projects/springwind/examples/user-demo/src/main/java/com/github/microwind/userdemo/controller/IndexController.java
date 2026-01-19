@@ -28,14 +28,14 @@ public class IndexController {
                 "</ul>" +
                 "<h3 style='color: #666;'>用户管理 API（数据库操作）</h3>" +
                 "<ul>" +
-                "<li><a href='/user/list'>用户列表</a> - GET /user/list</li>" +
-                "<li><a href='/user/list?page=1&pageSize=10'>用户列表（分页）</a> - GET /user/list?page=1&pageSize=10</li>" +
+                "<li><a href='/user'>用户列表</a> - GET /user</li>" +
+                "<li><a href='/user?page=1&pageSize=10'>用户列表（分页）</a> - GET /user?page=1&pageSize=10</li>" +
                 "<li><a href='/user/count'>用户总数</a> - GET /user/count</li>" +
-                "<li>根据ID获取用户 - GET /user/get?id=1</li>" +
-                "<li>根据用户名获取用户 - GET /user/get-by-name?name=admin</li>" +
-                "<li>创建用户 - POST /user/create</li>" +
-                "<li>更新用户 - POST /user/update</li>" +
-                "<li>删除用户 - POST /user/delete?id=1</li>" +
+                "<li>根据ID获取用户 - GET /user/123</li>" +
+                "<li>根据用户名获取用户 - GET /user/name/aaa</li>" +
+                "<li>创建用户 - POST /user</li>" +
+                "<li>更新用户 - PUT /user</li>" +
+                "<li>删除用户 - DELETE /user?id=1</li>" +
                 "<li>用户登录验证 - POST /user/login</li>" +
                 "</ul>" +
                 "<h3 style='color: #666;'>其他示例</h3>" +
