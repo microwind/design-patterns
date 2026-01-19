@@ -54,6 +54,11 @@ public class UserController {
     @GetMapping("/{id}")
     @ResponseBody
     public ViewResult getById(@PathVariable("id") Long id) {
+        
+        if (id == null || id <= 0) { 
+            return ApiResponse.badRequest("用户ID不正确"); 
+        }
+        
         try {
             User user = userService.getUserById(id);
             if (user == null) {
@@ -181,7 +186,8 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseBody
     public ViewResult delete(@PathVariable("id") Long id) {
-        try {
+
+        try {            
             User user = userService.getUserById(id);
             if (user == null) {
                 return ApiResponse.notFound("用户不存在");
