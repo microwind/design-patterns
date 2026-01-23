@@ -144,19 +144,26 @@ SpringWind 的 IoC 容器是框架的心脏，负责管理应用中所有对象�
 SpringWind 实现了类似 Spring 的三级缓存策略来处理循环依赖问题：
 
 ```java
-// SpringWindApplicationContext.java:40-45
-private final Map<String, Object> singletonObjects;            // 一级缓存：完整的Bean
+// SpringWindApplicationContext.java:40-47
+private final Map<String, Object> singletonObjects;            // 一级缓存：完整初始化的Bean
 private final Map<String, Object> earlySingletonObjects;       // 二级缓存：早期Bean引用
+private final Map<String, ObjectFactory<?>> singletonFactories; // 三级缓存：ObjectFactory工厂
 private final Set<String> singletonsCurrentlyInCreation;       // 正在创建的Bean集合
 ```
 
 **工作原理**:
-1. 创建 Bean A 时，先将其标记为"正在创建"
+1. 创建 Bean A 时，先实例化并将ObjectFactory放入三级缓存（关键！）
 2. 如果 Bean A 依赖 Bean B，开始创建 Bean B
-3. 如果 Bean B 又依赖 Bean A，从二级缓存获取 A 的早期引用
-4. 完成 Bean B 的创建后，继续完成 Bean A 的创建
+3. 如果 Bean B 又依赖 Bean A，从三级缓存取出ObjectFactory并调用getObject()
+4. getObject()内部调用getEarlyBeanReference，由SmartInstantiationAwareBeanPostProcessor决定返回原始对象还是代理对象
+5. 将获取的早期引用放入二级缓存，从三级缓存移除
+6. 完成 Bean B 的创建后，继续完成 Bean A 的创建
 
-这种机制允许构造器注入和属性注入的循环依赖得到解决。
+**为什么需要三级缓存？**
+- 如果Bean需要AOP代理，最终注入的应该是代理对象而非原始对象
+- ObjectFactory的延迟特性允许在真正需要时才创建代理，保证循环依赖的所有Bean拿到同一个代理对象
+
+这种机制允许单例Bean的属性注入循环依赖得到解决（不支持构造器循环依赖）。
 
 #### Bean 生命周期管理
 
@@ -679,45 +686,130 @@ public class ServiceB {
 #### 解决流程
 
 ```
-1. 创建 ServiceA
-   ├─ 实例化 ServiceA (调用构造器)
-   ├─ 将 ServiceA 早期引用放入二级缓存
-   ├─ 注入依赖 (发现需要 ServiceB)
+1. 开始创建 ServiceA (getBean("serviceA"))
+   ├─ 检查一级缓存 → 未找到
+   ├─ 标记为正在创建：singletonsCurrentlyInCreation.add("serviceA")
+   ├─ 实例化 ServiceA（调用构造器，得到原始对象）
+   ├─ **关键：将 ObjectFactory 放入三级缓存**
+   │   singletonFactories.put("serviceA", () -> getEarlyBeanReference("serviceA", rawA))
+   ├─ 开始为 ServiceA 注入依赖 → 发现需要 ServiceB
    │
-   └─ 2. 创建 ServiceB
-      ├─ 实例化 ServiceB
-      ├─ 将 ServiceB 早期引用放入二级缓存
-      ├─ 注入依赖 (发现需要 ServiceA)
-      ├─ 从二级缓存获取 ServiceA 早期引用 ✓
-      ├─ 完成 ServiceB 的依赖注入
-      └─ 将 ServiceB 移至一级缓存
+   └─ 2. 开始创建 ServiceB (getBean("serviceB"))
+      ├─ 检查一级缓存 → 未找到
+      ├─ 标记为正在创建：singletonsCurrentlyInCreation.add("serviceB")
+      ├─ 实例化 ServiceB（得到原始对象）
+      ├─ **将 ObjectFactory 放入三级缓存**
+      │   singletonFactories.put("serviceB", () -> getEarlyBeanReference("serviceB", rawB))
+      ├─ 开始为 ServiceB 注入依赖 → 发现需要 ServiceA (循环依赖！)
+      │
+      ├─ 3. 再次调用 getBean("serviceA")
+      │   ├─ 检查一级缓存 → 未找到
+      │   ├─ 发现 serviceA 在正在创建集合中 → 进入循环依赖处理逻辑
+      │   ├─ 检查二级缓存 → 未找到
+      │   ├─ **从三级缓存取出 ObjectFactory**
+      │   ├─ **调用 ObjectFactory.getObject()**
+      │   │   → 内部调用 getEarlyBeanReference("serviceA", rawA)
+      │   │   → SmartInstantiationAwareBeanPostProcessor 可能在此创建 AOP 代理
+      │   │   → 返回 ServiceA 的早期引用（可能是代理对象）
+      │   ├─ 将早期引用放入二级缓存：earlySingletonObjects.put("serviceA", earlyA)
+      │   ├─ 从三级缓存移除：singletonFactories.remove("serviceA")
+      │   └─ 返回 ServiceA 的早期引用给 ServiceB ✓
+      │
+      ├─ ServiceB 成功注入 ServiceA（早期引用）
+      ├─ 执行 ServiceB 的前置处理器
+      ├─ 执行 @PostConstruct 初始化方法
+      ├─ 执行后置处理器（AOP 代理可能在此创建）
+      ├─ **完全初始化好的 ServiceB 放入一级缓存**
+      │   singletonObjects.put("serviceB", serviceB)
+      ├─ 清理二、三级缓存
+      └─ 从正在创建集合移除：singletonsCurrentlyInCreation.remove("serviceB")
 
 3. 继续完成 ServiceA
-   ├─ 注入 ServiceB (从一级缓存获取)
-   └─ 将 ServiceA 移至一级缓存
+   ├─ ServiceA 成功注入 ServiceB（从一级缓存获取）
+   ├─ 执行 ServiceA 的前置处理器
+   ├─ 执行 @PostConstruct 初始化方法
+   ├─ 执行后置处理器（如果已在 getEarlyBeanReference 创建代理，则跳过）
+   ├─ **完全初始化好的 ServiceA 放入一级缓存**
+   │   singletonObjects.put("serviceA", serviceA)
+   ├─ 清理二、三级缓存
+   └─ 从正在创建集合移除：singletonsCurrentlyInCreation.remove("serviceA")
 ```
 
 **关键点**:
-- **一级缓存** (`singletonObjects`): 存储完全初始化的 Bean
-- **二级缓存** (`earlySingletonObjects`): 存储早期 Bean 引用，允许循环依赖
-- **创建标记集合** (`singletonsCurrentlyInCreation`): 检测循环依赖
+- **一级缓存** (`singletonObjects`): 存储完全初始化好的单例 Bean（依赖注入、初始化都完成）
+- **二级缓存** (`earlySingletonObjects`): 存储早期 Bean 引用（已实例化，可能是代理对象）
+- **三级缓存** (`singletonFactories`): 存储 ObjectFactory 工厂对象（**不是Bean本身！**）
+- **限制**: 仅支持单例Bean的属性/字段注入，不支持构造器循环依赖
+
+**为什么需要三级缓存（singletonFactories）？**
+
+这是最精妙的设计！如果只有二级缓存会有问题：
+- 当Bean需要AOP代理时，最终注入的应该是**代理对象**，而非原始对象
+- 在循环依赖场景下，Bean创建时不知道是否会被其他Bean引用，不知道何时创建代理
+- 如果直接在二级缓存放原始对象，后续创建代理后，其他Bean拿到的仍是原始对象，导致不一致
+
+**ObjectFactory的作用**：
+1. **延迟特性**：只有在真正被依赖时才调用getObject()，不浪费资源
+2. **灵活性**：在getObject()中调用getEarlyBeanReference()，由SmartInstantiationAwareBeanPostProcessor决定返回原始对象还是代理对象
+3. **一致性**：保证所有引用拿到的是同一个对象（早期引用一旦生成，就缓存在二级缓存中）
+
+**核心代码**（SpringWindApplicationContext.java:615-621, 669-684）:
+```java
+// 1. 放入三级缓存
+singletonFactories.put(beanName, new ObjectFactory<Object>() {
+    @Override
+    public Object getObject() {
+        return getEarlyBeanReference(beanName, rawBean); // 延迟调用
+    }
+});
+
+// 2. 获取早期引用
+protected Object getEarlyBeanReference(String beanName, Object bean) {
+    Object exposedObject = bean;
+    for (BeanPostProcessor bp : beanPostProcessors) {
+        if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+            // AOP在这里提前创建代理
+            exposedObject = ((SmartInstantiationAwareBeanPostProcessor) bp)
+                .getEarlyBeanReference(exposedObject, beanName);
+        }
+    }
+    return exposedObject; // 可能是原始对象，也可能是代理对象
+}
+```
 
 ### 注解的工作原理
 
-Java 注解本质上是特殊的接口，SpringWind 通过反射 API 在运行时读取注解信息。
+Java 注解本质上是特殊的接口，继承自 java.lang.annotation.Annotation。SpringWind仿照Spring 在启动时通过反射或字节码扫描读取注解信息。
 
+**创建注解**
 ```java
-// 扫描类上的注解
+// 注解的元注解定义示例
+@Target(ElementType.TYPE)      // 注解作用目标：类、接口、枚举
+@Retention(RetentionPolicy.RUNTIME)  // 注解保留策略：运行时可见
+@Documented                    // 包含在Javadoc中
+@Component                     // 标记为Spring组件
+public @interface Service {
+    String value() default "";  // 注解属性
+}
+```
+
+**注解执行**
+```java
+// 1. 扫描类上的注解
 Class<?> clazz = Class.forName("com.example.UserService");
 if (clazz.isAnnotationPresent(Service.class)) {
-    // 这是一个服务类，注册为 Bean
+    // 这是一个服务类，需要注册为Bean
 }
 
-// 扫描字段上的注解
+// 2. 扫描字段上的注解  
+Object bean = createBeanInstance(clazz);  // 创建Bean实例
 for (Field field : clazz.getDeclaredFields()) {
     if (field.isAnnotationPresent(Autowired.class)) {
-        // 这个字段需要依赖注入
-        Object dependency = getBean(field.getType());
+        // 需要依赖注入
+        Class<?> fieldType = field.getType();
+        Object dependency = getBean(fieldType);  // 获取依赖的Bean
+        
+        // 设置字段值
         field.setAccessible(true);
         field.set(bean, dependency);
     }
@@ -1133,4 +1225,4 @@ SpringWind 的设计深受 Spring Framework 的启发，感谢 Spring 团队为 
 
 ---
 
-**愿你在学习 SpringWind 的过程中，深入理解现代 Java 框架的设计精髓！** 🚀
+**愿你在学习 SpringWind 的过程中，觉得开心愉悦！** 

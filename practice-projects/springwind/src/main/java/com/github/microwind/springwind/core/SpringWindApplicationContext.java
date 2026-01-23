@@ -41,6 +41,8 @@ public class SpringWindApplicationContext {
     private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
     // 早期单例Bean映射表（二级缓存，用于解决循环依赖）
     private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
+    // 三级缓存：ObjectFactory，用于延迟生成早期引用（支持AOP）
+    private final Map<String, ObjectFactory<?>> singletonFactories = new ConcurrentHashMap<>();
     // 正在创建的Bean集合（用于检测循环依赖）
     private final Set<String> singletonsCurrentlyInCreation = Collections.newSetFromMap(new ConcurrentHashMap<>());
     // Bean后处理器列表
@@ -555,66 +557,8 @@ public class SpringWindApplicationContext {
             throw new BeanNotFoundException(beanName);
         }
 
-        if ("singleton".equals(beanDefinition.getScope())) {
-            // 检查是否已经在单例缓存中
-            Object bean = singletonObjects.get(beanName);
-            if (bean != null) {
-                return bean;
-            }
-            
-            // 检测循环依赖
-            if (singletonsCurrentlyInCreation.contains(beanName)) {
-                throw new CircularDependencyException(beanName, singletonsCurrentlyInCreation);
-            }
-            
-            // 标记为正在创建
-            singletonsCurrentlyInCreation.add(beanName);
-            
-            try {
-                // 创建Bean实例
-                if (beanDefinition instanceof BeanMethodDefinition) {
-                    BeanMethodDefinition methodDef = (BeanMethodDefinition) beanDefinition;
-                    bean = invokeBeanMethod(methodDef);
-                } else {
-                    bean = createBeanInstance(beanDefinition.getBeanClass());
-                }
-                
-                // 将早期Bean放入二级缓存（用于解决循环依赖）
-                earlySingletonObjects.put(beanName, bean);
-                
-                // 做依赖注入（对于普通Bean）
-                if (!(beanDefinition instanceof BeanMethodDefinition)) {
-                    doDependencyInjection(bean);
-                }
-                
-                // 执行BeanPostProcessor前置处理
-                bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
-                beanDefinition.setBeanInstance(bean);
-                singletonObjects.put(beanName, bean);
-                
-                // 执行初始化方法
-                if (beanDefinition.getInitMethod() != null) {
-                    try {
-                        beanDefinition.getInitMethod().invoke(bean);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new BeanCreationException(beanName, "执行初始化方法失败", e);
-                    }
-                }
-                
-                // 执行BeanPostProcessor后置处理
-                bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
-                singletonObjects.put(beanName, bean);
-                
-                logger.debug("创建单例Bean: {}", beanName);
-                return bean;
-            } finally {
-                // 创建完成，移出正在创建集合
-                singletonsCurrentlyInCreation.remove(beanName);
-                // 移出早期缓存
-                earlySingletonObjects.remove(beanName);
-            }
-        } else {
-            // 原型模式，每次创建新实例
+        // 原型scope，每次都新建
+        if (!"singleton".equals(beanDefinition.getScope())) {
             Object bean;
             if (beanDefinition instanceof BeanMethodDefinition) {
                 BeanMethodDefinition methodDef = (BeanMethodDefinition) beanDefinition;
@@ -625,6 +569,118 @@ public class SpringWindApplicationContext {
             }
             return bean;
         }
+
+        // 1. 首先从一级缓存获取完全初始化好的Bean
+        Object bean = singletonObjects.get(beanName);
+        if (bean != null) {
+            return bean;
+        }
+
+        // 2. 检查循环依赖：如果当前Bean正在创建中
+        if (singletonsCurrentlyInCreation.contains(beanName)) {
+            // 先从二级缓存获取早期对象
+            bean = earlySingletonObjects.get(beanName);
+            if (bean != null) {
+                return bean;
+            }
+
+            // 如果二级缓存没有，尝试从三级缓存获取ObjectFactory
+            ObjectFactory<?> factory = singletonFactories.get(beanName);
+            if (factory != null) {
+                // 调用ObjectFactory获取早期对象，并放入二级缓存
+                bean = factory.getObject();
+                earlySingletonObjects.put(beanName, bean);
+                singletonFactories.remove(beanName);
+                return bean;
+            }
+
+            // 如果三级缓存也没有，说明循环依赖无法解决
+            throw new CircularDependencyException(beanName, new HashSet<>(singletonsCurrentlyInCreation));
+        }
+
+        // 标记为正在创建
+        singletonsCurrentlyInCreation.add(beanName);
+
+        try {
+            // 1. 实例化
+            if (beanDefinition instanceof BeanMethodDefinition) {
+                BeanMethodDefinition methodDef = (BeanMethodDefinition) beanDefinition;
+                bean = invokeBeanMethod(methodDef);
+            } else {
+                bean = createBeanInstance(beanDefinition.getBeanClass());
+            }
+
+            // 2. 放入三级缓存（关键：放入一个ObjectFactory，支持AOP提前创建代理）
+            final Object rawBean = bean;
+            singletonFactories.put(beanName, new ObjectFactory<Object>() {
+                @Override
+                public Object getObject() {
+                    // 获取早期引用，支持AOP提前代理
+                    return getEarlyBeanReference(beanName, rawBean);
+                }
+            });
+
+            // 3. 依赖注入（字段注入）← 这里可能发生循环依赖
+            if (!(beanDefinition instanceof BeanMethodDefinition)) {
+                doDependencyInjection(bean);
+            }
+
+            // 4. 前置初始化处理器
+            bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
+
+            // 5. 执行 @PostConstruct
+            if (beanDefinition.getInitMethod() != null) {
+                try {
+                    beanDefinition.getInitMethod().invoke(bean);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new BeanCreationException(beanName, "执行初始化方法失败", e);
+                }
+            }
+
+            // 6. 后置处理器（AOP通常在这里发生）
+            bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+
+            // 7. 放入一级缓存（完全初始化好的Bean）
+            singletonObjects.put(beanName, bean);
+
+            // 8. 清理二级缓存和三级缓存
+            earlySingletonObjects.remove(beanName);
+            singletonFactories.remove(beanName);
+
+            logger.debug("创建单例Bean: {}", beanName);
+            return bean;
+        } finally {
+            // 无论成功与否，都从正在创建集合中移除
+            singletonsCurrentlyInCreation.remove(beanName);
+            // 如果创建失败，清理可能残留的缓存
+            if (!singletonObjects.containsKey(beanName)) {
+                singletonFactories.remove(beanName);
+                earlySingletonObjects.remove(beanName);
+            }
+        }
+    }
+
+    /**
+     * 获取早期Bean引用（支持SmartInstantiationAwareBeanPostProcessor提前创建代理）
+     * @param beanName Bean名称
+     * @param bean 原始Bean实例
+     * @return 早期引用（可能是代理对象）
+     */
+    protected Object getEarlyBeanReference(String beanName, Object bean) {
+        Object exposedObject = bean;
+        
+        // 遍历所有BeanPostProcessor
+        for (BeanPostProcessor bp : beanPostProcessors) {
+            if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+                SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+                // 获取早期引用，SmartInstantiationAwareBeanPostProcessor可以在这里创建代理
+                exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+                if (exposedObject == null) {
+                    return null;
+                }
+            }
+        }
+        return exposedObject;
     }
 
     /**
@@ -666,6 +722,8 @@ public class SpringWindApplicationContext {
             }
         }
         singletonObjects.clear();
+        earlySingletonObjects.clear();
+        singletonFactories.clear();
         beanDefinitionMap.clear();
         logger.info("容器已关闭");
     }

@@ -363,7 +363,14 @@ public class DispatcherServlet extends HttpServlet {
 
     /** 简单类型转换 */
     private Object convertType(String value, Class<?> targetType) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
+
+        value = value.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
         try {
             if (targetType == String.class) return value;
             if (targetType == int.class || targetType == Integer.class) return Integer.parseInt(value);

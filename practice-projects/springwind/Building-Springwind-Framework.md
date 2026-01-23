@@ -1,18 +1,20 @@
 # 从零手搓一个类Spring框架，彻底搞懂Spring核心原理
 
 > 作者：JarryLi
-> 适合读者：Java开发工程师、架构师、对框架原理感兴趣的同学
+> 
+> 适合读者：Java开发工程师、架构师、对框架原理感兴趣的同学。
+> 本框架利用AI进行了Code Review，可以检查出一些隐患来。
+> 本文档利用AI进行了优化，使得文章更具有可读性。
 
 ## 前言
 
-还记得很多年前刚接触`Spring`的时候，我觉得很神奇，通过xml就可以自动注入对象，甚至一个`@Autowired`注解就可以？AOP 还能在不侵入业务代码的情况下统一加日志和事务？
-那时主流还是 EJB 体系，使用原生Servlet、JSP以及Struts框架。面对 IoC、DI 这些看似“魔法”的能力，总想一探究竟：它们到底是怎么实现的？
+还记得很多年前刚接触`Spring`的时候，我觉得很神奇：通过`xml`配置就可以自动注入对象，甚至一个`@Autowired`注解就能搞定？AOP 还能在不侵入业务代码的情况下统一加日志和事务？那时主流还是 `EJB` 体系，使用原生`Servlet`、`JSP`以及`Struts`框架。面对 IoC、DI 这些看似"魔法"的能力，不免想一探究竟：它们到底是怎么实现的？
 
-也正是从那时起，一直在学习`Spring`源码。真正看进去才发现，这些并不是魔法，而是大量工程化设计的结果：层层抽象、接口解耦、经典设计模式反复出现。源码规模不小，很难一口气看完，只能带着问题一点点啃。
+从那时起，开始学习`Spring`源码。真正看进去才发现，这些并不神奇，而是大量工程化设计的结果：层层抽象、接口解耦、经典设计模式的复用。源码规模不小，很难一口气看完，只能带着问题一点点学习。
 
-看书百遍，不如自己动手实践，于是参照Spring框架写一个简化版的MVC框架。**用最简洁的代码实现 Spring 的核心功能，让每个想深入理解框架原理的同学都能看懂。**。
+纸上得来终觉浅，绝知此事要躬行。于是参照Spring框架写了一个简化版的SpringWind框架，**用最简洁的代码实现 Spring 的核心功能，让每个想深入理解框架原理的开发者都能看懂**。
 
-在这个过程中，我不仅搞懂了IoC、DI、AOP这些核心概念以及Bean生命周期、DispatcherServlet与 ApplicationContext容器体系，还深刻理解了为什么Spring要这样设计。现在，我把这些心得分享给你，希望能帮你少走弯路。
+在这个过程中，不仅搞懂了IoC、DI、AOP这些核心概念，以及Bean生命周期、DispatcherServlet控制器与ApplicationContext容器体系，还深刻理解了**为什么Spring要这样设计**。现在，我把这些实践经验和心得分享出来，希望能帮助你快速掌握Spring的核心原理。
 
 ## 目录
 
@@ -32,15 +34,15 @@
 
 ## 关于 SpringWind 框架
 
-SpringWind 是一个**教学性质的轻量级 Java Web 框架**，旨在帮助开发者深入理解 Spring 框架的核心原理。通过从零开始实现 Spring 的核心机制，让框架不再是"黑盒子"。
+SpringWind 是一个**教学性质的轻量级 Java Web 框架**，旨在帮助开发者深入理解 Spring 框架的核心原理。通过从零开始实现 Spring 的核心机制（IoC、DI、AOP、三级缓存、MVC等），让框架不再是"黑盒子"，而是可以完全理解的"白盒子"。
 
 ### 框架定位
 
 SpringWind **不是**为了替代 Spring Framework，而是作为：
-- **学习工具**：理解 Spring 核心原理的最佳实践
-- **教学框架**：清晰的代码结构，适合教学和分享
-- **快速原型**：小型项目的轻量级选择
-- **探索平台**：验证新想法和设计方案的试验田
+- **学习工具**：是理解 Spring 核心原理的最佳实践
+- **教学框架**：通过由浅入深的方式，让你逐渐理解Spring框架
+- **快速原型**：对于一些小型项目，那么Springwind更加轻量简便
+- **探索平台**：可以验证一些新架构思想与理念，不断创新
 
 ### 核心特性
 
@@ -55,6 +57,9 @@ SpringWind 实现了 Spring Framework 的以下核心功能：
 | **请求映射** | `@RequestMapping` 实现 URL 到方法的映射 | Request Mapping |
 | **参数绑定** | `@PathVariable`、`@RequestParam`、`@RequestBody` | Parameter Binding |
 | **AOP 支持** | 基于 JDK/CGLIB 的动态代理实现切面编程 | Spring AOP |
+| **BeanPostProcessor** | Bean 的前置和后置处理，支持生命周期干预 | BeanPostProcessor |
+| **SmartInstantiationAwareBeanPostProcessor** | 支持在 Bean 实例化早期创建代理，解决循环依赖 | SmartInstantiationAwareBeanPostProcessor |
+| **三级缓存** | 优雅解决循环依赖问题 | Circular Dependency Resolution |
 | **JDBC 模板** | 简化数据库操作的模板类 | JdbcTemplate |
 | **JSON 响应** | 自动序列化对象为 JSON | @ResponseBody |
 
@@ -70,7 +75,7 @@ SpringWind 参考了 Spring Framework 的设计思想，但做了大量简化：
 - 模板方法封装样板代码
 
 **不同点：**
-- **代码规模**：SpringWind 核心代码不到 2000 行，Spring Framework 超过 50 万行
+- **代码规模**：SpringWind 代码约 4000 行，Spring Framework 超过 50 万行
 - **功能范围**：SpringWind 聚焦核心功能，Spring 提供全面的企业级特性
 - **复杂度**：SpringWind 去除了大量抽象层次，更易理解
 - **生产就绪**：Spring 经过大规模验证，SpringWind 主要用于学习
@@ -82,8 +87,8 @@ SpringWind 参考了 Spring Framework 的设计思想，但做了大量简化：
 ├── Java 17+                    # 现代 Java 特性
 ├── Jakarta Servlet API 6.1     # Web 容器标准
 ├── CGLIB 3.3.0                 # 字节码增强（AOP）
-├── SLF4J + Logback            # 日志框架
-└── Jackson 2.18.2             # JSON 序列化
+├── SLF4J + Logback             # 日志框架
+└── Jackson 2.18.2              # JSON 序列化
 
 构建工具：
 └── Maven 3.6+
@@ -178,7 +183,7 @@ public class UserController {
 
 在开始造轮子之前，我们得先理解Spring为什么要这样设计。很多人觉得Spring框架复杂，但其实它的核心理念非常简单。
 
-### 1. 控制反转（IoC）- 别自己new对象了
+### 1. 控制反转（IoC）- 别再自己new对象了
 
 **传统做法的痛点：**
 
@@ -186,7 +191,7 @@ public class UserController {
 // 传统方式：自己管理对象
 public class UserService {
     private UserDao userDao = new UserDaoImpl();  // 硬编码依赖
-    private EmailService emailService = new EmailServiceImpl();
+    private EmailService emailService = new EmailServiceImpl();   // 硬编码依赖
 
     public void registerUser(User user) {
         userDao.save(user);
@@ -196,7 +201,7 @@ public class UserService {
 ```
 
 这样写有什么问题？
-
+其实这样写本身从理解来讲最好理解，但不便于扩展。项目一大，后续维护就变得麻烦。
 1. **耦合度高**：UserService强依赖具体的实现类
 2. **难以测试**：无法替换成Mock对象做单元测试
 3. **配置混乱**：数据库连接、邮件配置都硬编码在代码里
@@ -349,20 +354,51 @@ IoC容器就像一个对象工厂，负责：
 
 **Bean的生命周期：**
 
+```mermaid
+---
+title: Bean的生命周期（完整流程）
+---
+graph LR
+    A[扫描组件] --> B[注册BeanDefinition]
+    B --> C[实例化Bean<br>调用构造器]
+    C --> D["放入三级缓存<br>ObjectFactory<br>关键！"]
+    D --> E["依赖注入<br>@Autowired字段<br>可能触发循环依赖"]
+    E --> F["前置处理器<br>postProcessBefore<br>Initialization"]
+    F --> G["初始化方法<br>@PostConstruct"]
+    G --> H["后置处理器<br>postProcessAfter<br>Initialization<br>AOP代理创建"]
+    H --> I["放入一级缓存<br>清理二三级缓存"]
+    I --> J[Bean就绪<br>可被使用]
+    J --> K["销毁<br>@PreDestroy"]
+    style A fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style C fill:#f1f8e9,stroke:#7cb342,stroke-width:2px
+    style D fill:#fff8e1,stroke:#ffb300,stroke-width:3px
+    style E fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style F fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style H fill:#ffe0b2,stroke:#e65100,stroke-width:2px
+    style I fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style J fill:#a5d6a7,stroke:#00695c,stroke-width:2px
+    style K fill:#FFE4E1,stroke:#B20E7E,stroke-width:2px
 ```
-扫描 → 注册 → 实例化 → 依赖注入 → 初始化 → 就绪 → 销毁
-```
+
+**关键步骤说明**：
+- **步骤4（三级缓存）**：这是解决循环依赖的关键，放入的是ObjectFactory而非Bean本身
+- **步骤5（依赖注入）**：如果依赖的Bean正在创建，会从三级缓存获取早期引用，触发循环依赖解决机制
+- **步骤8（后置处理器）**：AOP代理通常在此创建，但如果在步骤4的getEarlyBeanReference中已创建，则跳过
 
 在SpringWind中，我们用一个核心类`SpringWindApplicationContext`来实现这些功能：
 
 ```java
 public class SpringWindApplicationContext {
-    // 一级缓存：完整的Bean
+    // 一级缓存：完整初始化的Bean对象
     private Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
-    // 二级缓存：早期Bean引用（解决循环依赖）
+    // 二级缓存：早期Bean引用（用于解决循环依赖）
     private Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
-    // 正在创建的Bean集合
-    private Set<String> singletonsCurrentlyInCreation = new HashSet<>();
+    // 三级缓存：ObjectFactory工厂（用于延迟生成早期引用，支持AOP）
+    private Map<String, ObjectFactory<?>> singletonFactories = new ConcurrentHashMap<>();
+    // 正在创建的Bean集合（用于检测循环依赖）
+    private Set<String> singletonsCurrentlyInCreation = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public SpringWindApplicationContext(Class<?> configClass) {
         scanComponents(configClass);      // 1. 扫描组件
@@ -391,27 +427,133 @@ public class ServiceB {
 }
 ```
 
-如果不处理，会陷入死循环：创建A → 需要B → 创建B → 需要A → 创建A → ...
+如果不处理，会陷入死循环：**创建A → 需要B → 创建B → 需要A → 创建A →** ...
 
 **Spring的解决方案：三级缓存**
 
+三级缓存是Spring解决循环依赖最精妙的设计。它包含：
+
+- **一级缓存（singletonObjects）**：存储完全初始化好的单例Bean对象（依赖注入完成、初始化方法执行完成）
+- **二级缓存（earlySingletonObjects）**：存储早期Bean引用（已实例化但未完成依赖注入和初始化）
+- **三级缓存（singletonFactories）**：存储ObjectFactory对象工厂（**注意：不是Bean本身！**）
+  - 工厂的作用是延迟生成早期引用，只有在真正需要时才调用getObject()
+  - 如果Bean需要AOP代理，会在ObjectFactory.getObject()中提前创建代理对象
+  - 这样可以保证循环依赖的多个Bean获取到同一个代理对象，而不是多个不同的实例
+
+**具体流程：**
+
 ```java
-// 创建A
-1. 实例化A（调用构造器，此时A还没注入依赖）
-2. 把A的早期引用放入二级缓存
-3. 注入A的依赖（发现需要B）
+// 创建A的过程（对应代码SpringWindApplicationContext.java:549-661）
+1. getBean("beanA") 被调用
+2. 检查一级缓存singletonObjects → 未找到
+3. 检查是否正在创建 → 不在，继续创建流程
+4. 标记A正在创建：singletonsCurrentlyInCreation.add("beanA")
+5. 实例化A：调用构造器，得到原始对象（此时尚未注入依赖）
 
-   // 创建B
-   4. 实例化B
-   5. 把B的早期引用放入二级缓存
-   6. 注入B的依赖（发现需要A）
-   7. 从二级缓存获取A的早期引用 ✓
-   8. 完成B的创建，移到一级缓存
+6. **关键步骤**：将ObjectFactory放入三级缓存
+   singletonFactories.put("beanA", () -> getEarlyBeanReference("beanA", rawBeanA))
+   // 注意：此时放入的是工厂对象，不是Bean本身！
 
-9. 完成A的创建，移到一级缓存
+7. 开始为A注入依赖：doDependencyInjection(beanA)
+8. 发现A依赖B，调用getBean("beanB")
+
+   // 创建B的过程（嵌套在A的创建过程中）
+   9. 检查一级缓存 → 未找到B
+   10. 标记B正在创建：singletonsCurrentlyInCreation.add("beanB")
+   11. 实例化B：得到原始对象
+   12. 将ObjectFactory放入三级缓存：
+       singletonFactories.put("beanB", () -> getEarlyBeanReference("beanB", rawBeanB))
+   13. 开始为B注入依赖：发现B依赖A，调用getBean("beanA")
+
+      // 循环依赖检测与解决（关键！）
+      14. 检查一级缓存 → 未找到A（因为A还没完成初始化）
+      15. 发现A在正在创建集合中：singletonsCurrentlyInCreation.contains("beanA") = true
+      16. 检查二级缓存earlySingletonObjects → 未找到
+      17. 检查三级缓存singletonFactories → 找到A的ObjectFactory ✓
+      18. **调用ObjectFactory.getObject()**
+          → 内部调用getEarlyBeanReference("beanA", rawBeanA)
+          → 如果A需要AOP代理，SmartInstantiationAwareBeanPostProcessor会在此创建代理
+          → 返回A的早期引用（可能是原始对象，也可能是代理对象）
+      19. 将A的早期引用放入二级缓存：earlySingletonObjects.put("beanA", earlyA)
+      20. 从三级缓存移除：singletonFactories.remove("beanA")
+      21. 返回A的早期引用给B ✓
+
+   22. B完成依赖注入（注入了A的早期引用）
+   23. B执行前置处理器：applyBeanPostProcessorsBeforeInitialization
+   24. B执行@PostConstruct初始化方法
+   25. B执行后置处理器：applyBeanPostProcessorsAfterInitialization（AOP代理可能在此创建）
+   26. B完成创建，放入一级缓存：singletonObjects.put("beanB", beanB)
+   27. 清理B的二、三级缓存
+   28. 从正在创建集合移除：singletonsCurrentlyInCreation.remove("beanB")
+
+29. getBean("beanB") 返回完整的B → A成功注入B
+30. A完成依赖注入
+31. A执行前置处理器
+32. A执行@PostConstruct初始化方法
+33. A执行后置处理器（如果A之前已在getEarlyBeanReference中创建了代理，这里会跳过）
+34. A完成创建，放入一级缓存：singletonObjects.put("beanA", beanA)
+35. 清理A的二、三级缓存
+36. 从正在创建集合移除：singletonsCurrentlyInCreation.remove("beanA")
+37. 完成！A和B都成功创建，循环依赖已解决
 ```
 
-关键是**允许Bean在未完全初始化时就暴露引用**。这样，循环依赖的双方都能拿到对方的引用，只是暂时还不是完整的对象。
+**关键设计点：**
+
+1. **为什么需要三级缓存？二级不够吗？**
+
+   如果只有二级缓存（一级存完整Bean，二级存早期Bean），会有一个致命问题：
+   - 当Bean需要AOP代理时，最终注入给其他Bean的应该是**代理对象**，而不是原始对象
+   - 但在循环依赖场景下，Bean创建时不知道是否会被其他Bean引用，也不知道何时需要创建代理
+   - 如果直接在二级缓存放原始对象，后续创建代理后，其他Bean拿到的仍是原始对象，导致不一致
+
+   **三级缓存（ObjectFactory）完美解决了这个问题**：
+   - 第三级缓存存储的是**对象工厂**，而不是对象本身
+   - 只有在真正被其他Bean依赖时，才调用工厂的getObject()方法
+   - 在getObject()中调用getEarlyBeanReference()，由SmartInstantiationAwareBeanPostProcessor决定返回原始对象还是代理对象
+   - 一旦生成了早期引用，就从三级缓存移到二级缓存，保证多次获取拿到的是同一个对象
+
+2. **ObjectFactory的延迟特性**：
+   ```java
+   // 创建Bean时放入三级缓存（代码第615-621行）
+   singletonFactories.put(beanName, new ObjectFactory<Object>() {
+       @Override
+       public Object getObject() {
+           // 只有被依赖时才会调用此方法
+           return getEarlyBeanReference(beanName, rawBean);
+       }
+   });
+   ```
+   - 如果Bean没有循环依赖，ObjectFactory永远不会被调用，不会产生任何开销
+   - 如果有循环依赖，才会调用getObject()生成早期引用
+
+3. **SmartInstantiationAwareBeanPostProcessor的作用**（代码第669-684行）：
+
+   这是一个特殊的BeanPostProcessor接口，专门用于解决循环依赖+AOP的场景：
+   ```java
+   protected Object getEarlyBeanReference(String beanName, Object bean) {
+       Object exposedObject = bean;
+
+       // 遍历所有BeanPostProcessor
+       for (BeanPostProcessor bp : beanPostProcessors) {
+           if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+               SmartInstantiationAwareBeanPostProcessor ibp =
+                   (SmartInstantiationAwareBeanPostProcessor) bp;
+               // AOP在这里提前创建代理，避免循环依赖时产生多个不同的代理
+               exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+           }
+       }
+       return exposedObject;
+   }
+   ```
+
+   - 如果Bean需要AOP代理，AspectProcessor（实现了SmartInstantiationAwareBeanPostProcessor）会在这里提前创建代理
+   - 这样循环依赖的双方获取到的是**同一个代理对象**
+   - 后续在postProcessAfterInitialization时，检测到已经创建过代理，就不会重复创建
+
+4. **正在创建集合的作用**：
+   - 记录哪些Bean正在创建中：`singletonsCurrentlyInCreation`
+   - 用于检测循环依赖：如果getBean时发现Bean在此集合中，说明发生了循环依赖
+   - 用于检测无法解决的循环依赖：如果三级缓存也找不到，抛出CircularDependencyException
 
 ### 依赖注入 - 自动装配的实现
 
@@ -445,18 +587,23 @@ private void doDependencyInjection(Object bean) {
 2. 根据字段类型从容器中查找对应的Bean
 3. 通过反射把Bean注入进去
 
-### AOP - 动态代理的艺术
+### AOP - 动态代理的实现
 
 AOP的核心是**动态代理**。SpringWind支持两种代理方式：
 
 **1. JDK动态代理（基于接口）**
 
 ```java
-// 如果目标类实现了接口
+// 如果目标类实现了接口，目标类实现的接口数量大于0
 if (interfaces.length > 0) {
+    // 使用JDK动态代理创建代理对象
     return Proxy.newProxyInstance(
+        // 指定类加载器，用于加载动态生成的代理类
         classLoader,
+        // 代理类需要实现的接口数组，代理对象需要实现接口的所有方法
         interfaces,
+        // 创建调用处理器，将目标对象和切面列表传入
+        // AopInvocationHandler负责处理方法调用时的切面逻辑
         new AopInvocationHandler(target, aspects)
     );
 }
@@ -465,16 +612,44 @@ if (interfaces.length > 0) {
 **2. CGLIB代理（基于继承）**
 
 ```java
-// 如果目标类没有接口
+// 如果目标类没有接口，创建CGLIB增强器对象，用于生成代理类
 Enhancer enhancer = new Enhancer();
+
+// 设置要继承的父类（目标类），CGLIB通过继承方式创建代理
 enhancer.setSuperclass(targetClass);
+
+// 设置方法拦截器，将目标对象和切面列表传入
+// AopMethodInterceptor负责在方法调用前后执行切面逻辑
 enhancer.setCallback(new AopMethodInterceptor(target, aspects));
+
+// 创建并返回代理对象
+// create()方法会动态生成目标类的子类作为代理
 return enhancer.create();
 ```
 
 **代理的工作流程：**
 
+```mermaid
+---
+title: AOP方法调用流程
+---
+flowchart LR
+    A["客户端调用方法"] --> B["代理对象拦截"]
+    B --> C["执行@Before通知<br>（前置增强）"]
+    C --> D["调用目标方法<br>（真正的业务逻辑）"]
+    D --> E["执行@After通知<br>（后置增强）"]
+    E --> F["返回结果"]
+    
+    %% 样式定义
+    style A fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style C fill:#f1f8e9,stroke:#7cb342,stroke-width:2px
+    style D fill:#fff8e1,stroke:#ffb300,stroke-width:2px
+    style E fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
 ```
+
+<!--
 客户端调用方法
     ↓
 代理对象拦截
@@ -486,7 +661,7 @@ return enhancer.create();
 执行@After通知（后置增强）
     ↓
 返回结果
-```
+-->
 
 ### Web MVC - 前端控制器模式
 
@@ -515,10 +690,33 @@ public class DispatcherServlet extends HttpServlet {
 ```
 
 **请求处理流程：**
-
+```mermaid
+graph LR
+    A[HTTP请求] --> B[DispatcherServlet]
+    B --> C[URL映射]
+    C --> D[参数解析]
+    D --> E[调用Controller]
+    E --> F{返回类型判断}
+    F -->|返回View名称| G[视图解析]
+    F -->|返回数据| H[消息转换]
+    G --> I[视图渲染]
+    H --> I
+    I --> J[HTTP响应]
+    
+    style A fill:#90EE90,stroke:#333,stroke-width:2px
+    style B fill:#ADD8E6,stroke:#333,stroke-width:2px
+    style C fill:#FFB6C1,stroke:#333,stroke-width:2px
+    style D fill:#DDA0DD,stroke:#333,stroke-width:2px
+    style E fill:#FFD700,stroke:#333,stroke-width:2px
+    style F fill:#F0E68C,stroke:#333,stroke-width:2px
+    style G fill:#87CEEB,stroke:#333,stroke-width:2px
+    style H fill:#98FB98,stroke:#333,stroke-width:2px
+    style I fill:#FFA07A,stroke:#333,stroke-width:2px
+    style J fill:#90EE90,stroke:#333,stroke-width:2px
 ```
+<!--
 HTTP请求 → DispatcherServlet → URL映射 → 参数解析 → 调用Controller → 视图解析 → HTTP响应
-```
+-->
 
 ### JDBC模板 - 样板代码的终结者
 
@@ -648,11 +846,10 @@ private Map<String, Object> singletonObjects =
 ### 整体架构设计
 
 SpringWind采用分层架构，从下到上分为四层：
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    应用层 (Application Layer)                │
-│  开发者编写的业务代码：Controller、Service、Repository       │
+│  开发者编写的业务代码：Controller、Service、Repository          │
 └─────────────────────────────────────────────────────────────┘
                              ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -663,20 +860,20 @@ SpringWind采用分层架构，从下到上分为四层：
 └─────────────────────────────────────────────────────────────┘
                              ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                 核心容器层 (Core Container Layer)            │
+│                 核心容器层 (Core Container Layer)             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Bean 定义   │  │ 依赖注入    │  │ 生命周期管理         │  │
-│  │ 管理        │  │             │  │                     │  │
+│  │ Bean 定义   │  │ 依赖注入      │  │ 生命周期管理          │  │
+│  │ 管理        │  │             │  │                      │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ 单例池      │  │ 循环依赖    │  │ BeanPost            │  │
-│  │             │  │ 解决        │  │ Processor           │  │
+│  │ 单例池       │  │ 循环依赖      │  │ BeanPost            │  │
+│  │             │  │ 解决        │  │ Processor            │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                              ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   基础设施层 (Infrastructure Layer)          │
-│  反射 API | 类加载器 | 动态代理 | 注解处理 | 并发工具         │
+│                   基础设施层 (Infrastructure Layer)           │
+│  反射 API | 类加载器 | 动态代理 | 注解处理 | 并发工具             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -691,40 +888,179 @@ SpringWind采用分层架构，从下到上分为四层：
 - Bean的创建和缓存
 - 依赖注入
 - 生命周期管理
+- 循环依赖解决（三级缓存）
 
-**关键代码（SpringWindApplicationContext.java:35-64）：**
+**关键代码（SpringWindApplicationContext.java:35-66）：**
 
 ```java
 public class SpringWindApplicationContext {
-    // 一级缓存：完整的Bean
+    // Bean定义映射表（使用ConcurrentHashMap提升并发性能）
+    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+
+    // 三级缓存机制（解决循环依赖的核心）
+    // 一级缓存：完整初始化的Bean对象（依赖注入完成、初始化方法执行完成）
     private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
-    // 二级缓存：早期Bean引用（解决循环依赖）
+    // 二级缓存：早期Bean引用（已实例化但未完成依赖注入，可能是代理对象）
     private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
-    // 正在创建的Bean集合
-    private final Set<String> singletonsCurrentlyInCreation = new HashSet<>();
-    // 构造器缓存（性能优化）
+    // 三级缓存：ObjectFactory工厂对象（关键！延迟生成早期引用，支持AOP提前代理）
+    private final Map<String, ObjectFactory<?>> singletonFactories = new ConcurrentHashMap<>();
+
+    // 正在创建的Bean集合（用于检测和处理循环依赖）
+    private final Set<String> singletonsCurrentlyInCreation = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    // Bean后处理器列表（支持生命周期扩展）
+    private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+
+    // 构造器缓存（性能优化，避免重复反射）
     private final Map<Class<?>, Constructor<?>> constructorCache = new ConcurrentHashMap<>();
 
     public SpringWindApplicationContext(Class<?> configClass) {
-        scanComponents(configClass);      // 扫描组件
-        createSingletonBeans();           // 创建单例Bean
-        dependencyInjection();            // 依赖注入
-        invokeInitMethods();              // 执行初始化方法
+        scanComponents(configClass);      // 1. 扫描组件
+        createSingletonBeans();           // 2. 创建单例Bean
+        dependencyInjection();            // 3. 依赖注入
+        invokeInitMethods();              // 4. 执行初始化方法（已在getBean中完成，保留兼容）
     }
 }
 ```
 
+**Bean创建流程核心代码（SpringWindApplicationContext.java:549-661的getBean方法）：**
+
+```java
+public Object getBean(String beanName) {
+    // 1. 首先从一级缓存获取完全初始化好的Bean
+    Object bean = singletonObjects.get(beanName);
+    if (bean != null) {
+        return bean;
+    }
+
+    // 2. 检查循环依赖：如果当前Bean正在创建中
+    if (singletonsCurrentlyInCreation.contains(beanName)) {
+        // 先从二级缓存获取早期对象
+        bean = earlySingletonObjects.get(beanName);
+        if (bean != null) {
+            return bean;
+        }
+        // 如果二级缓存没有，尝试从三级缓存获取ObjectFactory
+        ObjectFactory<?> factory = singletonFactories.get(beanName);
+        if (factory != null) {
+            // 调用ObjectFactory获取早期对象，并放入二级缓存
+            bean = factory.getObject();  // 关键！可能创建AOP代理
+            earlySingletonObjects.put(beanName, bean);
+            singletonFactories.remove(beanName);
+            return bean;
+        }
+    }
+
+    // 3. 标记为正在创建
+    singletonsCurrentlyInCreation.add(beanName);
+
+    try {
+        // 4. 实例化
+        bean = createBeanInstance(beanDefinition.getBeanClass());
+
+        // 5. 放入三级缓存（ObjectFactory，支持AOP提前创建代理）
+        final Object rawBean = bean;
+        singletonFactories.put(beanName, () -> getEarlyBeanReference(beanName, rawBean));
+
+        // 6. 依赖注入（可能触发循环依赖）
+        doDependencyInjection(bean);
+
+        // 7. 前置处理器
+        bean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
+
+        // 8. @PostConstruct初始化方法
+        if (beanDefinition.getInitMethod() != null) {
+            beanDefinition.getInitMethod().invoke(bean);
+        }
+
+        // 9. 后置处理器（AOP通常在这里发生）
+        bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+
+        // 10. 放入一级缓存（完全初始化好的Bean）
+        singletonObjects.put(beanName, bean);
+
+        // 11. 清理二级缓存和三级缓存
+        earlySingletonObjects.remove(beanName);
+        singletonFactories.remove(beanName);
+
+        return bean;
+    } finally {
+        // 12. 从正在创建集合中移除
+        singletonsCurrentlyInCreation.remove(beanName);
+    }
+}
+```
+
+**关键点**：
+- **步骤5**：放入的是ObjectFactory，而不是Bean本身，这是三级缓存的精髓
+- **步骤6**：依赖注入时可能触发循环依赖，会走步骤2的逻辑
+- **步骤9**：如果在getEarlyBeanReference中已创建代理，这里会检测并跳过
+
 #### 2. AOP模块
 
-**核心类：** `AspectProcessor`、`AopInvocationHandler`
+**核心类：** `AspectProcessor`、`SmartInstantiationAwareBeanPostProcessor`、`AopInvocationHandler`、`AopMethodInterceptor`
 
 **主要职责：**
 - 切面注册和管理
-- 代理对象创建（JDK/CGLIB）
-- 切点匹配
-- 通知执行
+- 代理对象创建（JDK动态代理/CGLIB字节码增强）
+- 切点匹配和通知执行
+- **早期代理创建**（通过SmartInstantiationAwareBeanPostProcessor解决循环依赖+AOP的组合问题）
 
-**代理创建逻辑（AspectProcessor.java:59-80）：**
+**关键设计：AspectProcessor实现SmartInstantiationAwareBeanPostProcessor接口**
+
+这是解决"循环依赖+AOP"场景的核心设计：
+
+```java
+public class AspectProcessor implements SmartInstantiationAwareBeanPostProcessor {
+
+    // 在Bean早期引用被获取时调用（循环依赖场景）
+    @Override
+    public Object getEarlyBeanReference(Object bean, String beanName) {
+        // 如果Bean需要AOP代理，在这里提前创建
+        if (shouldProxy(bean)) {
+            return createProxy(bean);  // 创建代理对象
+        }
+        return bean;  // 不需要代理，返回原始对象
+    }
+
+    // 在Bean初始化后调用（正常场景）
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        // 如果已经在getEarlyBeanReference中创建了代理，这里跳过
+        if (已经创建过代理) {
+            return bean;
+        }
+        // 否则在这里创建代理
+        if (shouldProxy(bean)) {
+            return createProxy(bean);
+        }
+        return bean;
+    }
+}
+```
+
+**工作原理：**
+1. **正常场景**（无循环依赖）：
+   - getEarlyBeanReference不会被调用
+   - 在postProcessAfterInitialization中创建AOP代理
+
+2. **循环依赖场景**：
+   - 当Bean A被Bean B依赖时，会触发ObjectFactory.getObject()
+   - getObject()内部调用getEarlyBeanReference(beanA)
+   - 在getEarlyBeanReference中提前创建AOP代理
+   - 代理对象被放入二级缓存，B获取到的是代理
+   - 后续postProcessAfterInitialization检测到已创建代理，跳过
+
+**为什么需要这个机制？**
+- 如果不在getEarlyBeanReference中创建代理，B获取到的是原始对象
+- 后续在postProcessAfterInitialization创建代理后，A持有的是代理对象，但B持有的仍是原始对象
+- 导致同一个Bean存在两个不同的对象，违反了单例原则
+
+通过SmartInstantiationAwareBeanPostProcessor，确保：
+- **循环依赖的所有Bean获取到同一个代理对象**
+- **不会产生多个不同的代理或原始对象**
+
+**代理创建逻辑（AspectProcessor.java）：**
 
 ```java
 public Object createProxy(Object target) {
@@ -762,8 +1098,30 @@ public Object createProxy(Object target) {
 - 视图解析
 
 **请求处理流程：**
-
+```mermaid
+---
+title: Spring MVC 请求处理流程
+---
+flowchart LR
+    A["HTTP请求"] --> B["DispatcherServlet<br>前端控制器"]
+    B --> C["HandlerMapping<br>处理器映射"]
+    C --> D["PathMatcher<br>路径匹配器"]
+    D --> E["参数解析器<br>@PathVariable<br> @RequestParam<br> @RequestBody"]
+    E --> F["Controller方法<br>业务逻辑处理"]
+    F --> G["结果处理器<br>JSON/视图转换"]
+    G --> H["HTTP响应"]
+    
+    %% 样式定义
+    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style B fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style D fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style E fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style F fill:#fff8e1,stroke:#ffb300,stroke-width:2px
+    style G fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style H fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
 ```
+<!--
 HTTP请求
   ↓
 DispatcherServlet（统一入口）
@@ -779,7 +1137,7 @@ Controller方法调用
 结果处理（JSON/视图）
   ↓
 HTTP响应
-```
+-->
 
 #### 4. JDBC模块
 
@@ -814,23 +1172,50 @@ public <T> List<T> query(String sql, RowMapper<T> mapper, Object... args) {
 
 ### 注解体系设计
 
-SpringWind定义了一套完整的注解体系：
+SpringWind定义了一套完整的注解体系（共21个注解）：
 
+**IoC/DI 注解：**
 | 注解 | 作用 | 元注解 |
 |-----|------|--------|
 | `@Component` | 通用组件 | - |
 | `@Service` | 服务层组件 | `@Component` |
 | `@Controller` | 控制器组件 | `@Component` |
 | `@Repository` | 数据访问层组件 | `@Component` |
+| `@Configuration` | 配置类 | `@Component` |
 | `@Autowired` | 依赖注入 | - |
-| `@RequestMapping` | URL映射 | - |
-| `@PathVariable` | 路径变量 | - |
-| `@RequestParam` | 请求参数 | - |
-| `@RequestBody` | 请求体 | - |
-| `@Aspect` | 切面 | - |
-| `@Before` | 前置通知 | - |
-| `@After` | 后置通知 | - |
-| `@Around` | 环绕通知 | - |
+| `@Bean` | 方法级Bean定义 | - |
+
+**生命周期注解：**
+| 注解 | 作用 | 来源 |
+|-----|------|------|
+| `@PostConstruct` | Bean 初始化方法 | javax.annotation |
+| `@PreDestroy` | Bean 销毁方法 | javax.annotation |
+
+**Web MVC 注解：**
+| 注解 | 作用 | 说明 |
+|-----|------|------|
+| `@RequestMapping` | URL映射（通用） | 支持所有HTTP方法 |
+| `@GetMapping` | GET请求映射 | 快捷注解 |
+| `@PostMapping` | POST请求映射 | 快捷注解 |
+| `@PutMapping` | PUT请求映射 | 快捷注解 |
+| `@DeleteMapping` | DELETE请求映射 | 快捷注解 |
+| `@PathVariable` | 路径变量绑定 | 如 `/user/{id}` |
+| `@RequestParam` | 请求参数绑定 | 如 `?name=xxx` |
+| `@RequestBody` | 请求体绑定（JSON） | 自动反序列化 |
+| `@ResponseBody` | 响应体（JSON） | 自动序列化 |
+
+**AOP 注解：**
+| 注解 | 作用 | 通知类型 |
+|-----|------|---------|
+| `@Aspect` | 标记切面类 | - |
+| `@Before` | 前置通知 | 方法执行前 |
+| `@After` | 后置通知 | 方法执行后 |
+| `@Around` | 环绕通知 | 完全控制方法执行 |
+
+**事务注解：**
+| 注解 | 作用 | 状态 |
+|-----|------|------|
+| `@Transactional` | 声明式事务 | 需配合AOP实现 |
 
 ### 性能优化策略
 
@@ -885,21 +1270,24 @@ public boolean matches(String pointcut, String methodName) {
 |---------|-----------|------------|------|
 | **IoC 容器** | ✅ 基本实现 | ✅ 完整实现 + 复杂场景 | SpringWind 实现了单例 Bean 管理、依赖注入、生命周期管理 |
 | **依赖注入** | ✅ 字段注入、方法注入 | ✅ 字段、方法、构造器注入 | SpringWind 暂不支持构造器注入 |
-| **循环依赖解决** | ✅ 三级缓存 | ✅ 三级缓存 + 多种策略 | 核心机制相同，Spring 支持更多边缘场景 |
+| **循环依赖解决** | ✅ 三级缓存 + SmartInstantiationAwareBeanPostProcessor | ✅ 三级缓存 + 多种策略 | SpringWind 核心机制与 Spring 相同，都支持早期代理创建 |
+| **BeanPostProcessor** | ✅ 基本实现 | ✅ 完整实现 + 多种类型 | SpringWind 支持前置和后置处理 |
+| **SmartInstantiationAwareBeanPostProcessor** | ✅ 支持 | ✅ 完整支持 | SpringWind 支持在 Bean 实例化早期创建代理，解决循环依赖 |
 | **Bean 作用域** | ⚠️ 仅单例（Singleton） | ✅ Singleton、Prototype、Request、Session 等 | SpringWind 只支持单例模式 |
-| **AOP 支持** | ✅ JDK/CGLIB 代理 | ✅ AspectJ 集成 + 更强大的切点表达式 | SpringWind 实现了基本的 AOP 功能 |
+| **AOP 支持** | ✅ JDK/CGLIB 代理 + 早期代理 | ✅ AspectJ 集成 + 更强大的切点表达式 | SpringWind 实现了基本的 AOP 功能，支持早期代理创建 |
 | **切面类型** | ✅ @Before、@After、@Around | ✅ @Before、@After、@Around、@AfterReturning、@AfterThrowing | SpringWind 支持三种基本通知类型 |
 | **Web MVC** | ✅ 基本实现 | ✅ 完整的 MVC 栈 + 异步支持 | SpringWind 实现了核心的请求映射和参数绑定 |
 | **请求映射** | ✅ @RequestMapping | ✅ @RequestMapping、@GetMapping、@PostMapping 等 | SpringWind 使用统一的 @RequestMapping |
 | **参数绑定** | ✅ @PathVariable、@RequestParam、@RequestBody | ✅ 更多参数类型和转换器 | SpringWind 支持基本的参数绑定 |
 | **JSON 响应** | ✅ 自动序列化 | ✅ 多种视图解析器 | SpringWind 使用 Jackson 进行 JSON 序列化 |
 | **JDBC 支持** | ✅ JdbcTemplate | ✅ JdbcTemplate + JPA/Hibernate 集成 | SpringWind 实现了 JdbcTemplate 的核心功能 |
+| **生命周期回调** | ✅ @PostConstruct、@PreDestroy | ✅ @PostConstruct、@PreDestroy、InitializingBean、DisposableBean | SpringWind 支持标准的生命周期回调 |
 | **事务管理** | ❌ 需自行实现 | ✅ 声明式和编程式事务 | SpringWind 暂不支持，可通过 AOP 自己实现 |
 | **配置方式** | ✅ 注解驱动 | ✅ 注解 + XML + Java Config | SpringWind 主要使用注解配置 |
 | **国际化（i18n）** | ❌ 不支持 | ✅ MessageSource | Spring 提供完整的国际化支持 |
 | **事件机制** | ❌ 不支持 | ✅ ApplicationEvent | Spring 提供事件发布和监听机制 |
 | **SpEL 表达式** | ❌ 不支持 | ✅ 完整的表达式语言 | Spring 支持强大的 SpEL 表达式 |
-| **代码量** | ~2000 行 | ~50 万行 | SpringWind 代码量极小，易于理解 |
+| **代码量** | ~7000 行 | ~50 万行 | SpringWind 代码量相对较小，易于理解 |
 | **学习难度** | ⭐⭐ 容易 | ⭐⭐⭐⭐ 较难 | SpringWind 适合初学者理解原理 |
 | **生产就绪** | ❌ 教学用途 | ✅ 企业级应用 | Spring 经过大规模生产验证 |
 
@@ -1225,15 +1613,15 @@ springwind/
 
 | 模块 | 包名 | 核心类 | 行数 | 说明 |
 |-----|------|--------|------|------|
-| 注解 | annotation | 13个注解类 | ~200 | 定义框架的注解体系 |
-| IoC容器 | core | SpringWindApplicationContext | ~400 | 容器核心，Bean管理 |
-| AOP | aop | AspectProcessor | ~300 | 切面处理，代理创建 |
-| Web MVC | web | DispatcherServlet | ~500 | 请求分发，参数绑定 |
-| JDBC | jdbc | JdbcTemplate | ~300 | 数据库操作模板 |
-| 异常 | exception | 3个异常类 | ~100 | 框架异常定义 |
-| 工具 | util | ClassScanner等 | ~200 | 辅助工具类 |
+| 注解 | annotation | 20个注解类 | ~350 | 定义框架的注解体系 |
+| IoC容器 | core | SpringWindApplicationContext | ~730 | 容器核心，Bean管理，三级缓存 |
+| AOP | aop | AspectProcessor | ~150 | 切面处理，动态代理创建 |
+| Web MVC | web | DispatcherServlet | ~660 | 请求分发，参数绑定，视图解析 |
+| JDBC | jdbc | JdbcTemplate | ~260 | 数据库操作模板，结果映射 |
+| 异常 | exception | 4个异常类 | ~110 | 框架异常定义 |
+| 工具 | util | ClassScanner、StringUtils | ~420 | 类扫描、字符串处理 |
 
-整个框架核心代码不到2000行，但实现了Spring的核心功能。
+整个框架核心代码约 **3800 行**，但实现了Spring的核心功能，代码精简而功能完整。
 
 ---
 
@@ -2265,16 +2653,50 @@ public class MemoryMonitor {
 
 ## 总结
 
-通过从零实现SpringWind框架，我们彻底搞懂了Spring的核心原理：
+通过从零实现SpringWind框架（~3800行代码），我们彻底搞懂了Spring的核心原理：
 
-1. **IoC容器**：通过反射扫描组件、创建Bean、管理生命周期
-2. **依赖注入**：通过反射设置字段值，实现自动装配
-3. **循环依赖**：通过三级缓存，允许Bean提前暴露引用
-4. **AOP**：通过动态代理，实现横切关注点的分离
-5. **Web MVC**：通过前端控制器模式，统一处理HTTP请求
-6. **JDBC模板**：通过模板方法模式，封装样板代码
+### 核心机制理解
 
-SpringWind不是为了替代Spring，而是为了**学习Spring**。它用最简洁的代码实现了Spring的核心功能，让每个想深入理解框架原理的同学都能看懂。
+1. **IoC容器**：通过反射扫描组件、注册Bean定义、管理完整生命周期
+   - 组件扫描：支持文件系统和JAR包中的类扫描
+   - Bean注册：使用ConcurrentHashMap保证线程安全
+   - 生命周期：从实例化到初始化到销毁的完整流程
+
+2. **依赖注入**：通过反射实现自动装配，支持字段注入和方法注入
+   - 类型匹配：根据字段类型自动查找Bean
+   - 循环依赖：与三级缓存配合，优雅解决循环依赖问题
+
+3. **三级缓存**（最精妙的设计）：
+   - **一级缓存**：存储完全初始化好的Bean
+   - **二级缓存**：存储早期Bean引用（已实例化但未初始化）
+   - **三级缓存**：存储ObjectFactory工厂（**关键！**）
+   - **为什么需要三级**：延迟生成早期引用，支持AOP提前创建代理，保证单例一致性
+
+4. **AOP**：通过动态代理实现横切关注点的分离
+   - JDK动态代理：基于接口的代理
+   - CGLIB代理：基于继承的字节码增强
+   - **SmartInstantiationAwareBeanPostProcessor**：解决循环依赖+AOP的组合问题
+
+5. **Web MVC**：通过前端控制器模式统一处理HTTP请求
+   - DispatcherServlet：统一入口
+   - HandlerMapping：URL到方法的映射
+   - 参数解析：支持@PathVariable、@RequestParam、@RequestBody
+
+6. **JDBC模板**：通过模板方法模式封装样板代码
+   - 固定流程：连接管理、语句执行、结果映射、资源关闭
+   - 灵活扩展：通过RowMapper实现不同的映射策略
+
+### 学习价值
+
+SpringWind不是为了替代Spring，而是为了**深入理解Spring**。它用最简洁的代码（~3800行）实现了Spring的核心功能，让每个想深入理解框架原理的开发者都能看懂。
+
+**通过学习SpringWind，你将掌握：**
+- ✅ Spring IoC容器的工作机制
+- ✅ 三级缓存解决循环依赖的精妙设计
+- ✅ AOP动态代理的实现原理
+- ✅ Bean生命周期的完整流程
+- ✅ 设计模式在框架中的实际应用
+- ✅ 为什么Spring要这样设计的深层原因
 
 **学习建议：**
 
@@ -2334,4 +2756,4 @@ mvn exec:java -Dexec.args="--web"
 
 ---
 
-**愿你在学习SpringWind的过程中，深入理解现代Java框架的设计精髓！** 🎉
+**愿你在学习 SpringWind 的过程中，觉得开心愉悦！** 
