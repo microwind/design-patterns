@@ -99,12 +99,12 @@ mvn clean compile
 # 依赖打包到同一个 jar 中
 # mvn clean package assembly:single
 
-# 启动Web服务器
-mvn exec:java -Dexec.args="--web"
+# 启动console模式
+mvn exec:java -Dexec.args="--console"
 * 运行模式：
-* 1. Web模式：java -jar xxx.jar --web (启动嵌入式Tomcat)
-  $ java -jar target/springwind-web-demo-1.0-SNAPSHOT.jar --web
-* 2. 控制台模式：java -jar xxx.jar (直接在控制台运行)
+* 1. Web模式：java -jar xxx.jar (启动嵌入式Tomcat)
+  $ java -jar target/springwind-web-demo-1.0-SNAPSHOT.jar
+* 2. 控制台模式：java -jar xxx.jar --console (直接在控制台运行)
 ```
 
 服务器启动后，访问 `http://localhost:8080`

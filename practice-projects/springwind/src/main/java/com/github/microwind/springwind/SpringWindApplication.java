@@ -4,7 +4,7 @@ import com.github.microwind.springwind.core.SpringWindApplicationContext;
 
 /**
  * SpringWind框架启动类
- * 提供简单的API来启动和管理SpringWind容器
+ * 提供简单的API来启动和管理SpringWind应用
  */
 public class SpringWindApplication {
 
@@ -22,6 +22,21 @@ public class SpringWindApplication {
     }
 
     /**
+     * 启动SpringWind应用（带参数）
+     * @param configClass 配置类
+     * @param args 启动参数
+     * @return SpringWindApplication实例
+     */
+    public static SpringWindApplication run(Class<?> configClass, String... args) {
+        SpringWindApplication app = new SpringWindApplication();
+        // 构造时传入false，不自动刷新，以后用于后续手动控制
+        app.context = new SpringWindApplicationContext(configClass, false);
+        // 手动调用刷新
+        app.context.refresh();
+        return app;
+    }
+
+    /**
      * 获取Bean实例
      * @param requiredType Bean类型
      * @return Bean实例
@@ -32,11 +47,11 @@ public class SpringWindApplication {
 
     /**
      * 获取Bean实例
-     * @param beanName Bean名称
+     * @param name Bean名称
      * @return Bean实例
      */
-    public Object getBean(String beanName) {
-        return context.getBean(beanName);
+    public Object getBean(String name) {
+        return context.getBean(name);
     }
 
     /**
@@ -46,5 +61,13 @@ public class SpringWindApplication {
         if (context != null) {
             context.close();
         }
+    }
+
+    /**
+     * 获取底层应用上下文（用于集成外部Web服务器等特殊场景）
+     * @return SpringWindApplicationContext实例
+     */
+    public SpringWindApplicationContext getContext() {
+        return context;
     }
 }

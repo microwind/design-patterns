@@ -42,20 +42,39 @@ public class DispatcherServlet extends HttpServlet {
 
     private SpringWindApplicationContext applicationContext;
 
+    /**
+     * 默认构造函数（用于Web容器）
+     */
+    public DispatcherServlet() {
+    }
+
+    /**
+     * 测试构造函数（用于单元测试）
+     * @param applicationContext 预配置的应用上下文
+     */
+    public DispatcherServlet(SpringWindApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
     @Override
     public void init() throws ServletException {
         try {
-            // 1. 获取配置类名（WebDemoApplication 传入的 configClass）
-            String configClassName = getInitParameter("configClass");
-            if (configClassName == null || configClassName.trim().isEmpty()) {
-                throw new ServletException("未配置configClass参数（需指定Spring配置类的全限定名）");
+            // 如果applicationContext已经通过构造函数设置，则直接使用
+            if (applicationContext == null) {
+                // 1. 获取配置类名（WebDemoApplication 传入的 configClass）
+                String configClassName = getInitParameter("configClass");
+                if (configClassName == null || configClassName.trim().isEmpty()) {
+                    throw new ServletException("未配置configClass参数（需指定Spring配置类的全限定名）");
+                }
+
+                log.info("[DispatcherServlet] init with configClass=" + configClassName);
+
+                // 2. 将字符串类名转换为Class对象并初始化 SpringWindApplicationContext
+                Class<?> configClass = Class.forName(configClassName);
+                applicationContext = new SpringWindApplicationContext(configClass);
+            } else {
+                log.info("[DispatcherServlet] init with pre-configured context");
             }
-
-            log.info("[DispatcherServlet] init with configClass=" + configClassName);
-
-            // 2. 将字符串类名转换为Class对象并初始化 SpringWindApplicationContext
-            Class<?> configClass = Class.forName(configClassName);
-            applicationContext = new SpringWindApplicationContext(configClass);
 
             // 3. 初始化 handler 映射
             initHandlerMappings();

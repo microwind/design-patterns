@@ -22,6 +22,7 @@ import com.github.microwind.springwind.annotation.Configuration;
 import com.github.microwind.springwind.annotation.Controller;
 import com.github.microwind.springwind.annotation.Repository;
 import com.github.microwind.springwind.annotation.Service;
+import com.github.microwind.springwind.annotation.Aspect;
 import com.github.microwind.springwind.exception.BeanCreationException;
 import com.github.microwind.springwind.exception.BeanDefinitionException;
 import com.github.microwind.springwind.exception.BeanNotFoundException;
@@ -54,15 +55,36 @@ public class SpringWindApplicationContext {
     // @Bean 方法定义（类 -> 方法列表）
     private final Map<Class<?>, List<Method>> beanMethods = new ConcurrentHashMap<>();
 
+    // 构造函数只保存配置类
+    private final Class<?> configClass;
+    
+    /**
+     * 兼容性构造函数：自动调用refresh()
+     * @param configClass 配置类
+     */
     public SpringWindApplicationContext(Class<?> configClass) {
-        // 扫描包路径下的组件
-        scanComponents(configClass);
-        // 创建单例Bean
-        createSingletonBeans();
-        // 依赖注入
-        dependencyInjection();
-        // 执行初始化方法
-        invokeInitMethods();
+        this.configClass = configClass;
+        refresh();
+    }
+    
+    /**
+     * 新的构造函数：只保存配置类，需要手动调用refresh()
+     * @param configClass 配置类
+     * @param autoRefresh 是否自动刷新
+     */
+    public SpringWindApplicationContext(Class<?> configClass, boolean autoRefresh) {
+        this.configClass = configClass;
+        if (autoRefresh) {
+            refresh();
+        }
+    }
+
+    // Spring风格刷新方法
+    public void refresh() {
+        scanComponents(configClass);      // 扫描组件，注册BeanDefinition
+        createSingletonBeans();           // 创建单例Bean
+        dependencyInjection();            // 注入依赖
+        invokeInitMethods();              // 执行@PostConstruct
     }
 
     /**
@@ -166,7 +188,8 @@ public class SpringWindApplicationContext {
             if (clazz.isAnnotationPresent(Component.class) ||
                     clazz.isAnnotationPresent(Controller.class) ||
                     clazz.isAnnotationPresent(Service.class) ||
-                    clazz.isAnnotationPresent(Repository.class)) {
+                    clazz.isAnnotationPresent(Repository.class) ||
+                    clazz.isAnnotationPresent(Aspect.class)) {
                 registerBeanDefinition(clazz);
                 logger.debug("注册Bean: {}", clazz.getSimpleName());
             }
@@ -287,6 +310,8 @@ public class SpringWindApplicationContext {
             value = clazz.getAnnotation(Service.class).value();
         } else if (clazz.isAnnotationPresent(Repository.class)) {
             value = clazz.getAnnotation(Repository.class).value();
+        } else if (clazz.isAnnotationPresent(Aspect.class)) {
+            value = clazz.getAnnotation(Aspect.class).value();
         }
 
         if (value.isEmpty()) {

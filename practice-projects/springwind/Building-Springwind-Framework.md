@@ -149,7 +149,7 @@ public class UserController {
 }
 ```
 
-如果你熟悉 Spring MVC，就能**零学习成本**使用 SpringWind！
+如果你熟悉 Spring MVC，就能**零学习成本**理解 SpringWind！你理解了Springwind也就明白了Spring。
 
 ### 学习路径建议
 
@@ -411,7 +411,7 @@ public class SpringWindApplicationContext {
 
 ### 循环依赖问题 - 三级缓存的精妙设计
 
-这是面试常考的问题。假设有这样的循环依赖：
+这是大厂常考的面试题题。假设有这样的循环依赖：
 
 ```java
 @Service
@@ -443,7 +443,7 @@ public class ServiceB {
 **具体流程：**
 
 ```java
-// 创建A的过程（对应代码SpringWindApplicationContext.java:549-661）
+// 创建A的过程（对应代码SpringWindApplicationContext.java）
 1. getBean("beanA") 被调用
 2. 检查一级缓存singletonObjects → 未找到
 3. 检查是否正在创建 → 不在，继续创建流程
@@ -526,7 +526,7 @@ public class ServiceB {
    - 如果Bean没有循环依赖，ObjectFactory永远不会被调用，不会产生任何开销
    - 如果有循环依赖，才会调用getObject()生成早期引用
 
-3. **SmartInstantiationAwareBeanPostProcessor的作用**（代码第669-684行）：
+3. **SmartInstantiationAwareBeanPostProcessor的作用**：
 
    这是一个特殊的BeanPostProcessor接口，专门用于解决循环依赖+AOP的场景：
    ```java
@@ -551,6 +551,7 @@ public class ServiceB {
    - 后续在postProcessAfterInitialization时，检测到已经创建过代理，就不会重复创建
 
 4. **正在创建集合的作用**：
+   
    - 记录哪些Bean正在创建中：`singletonsCurrentlyInCreation`
    - 用于检测循环依赖：如果getBean时发现Bean在此集合中，说明发生了循环依赖
    - 用于检测无法解决的循环依赖：如果三级缓存也找不到，抛出CircularDependencyException
@@ -720,7 +721,7 @@ HTTP请求 → DispatcherServlet → URL映射 → 参数解析 → 调用Contro
 
 ### JDBC模板 - 样板代码的终结者
 
-JdbcTemplate把JDBC操作固定的步骤封装起来：
+JdbcTemplate只是把基础JDBC操作的步骤封装起来，实现起来非常简单，没有ORM框架那么复杂：
 
 ```java
 public <T> T queryForObject(String sql, RowMapper<T> mapper, Object... args) {
@@ -804,7 +805,7 @@ public Object createBean(Class<?> clazz) {
 }
 ```
 
-### 设计模式 - Spring是设计模式的教科书
+### 设计模式 - Spring是经典设计模式的忠实拥趸
 
 Spring框架中应用了大量的设计模式：
 
@@ -849,7 +850,7 @@ SpringWind采用分层架构，从下到上分为四层：
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    应用层 (Application Layer)                │
-│  开发者编写的业务代码：Controller、Service、Repository          │
+│  开发者编写的业务代码：Controller、Service、DAO、Repository      │
 └─────────────────────────────────────────────────────────────┘
                              ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -863,11 +864,11 @@ SpringWind采用分层架构，从下到上分为四层：
 │                 核心容器层 (Core Container Layer)             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ Bean 定义   │  │ 依赖注入      │  │ 生命周期管理          │  │
-│  │ 管理        │  │             │  │                      │  │
+│  │ 管理        │  │              │  │                     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ 单例池       │  │ 循环依赖      │  │ BeanPost            │  │
-│  │             │  │ 解决        │  │ Processor            │  │
+│  │             │  │ 解决         │  │ Processor           │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                              ↓
@@ -890,7 +891,7 @@ SpringWind采用分层架构，从下到上分为四层：
 - 生命周期管理
 - 循环依赖解决（三级缓存）
 
-**关键代码（SpringWindApplicationContext.java:35-66）：**
+**关键代码（SpringWindApplicationContext.java）：**
 
 ```java
 public class SpringWindApplicationContext {
@@ -923,7 +924,7 @@ public class SpringWindApplicationContext {
 }
 ```
 
-**Bean创建流程核心代码（SpringWindApplicationContext.java:549-661的getBean方法）：**
+**Bean创建流程核心代码（SpringWindApplicationContext.java的getBean方法）：**
 
 ```java
 public Object getBean(String beanName) {
@@ -1272,7 +1273,7 @@ public boolean matches(String pointcut, String methodName) {
 | **依赖注入** | ✅ 字段注入、方法注入 | ✅ 字段、方法、构造器注入 | SpringWind 暂不支持构造器注入 |
 | **循环依赖解决** | ✅ 三级缓存 + SmartInstantiationAwareBeanPostProcessor | ✅ 三级缓存 + 多种策略 | SpringWind 核心机制与 Spring 相同，都支持早期代理创建 |
 | **BeanPostProcessor** | ✅ 基本实现 | ✅ 完整实现 + 多种类型 | SpringWind 支持前置和后置处理 |
-| **SmartInstantiationAwareBeanPostProcessor** | ✅ 支持 | ✅ 完整支持 | SpringWind 支持在 Bean 实例化早期创建代理，解决循环依赖 |
+| **SmartInstantiation<br/>AwareBeanPostProcessor** | ✅ 支持 | ✅ 完整支持 | SpringWind 支持在 Bean 实例化早期创建代理，解决循环依赖 |
 | **Bean 作用域** | ⚠️ 仅单例（Singleton） | ✅ Singleton、Prototype、Request、Session 等 | SpringWind 只支持单例模式 |
 | **AOP 支持** | ✅ JDK/CGLIB 代理 + 早期代理 | ✅ AspectJ 集成 + 更强大的切点表达式 | SpringWind 实现了基本的 AOP 功能，支持早期代理创建 |
 | **切面类型** | ✅ @Before、@After、@Around | ✅ @Before、@After、@Around、@AfterReturning、@AfterThrowing | SpringWind 支持三种基本通知类型 |
@@ -1287,9 +1288,9 @@ public boolean matches(String pointcut, String methodName) {
 | **国际化（i18n）** | ❌ 不支持 | ✅ MessageSource | Spring 提供完整的国际化支持 |
 | **事件机制** | ❌ 不支持 | ✅ ApplicationEvent | Spring 提供事件发布和监听机制 |
 | **SpEL 表达式** | ❌ 不支持 | ✅ 完整的表达式语言 | Spring 支持强大的 SpEL 表达式 |
-| **代码量** | ~7000 行 | ~50 万行 | SpringWind 代码量相对较小，易于理解 |
+| **代码量** | ~5000 行 | ~50 万行 | SpringWind 代码量相对较小，易于理解 |
 | **学习难度** | ⭐⭐ 容易 | ⭐⭐⭐⭐ 较难 | SpringWind 适合初学者理解原理 |
-| **生产就绪** | ❌ 教学用途 | ✅ 企业级应用 | Spring 经过大规模生产验证 |
+| **生产就绪** | ✅ 教学/小项目 | ✅ 企业级应用 | Spring 经过大规模生产验证 |
 
 ### 使用场景对比
 
@@ -1304,7 +1305,7 @@ public boolean matches(String pointcut, String methodName) {
 | **需要复杂 AOP** | Spring MVC | 支持 AspectJ 和复杂切点表达式 |
 | **快速原型验证** | SpringWind | 启动快，依赖少 |
 
-### 代码对比示例
+### 应用代码对比示例
 
 **定义一个简单的 Controller：**
 
@@ -1342,10 +1343,10 @@ public class UserController {
 // SpringWind
 public class Application {
     public static void main(String[] args) {
-        SpringWindApplicationContext context =
-            new SpringWindApplicationContext(Application.class);
+        // 启动SpringWind应用
+        SpringWindApplication app = SpringWindApplication.run(WebDemoApplication.class);
         // 启动 Tomcat
-        TomcatServer.start(context);
+        TomcatServer.start(app.getContext());
     }
 }
 

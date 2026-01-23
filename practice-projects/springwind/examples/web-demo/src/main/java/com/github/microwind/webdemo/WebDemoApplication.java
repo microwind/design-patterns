@@ -18,12 +18,12 @@ public class WebDemoApplication {
 
     public static void main(String[] args) {
         // 检查启动参数，决定运行模式
-        if (args.length > 0 && "--web".equals(args[0])) {
-            // Web模式：启动嵌入式Tomcat
-            startWebServer();
-        } else {
+        if (args.length > 0 && "--console".equals(args[0])) {
             // 控制台模式：直接运行测试
             runConsoleMode();
+        } else {
+            // Web模式：启动嵌入式Tomcat
+            startWebServer();
         }
     }
 

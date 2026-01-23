@@ -71,10 +71,7 @@ public class DispatcherServletTest {
     @Before
     public void init() throws Exception {
         applicationContext = new SpringWindApplicationContext(DispatcherServletTest.class);
-        when(servletConfig.getInitParameter("configClass")).thenReturn(DispatcherServletTest.class.getName());
-
-        dispatcherServlet = new DispatcherServlet();
-        setPrivateField(dispatcherServlet, "applicationContext", applicationContext);
+        dispatcherServlet = new DispatcherServlet(applicationContext);
         dispatcherServlet.init(servletConfig);
     }
 
@@ -204,11 +201,5 @@ public class DispatcherServletTest {
         Field field = obj.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         return field.get(obj);
-    }
-
-    private void setPrivateField(Object obj, String fieldName, Object value) throws Exception {
-        Field field = obj.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(obj, value);
     }
 }
