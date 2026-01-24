@@ -4,15 +4,26 @@ server:
   mode: "debug" # debug, release, test
 
 database:
-  driver: "mysql" # mysql, postgres
-  host: "localhost"
-  port: 3306
-  username: "root"
-  password: "password"
-  database: "gin_ddd"
-  max_open_conns: 100
-  max_idle_conns: 10
-  conn_max_lifetime: 3600 # 秒
+  user:
+    driver: "mysql" # mysql, postgres
+    host: "localhost"
+    port: 3306
+    username: "frog_admin"
+    password: "frog798"
+    database: "frog"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: 3600 # 秒
+  order:
+    driver: "postgres" # mysql, postgres
+    host: "localhost"
+    port: 5432
+    username: "postgres"
+    password: "lego798"
+    database: "seed"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: 3600 # 秒
 
 logger:
   level: "info" # debug, info, warn, error

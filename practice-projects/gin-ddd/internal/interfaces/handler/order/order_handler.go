@@ -3,7 +3,7 @@ package order
 import (
 	"gin-ddd/internal/application/service/order"
 	"gin-ddd/internal/infrastructure/common"
-	"gin-ddd/internal/interfaces/vo/order"
+	orderVO "gin-ddd/internal/interfaces/vo/order"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -30,13 +30,13 @@ func NewOrderHandler(orderService *order.OrderService) *OrderHandler {
 // @Success 200 {object} common.Response
 // @Router /api/orders [post]
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
-	var req order.CreateOrderRequest
+	var req orderVO.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.BadRequest(c, err.Error())
 		return
 	}
 
-	orderDTO, err := h.orderService.CreateOrder(c.Request.Context(), req.UserID, req.ToOrderItems())
+	orderDTO, err := h.orderService.CreateOrder(c.Request.Context(), req.UserID, req.TotalAmount)
 	if err != nil {
 		common.Error(c, 2001, err.Error())
 		return

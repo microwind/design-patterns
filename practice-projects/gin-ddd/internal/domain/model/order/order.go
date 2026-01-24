@@ -7,23 +7,13 @@ import (
 
 // Order 订单实体（聚合根）
 type Order struct {
-	ID          int64       `json:"id"`
+	OrderID     int64       `json:"order_id"`
 	OrderNo     string      `json:"order_no"`
 	UserID      int64       `json:"user_id"`
 	TotalAmount float64     `json:"total_amount"`
 	Status      OrderStatus `json:"status"`
-	Items       []OrderItem `json:"items"`
 	CreatedAt   time.Time   `json:"created_at"`
 	UpdatedAt   time.Time   `json:"updated_at"`
-}
-
-// OrderItem 订单项（值对象）
-type OrderItem struct {
-	ProductID   int64   `json:"product_id"`
-	ProductName string  `json:"product_name"`
-	Quantity    int     `json:"quantity"`
-	Price       float64 `json:"price"`
-	Subtotal    float64 `json:"subtotal"`
 }
 
 // OrderStatus 订单状态
@@ -39,21 +29,15 @@ const (
 )
 
 // NewOrder 创建新订单
-func NewOrder(orderNo string, userID int64, items []OrderItem) (*Order, error) {
+func NewOrder(orderNo string, userID int64, totalAmount float64) (*Order, error) {
 	if orderNo == "" {
 		return nil, errors.New("订单号不能为空")
 	}
 	if userID <= 0 {
 		return nil, errors.New("用户ID无效")
 	}
-	if len(items) == 0 {
-		return nil, errors.New("订单项不能为空")
-	}
-
-	// 计算总金额
-	totalAmount := 0.0
-	for _, item := range items {
-		totalAmount += item.Subtotal
+	if totalAmount <= 0 {
+		return nil, errors.New("订单金额无效")
 	}
 
 	now := time.Now()
@@ -62,21 +46,9 @@ func NewOrder(orderNo string, userID int64, items []OrderItem) (*Order, error) {
 		UserID:      userID,
 		TotalAmount: totalAmount,
 		Status:      OrderStatusPending,
-		Items:       items,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}, nil
-}
-
-// NewOrderItem 创建订单项
-func NewOrderItem(productID int64, productName string, quantity int, price float64) OrderItem {
-	return OrderItem{
-		ProductID:   productID,
-		ProductName: productName,
-		Quantity:    quantity,
-		Price:       price,
-		Subtotal:    float64(quantity) * price,
-	}
 }
 
 // Pay 支付订单
@@ -127,13 +99,6 @@ func (o *Order) Refund() error {
 	o.Status = OrderStatusRefunded
 	o.UpdatedAt = time.Now()
 	return nil
-}
-
-// AddItem 添加订单项
-func (o *Order) AddItem(item OrderItem) {
-	o.Items = append(o.Items, item)
-	o.TotalAmount += item.Subtotal
-	o.UpdatedAt = time.Now()
 }
 
 // IsPending 判断是否待支付

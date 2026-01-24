@@ -19,8 +19,8 @@ type UserRepository interface {
 	// FindByID 根据ID查询用户
 	FindByID(ctx context.Context, id int64) (*user.User, error)
 
-	// FindByUsername 根据用户名查询用户
-	FindByUsername(ctx context.Context, username string) (*user.User, error)
+	// FindByName 根据用户名查询用户
+	FindByName(ctx context.Context, name string) (*user.User, error)
 
 	// FindByEmail 根据邮箱查询用户
 	FindByEmail(ctx context.Context, email string) (*user.User, error)

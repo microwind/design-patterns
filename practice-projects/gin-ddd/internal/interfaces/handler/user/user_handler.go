@@ -3,7 +3,7 @@ package user
 import (
 	"gin-ddd/internal/application/service/user"
 	"gin-ddd/internal/infrastructure/common"
-	"gin-ddd/internal/interfaces/vo/user"
+	userVO "gin-ddd/internal/interfaces/vo/user"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -30,13 +30,13 @@ func NewUserHandler(userService *user.UserService) *UserHandler {
 // @Success 200 {object} common.Response
 // @Router /api/users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var req user.CreateUserRequest
+	var req userVO.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.BadRequest(c, err.Error())
 		return
 	}
 
-	userDTO, err := h.userService.CreateUser(c.Request.Context(), req.Username, req.Email, req.Password)
+	userDTO, err := h.userService.CreateUser(c.Request.Context(), req.Name, req.Email, req.Phone, req.Phone)
 	if err != nil {
 		common.Error(c, 1001, err.Error())
 		return
@@ -100,7 +100,7 @@ func (h *UserHandler) UpdateEmail(c *gin.Context) {
 		return
 	}
 
-	var req user.UpdateUserRequest
+	var req userVO.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.BadRequest(c, err.Error())
 		return
@@ -114,34 +114,34 @@ func (h *UserHandler) UpdateEmail(c *gin.Context) {
 	common.SuccessWithMessage(c, "邮箱更新成功", nil)
 }
 
-// UpdatePassword 更新密码
-// @Summary 更新用户密码
+// UpdatePhone 更新手机
+// @Summary 更新用户手机
 // @Tags 用户管理
 // @Accept json
 // @Produce json
 // @Param id path int true "用户ID"
-// @Param body body user.UpdatePasswordRequest true "密码信息"
+// @Param body body user.UpdatePhoneRequest true "手机信息"
 // @Success 200 {object} common.Response
-// @Router /api/users/{id}/password [put]
-func (h *UserHandler) UpdatePassword(c *gin.Context) {
+// @Router /api/users/{id}/Phone [put]
+func (h *UserHandler) UpdatePhone(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		common.BadRequest(c, "无效的用户ID")
 		return
 	}
 
-	var req user.UpdatePasswordRequest
+	var req userVO.UpdatePhoneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.BadRequest(c, err.Error())
 		return
 	}
 
-	if err := h.userService.UpdatePassword(c.Request.Context(), id, req.NewPassword); err != nil {
+	if err := h.userService.UpdatePhone(c.Request.Context(), id, req.NewPhone); err != nil {
 		common.Error(c, 1001, err.Error())
 		return
 	}
 
-	common.SuccessWithMessage(c, "密码更新成功", nil)
+	common.SuccessWithMessage(c, "手机更新成功", nil)
 }
 
 // ActivateUser 激活用户

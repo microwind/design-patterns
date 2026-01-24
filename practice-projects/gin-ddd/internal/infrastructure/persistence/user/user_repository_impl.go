@@ -22,11 +22,11 @@ func NewUserRepository(db *sql.DB) *UserRepositoryImpl {
 // Create 创建用户
 func (r *UserRepositoryImpl) Create(ctx context.Context, u *user.User) error {
 	query := `
-		INSERT INTO users (username, email, password, status, created_at, updated_at)
+		INSERT INTO users (name, email, phone, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
 	result, err := r.db.ExecContext(ctx, query,
-		u.Username, u.Email, u.Password, u.Status, u.CreatedAt, u.UpdatedAt)
+		u.Name, u.Email, u.Phone, u.Status, u.CreatedAt, u.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -43,11 +43,11 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, u *user.User) error {
 func (r *UserRepositoryImpl) Update(ctx context.Context, u *user.User) error {
 	query := `
 		UPDATE users
-		SET username = ?, email = ?, password = ?, status = ?, updated_at = ?
+		SET name = ?, email = ?, phone = ?, status = ?, updated_at = ?
 		WHERE id = ?
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		u.Username, u.Email, u.Password, u.Status, u.UpdatedAt, u.ID)
+		u.Name, u.Email, u.Phone, u.Status, u.UpdatedAt, u.ID)
 	return err
 }
 
@@ -61,12 +61,12 @@ func (r *UserRepositoryImpl) Delete(ctx context.Context, id int64) error {
 // FindByID 根据ID查询用户
 func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int64) (*user.User, error) {
 	query := `
-		SELECT id, username, email, password, status, created_at, updated_at
+		SELECT id, name, email, phone, status, created_at, updated_at
 		FROM users WHERE id = ?
 	`
 	var u user.User
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&u.ID, &u.Username, &u.Email, &u.Password, &u.Status, &u.CreatedAt, &u.UpdatedAt)
+		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Status, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -76,15 +76,15 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int64) (*user.User
 	return &u, nil
 }
 
-// FindByUsername 根据用户名查询用户
-func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (*user.User, error) {
+// FindByName 根据用户名查询用户
+func (r *UserRepositoryImpl) FindByName(ctx context.Context, name string) (*user.User, error) {
 	query := `
-		SELECT id, username, email, password, status, created_at, updated_at
-		FROM users WHERE username = ?
+		SELECT id, name, email, phone, status, created_at, updated_at
+		FROM users WHERE name = ?
 	`
 	var u user.User
-	err := r.db.QueryRowContext(ctx, query, username).Scan(
-		&u.ID, &u.Username, &u.Email, &u.Password, &u.Status, &u.CreatedAt, &u.UpdatedAt)
+	err := r.db.QueryRowContext(ctx, query, name).Scan(
+		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Status, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -97,12 +97,12 @@ func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string
 // FindByEmail 根据邮箱查询用户
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*user.User, error) {
 	query := `
-		SELECT id, username, email, password, status, created_at, updated_at
+		SELECT id, name, email, phone, status, created_at, updated_at
 		FROM users WHERE email = ?
 	`
 	var u user.User
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
-		&u.ID, &u.Username, &u.Email, &u.Password, &u.Status, &u.CreatedAt, &u.UpdatedAt)
+		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Status, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -115,7 +115,7 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*us
 // FindAll 查询所有用户
 func (r *UserRepositoryImpl) FindAll(ctx context.Context) ([]*user.User, error) {
 	query := `
-		SELECT id, username, email, password, status, created_at, updated_at
+		SELECT id, name, email, phone, status, created_at, updated_at
 		FROM users ORDER BY created_at DESC
 	`
 	rows, err := r.db.QueryContext(ctx, query)
@@ -127,7 +127,7 @@ func (r *UserRepositoryImpl) FindAll(ctx context.Context) ([]*user.User, error) 
 	var users []*user.User
 	for rows.Next() {
 		var u user.User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Status, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Status, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
 		users = append(users, &u)
@@ -138,7 +138,7 @@ func (r *UserRepositoryImpl) FindAll(ctx context.Context) ([]*user.User, error) 
 // FindByStatus 根据状态查询用户
 func (r *UserRepositoryImpl) FindByStatus(ctx context.Context, status user.UserStatus) ([]*user.User, error) {
 	query := `
-		SELECT id, username, email, password, status, created_at, updated_at
+		SELECT id, name, email, phone, status, created_at, updated_at
 		FROM users WHERE status = ? ORDER BY created_at DESC
 	`
 	rows, err := r.db.QueryContext(ctx, query, status)
@@ -150,7 +150,7 @@ func (r *UserRepositoryImpl) FindByStatus(ctx context.Context, status user.UserS
 	var users []*user.User
 	for rows.Next() {
 		var u user.User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Status, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Status, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
 		users = append(users, &u)

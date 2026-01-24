@@ -26,27 +26,45 @@ func main() {
 	}
 
 	// 初始化数据库
-	dbConfig := &config.DatabaseConfig{
-		Driver:          cfg.Database.Driver,
-		Host:            cfg.Database.Host,
-		Port:            cfg.Database.Port,
-		Username:        cfg.Database.Username,
-		Password:        cfg.Database.Password,
-		Database:        cfg.Database.Database,
-		MaxOpenConns:    cfg.Database.MaxOpenConns,
-		MaxIdleConns:    cfg.Database.MaxIdleConns,
-		ConnMaxLifetime: time.Duration(cfg.Database.ConnMaxLifetime) * time.Second,
+	userDBConfig := &config.DatabaseConfig{
+		Driver:          cfg.Database.User.Driver,
+		Host:            cfg.Database.User.Host,
+		Port:            cfg.Database.User.Port,
+		UserName:        cfg.Database.User.UserName,
+		Password:        cfg.Database.User.Password,
+		Database:        cfg.Database.User.Database,
+		MaxOpenConns:    cfg.Database.User.MaxOpenConns,
+		MaxIdleConns:    cfg.Database.User.MaxIdleConns,
+		ConnMaxLifetime: time.Duration(cfg.Database.User.ConnMaxLifetime) * time.Second,
 	}
 
-	db, err := config.InitDatabase(dbConfig)
+	userDB, err := config.InitDatabase(userDBConfig)
 	if err != nil {
-		log.Fatalf("数据库初始化失败: %v", err)
+		log.Fatalf("用户数据库初始化失败: %v", err)
 	}
-	defer db.Close()
+	defer userDB.Close()
+
+	orderDBConfig := &config.DatabaseConfig{
+		Driver:          cfg.Database.Order.Driver,
+		Host:            cfg.Database.Order.Host,
+		Port:            cfg.Database.Order.Port,
+		UserName:        cfg.Database.Order.UserName,
+		Password:        cfg.Database.Order.Password,
+		Database:        cfg.Database.Order.Database,
+		MaxOpenConns:    cfg.Database.Order.MaxOpenConns,
+		MaxIdleConns:    cfg.Database.Order.MaxIdleConns,
+		ConnMaxLifetime: time.Duration(cfg.Database.Order.ConnMaxLifetime) * time.Second,
+	}
+
+	orderDB, err := config.InitDatabase(orderDBConfig)
+	if err != nil {
+		log.Fatalf("订单数据库初始化失败: %v", err)
+	}
+	defer orderDB.Close()
 
 	// 初始化仓储
-	userRepo := userPersistence.NewUserRepository(db)
-	orderRepo := orderPersistence.NewOrderRepository(db)
+	userRepo := userPersistence.NewUserRepository(userDB)
+	orderRepo := orderPersistence.NewOrderRepository(orderDB)
 
 	// 初始化 RocketMQ 生产者（可选）
 	var eventPublisher event.EventPublisher

@@ -7,18 +7,18 @@ import (
 	"gin-ddd/internal/application/dto/order"
 	"gin-ddd/internal/domain/event"
 	orderModel "gin-ddd/internal/domain/model/order"
-	"gin-ddd/internal/domain/repository/order"
+	orderDomain "gin-ddd/internal/domain/repository/order"
 	"time"
 )
 
 // OrderService 订单应用服务
 type OrderService struct {
-	orderRepo      order.OrderRepository
+	orderRepo      orderDomain.OrderRepository
 	eventPublisher event.EventPublisher
 }
 
 // NewOrderService 创建订单应用服务
-func NewOrderService(orderRepo order.OrderRepository, eventPublisher event.EventPublisher) *OrderService {
+func NewOrderService(orderRepo orderDomain.OrderRepository, eventPublisher event.EventPublisher) *OrderService {
 	return &OrderService{
 		orderRepo:      orderRepo,
 		eventPublisher: eventPublisher,
@@ -26,19 +26,19 @@ func NewOrderService(orderRepo order.OrderRepository, eventPublisher event.Event
 }
 
 // CreateOrder 创建订单
-func (s *OrderService) CreateOrder(ctx context.Context, userID int64, items []orderModel.OrderItem) (*order.OrderDTO, error) {
+func (s *OrderService) CreateOrder(ctx context.Context, userID int64, totalAmount float64) (*order.OrderDTO, error) {
 	if userID <= 0 {
 		return nil, errors.New("用户ID无效")
 	}
-	if len(items) == 0 {
-		return nil, errors.New("订单项不能为空")
+	if totalAmount <= 0 {
+		return nil, errors.New("订单金额无效")
 	}
 
 	// 生成订单号
 	orderNo := s.generateOrderNo()
 
 	// 创建订单实体
-	newOrder, err := orderModel.NewOrder(orderNo, userID, items)
+	newOrder, err := orderModel.NewOrder(orderNo, userID, totalAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, userID int64, items []or
 
 	// 发布订单创建事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderCreatedEvent(newOrder.ID, newOrder.OrderNo, newOrder.UserID, newOrder.TotalAmount)
+		orderEvent := event.NewOrderCreatedEvent(newOrder.OrderID, newOrder.OrderNo, newOrder.UserID, newOrder.TotalAmount)
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			// 事件发布失败不影响主流程，记录日志即可
 			fmt.Printf("发布订单创建事件失败: %v\n", err)
@@ -122,7 +122,7 @@ func (s *OrderService) PayOrder(ctx context.Context, id int64) error {
 
 	// 发布订单支付事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderPaidEvent(o.ID, o.OrderNo, o.UserID, o.TotalAmount)
+		orderEvent := event.NewOrderPaidEvent(o.OrderID, o.OrderNo, o.UserID, o.TotalAmount)
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			fmt.Printf("发布订单支付事件失败: %v\n", err)
 		}
@@ -185,7 +185,7 @@ func (s *OrderService) CancelOrder(ctx context.Context, id int64) error {
 
 	// 发布订单取消事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderCancelledEvent(o.ID, o.OrderNo, o.UserID)
+		orderEvent := event.NewOrderCancelledEvent(o.OrderID, o.OrderNo, o.UserID)
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			fmt.Printf("发布订单取消事件失败: %v\n", err)
 		}

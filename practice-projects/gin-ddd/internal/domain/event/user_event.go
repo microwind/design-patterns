@@ -15,7 +15,7 @@ const (
 type UserEvent struct {
 	BaseEvent
 	UserID   int64  `json:"user_id"`
-	Username string `json:"username"`
+	Name string `json:"name"`
 	Email    string `json:"email"`
 	Status   string `json:"status"`
 }
@@ -26,28 +26,28 @@ func (e *UserEvent) EventData() interface{} {
 }
 
 // NewUserCreatedEvent 创建用户创建事件
-func NewUserCreatedEvent(userID int64, username, email string) *UserEvent {
+func NewUserCreatedEvent(userID int64, name, email string) *UserEvent {
 	return &UserEvent{
 		BaseEvent: BaseEvent{
 			Type:      UserCreatedEvent,
 			Timestamp: time.Now(),
 		},
 		UserID:   userID,
-		Username: username,
+		Name: name,
 		Email:    email,
 		Status:   "ACTIVE",
 	}
 }
 
 // NewUserBlockedEvent 创建用户封禁事件
-func NewUserBlockedEvent(userID int64, username, email string) *UserEvent {
+func NewUserBlockedEvent(userID int64, name, email string) *UserEvent {
 	return &UserEvent{
 		BaseEvent: BaseEvent{
 			Type:      UserBlockedEvent,
 			Timestamp: time.Now(),
 		},
 		UserID:   userID,
-		Username: username,
+		Name: name,
 		Email:    email,
 		Status:   "BLOCKED",
 	}

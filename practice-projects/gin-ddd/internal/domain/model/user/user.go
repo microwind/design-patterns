@@ -8,9 +8,9 @@ import (
 // User 用户实体（聚合根）
 type User struct {
 	ID        int64      `json:"id"`
-	Username  string     `json:"username"`
+	Name  string     `json:"name"`
 	Email     string     `json:"email"`
-	Password  string     `json:"-"` // 密码不在 JSON 中输出
+	Phone     string     `json:"phone"`
 	Status    UserStatus `json:"status"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
@@ -26,22 +26,22 @@ const (
 )
 
 // NewUser 创建新用户
-func NewUser(username, email, password string) (*User, error) {
-	if username == "" {
+func NewUser(name, email, phone, password string) (*User, error) {
+	if name == "" {
 		return nil, errors.New("用户名不能为空")
 	}
 	if email == "" {
 		return nil, errors.New("邮箱不能为空")
 	}
-	if password == "" {
-		return nil, errors.New("密码不能为空")
+	if phone == "" {
+		return nil, errors.New("手机号不能为空")
 	}
 
 	now := time.Now()
 	return &User{
-		Username:  username,
+		Name:  name,
 		Email:     email,
-		Password:  password,
+		Phone:     phone,
 		Status:    UserStatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -80,12 +80,11 @@ func (u *User) UpdateEmail(email string) error {
 	return nil
 }
 
-// UpdatePassword 更新密码
-func (u *User) UpdatePassword(newPassword string) error {
-	if newPassword == "" {
-		return errors.New("密码不能为空")
+func (u *User) UpdatePhone(phone string) error {
+	if phone == "" {
+		return errors.New("手机号不能为空")
 	}
-	u.Password = newPassword
+	u.Phone = phone
 	u.UpdatedAt = time.Now()
 	return nil
 }

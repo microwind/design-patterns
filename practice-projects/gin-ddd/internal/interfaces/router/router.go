@@ -29,6 +29,9 @@ func (r *Router) Setup(mode string) *gin.Engine {
 
 	engine := gin.New()
 
+	// 配置受信任的代理
+	engine.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+
 	// 使用中间件
 	engine.Use(middleware.Logger())
 	engine.Use(middleware.Recovery())
@@ -37,7 +40,7 @@ func (r *Router) Setup(mode string) *gin.Engine {
 	// 健康检查
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Gin DDD service is running",
 		})
 	})
@@ -45,35 +48,11 @@ func (r *Router) Setup(mode string) *gin.Engine {
 	// API 路由组
 	api := engine.Group("/api")
 	{
-		// 用户路由
-		users := api.Group("/users")
-		{
-			users.POST("", r.userHandler.CreateUser)
-			users.GET("", r.userHandler.GetAllUsers)
-			users.GET("/:id", r.userHandler.GetUser)
-			users.PUT("/:id/email", r.userHandler.UpdateEmail)
-			users.PUT("/:id/password", r.userHandler.UpdatePassword)
-			users.PUT("/:id/activate", r.userHandler.ActivateUser)
-			users.PUT("/:id/deactivate", r.userHandler.DeactivateUser)
-			users.PUT("/:id/block", r.userHandler.BlockUser)
-			users.DELETE("/:id", r.userHandler.DeleteUser)
+		// 设置用户路由
+		SetupUserRoutes(api, r.userHandler, r.orderHandler)
 
-			// 用户的订单
-			users.GET("/:user_id/orders", r.orderHandler.GetUserOrders)
-		}
-
-		// 订单路由
-		orders := api.Group("/orders")
-		{
-			orders.POST("", r.orderHandler.CreateOrder)
-			orders.GET("", r.orderHandler.GetAllOrders)
-			orders.GET("/:id", r.orderHandler.GetOrder)
-			orders.PUT("/:id/pay", r.orderHandler.PayOrder)
-			orders.PUT("/:id/ship", r.orderHandler.ShipOrder)
-			orders.PUT("/:id/deliver", r.orderHandler.DeliverOrder)
-			orders.PUT("/:id/cancel", r.orderHandler.CancelOrder)
-			orders.PUT("/:id/refund", r.orderHandler.RefundOrder)
-		}
+		// 设置订单路由
+		SetupOrderRoutes(api, r.orderHandler)
 	}
 
 	return engine

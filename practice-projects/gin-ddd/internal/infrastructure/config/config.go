@@ -11,7 +11,7 @@ import (
 // AppConfig 应用配置
 type AppConfig struct {
 	Server   ServerConfig   `yaml:"server"`
-	Database DatabaseInfo   `yaml:"database"`
+	Database DatabaseGroup  `yaml:"database"`
 	Logger   LoggerConfig   `yaml:"logger"`
 	RocketMQ RocketMQConfig `yaml:"rocketmq"`
 }
@@ -28,12 +28,18 @@ type DatabaseInfo struct {
 	Driver          string `yaml:"driver"`
 	Host            string `yaml:"host"`
 	Port            int    `yaml:"port"`
-	Username        string `yaml:"username"`
+	UserName        string `yaml:"username"`
 	Password        string `yaml:"password"`
 	Database        string `yaml:"database"`
 	MaxOpenConns    int    `yaml:"max_open_conns"`
 	MaxIdleConns    int    `yaml:"max_idle_conns"`
 	ConnMaxLifetime int    `yaml:"conn_max_lifetime"` // 秒
+}
+
+// DatabaseGroup 双数据源配置
+type DatabaseGroup struct {
+	User  DatabaseInfo `yaml:"user"`
+	Order DatabaseInfo `yaml:"order"`
 }
 
 // LoggerConfig 日志配置

@@ -15,7 +15,7 @@ type DatabaseConfig struct {
 	Driver          string
 	Host            string
 	Port            int
-	Username        string
+	UserName        string
 	Password        string
 	Database        string
 	MaxOpenConns    int
@@ -30,7 +30,7 @@ func InitDatabase(config *DatabaseConfig) (*sql.DB, error) {
 	switch config.Driver {
 	case "mysql":
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			config.Username,
+			config.UserName,
 			config.Password,
 			config.Host,
 			config.Port,
@@ -40,7 +40,7 @@ func InitDatabase(config *DatabaseConfig) (*sql.DB, error) {
 		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			config.Host,
 			config.Port,
-			config.Username,
+			config.UserName,
 			config.Password,
 			config.Database,
 		)

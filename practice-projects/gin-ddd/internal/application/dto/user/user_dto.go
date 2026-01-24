@@ -8,7 +8,7 @@ import (
 // UserDTO 用户数据传输对象
 type UserDTO struct {
 	ID        int64     `json:"id"`
-	Username  string    `json:"username"`
+	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
@@ -22,7 +22,7 @@ func ToDTO(u *user.User) *UserDTO {
 	}
 	return &UserDTO{
 		ID:        u.ID,
-		Username:  u.Username,
+		Name:      u.Name,
 		Email:     u.Email,
 		Status:    string(u.Status),
 		CreatedAt: u.CreatedAt,
@@ -46,7 +46,7 @@ func ToEntity(dto *UserDTO) *user.User {
 	}
 	return &user.User{
 		ID:        dto.ID,
-		Username:  dto.Username,
+		Name:      dto.Name,
 		Email:     dto.Email,
 		Status:    user.UserStatus(dto.Status),
 		CreatedAt: dto.CreatedAt,

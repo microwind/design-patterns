@@ -5,25 +5,25 @@ import (
 	"errors"
 	"gin-ddd/internal/application/dto/user"
 	userModel "gin-ddd/internal/domain/model/user"
-	"gin-ddd/internal/domain/repository/user"
+	userDomain "gin-ddd/internal/domain/repository/user"
 )
 
 // UserService 用户应用服务
 type UserService struct {
-	userRepo user.UserRepository
+	userRepo userDomain.UserRepository
 }
 
 // NewUserService 创建用户应用服务
-func NewUserService(userRepo user.UserRepository) *UserService {
+func NewUserService(userRepo userDomain.UserRepository) *UserService {
 	return &UserService{
 		userRepo: userRepo,
 	}
 }
 
 // CreateUser 创建用户
-func (s *UserService) CreateUser(ctx context.Context, username, email, password string) (*user.UserDTO, error) {
+func (s *UserService) CreateUser(ctx context.Context, name, email, phone, Phone string) (*user.UserDTO, error) {
 	// 检查用户名是否已存在
-	existingUser, _ := s.userRepo.FindByUsername(ctx, username)
+	existingUser, _ := s.userRepo.FindByName(ctx, name)
 	if existingUser != nil {
 		return nil, errors.New("用户名已存在")
 	}
@@ -35,7 +35,7 @@ func (s *UserService) CreateUser(ctx context.Context, username, email, password 
 	}
 
 	// 创建用户实体
-	newUser, err := userModel.NewUser(username, email, password)
+	newUser, err := userModel.NewUser(name, email, phone, Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +60,9 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*user.UserDTO,
 	return user.ToDTO(u), nil
 }
 
-// GetUserByUsername 根据用户名获取用户
-func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*user.UserDTO, error) {
-	u, err := s.userRepo.FindByUsername(ctx, username)
+// GetUserByName 根据用户名获取用户
+func (s *UserService) GetUserByName(ctx context.Context, name string) (*user.UserDTO, error) {
+	u, err := s.userRepo.FindByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +104,8 @@ func (s *UserService) UpdateEmail(ctx context.Context, id int64, email string) e
 	return s.userRepo.Update(ctx, u)
 }
 
-// UpdatePassword 更新用户密码
-func (s *UserService) UpdatePassword(ctx context.Context, id int64, newPassword string) error {
+// UpdatePhone 更新用户手机
+func (s *UserService) UpdatePhone(ctx context.Context, id int64, newPhone string) error {
 	u, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (s *UserService) UpdatePassword(ctx context.Context, id int64, newPassword 
 		return errors.New("用户不存在")
 	}
 
-	if err := u.UpdatePassword(newPassword); err != nil {
+	if err := u.UpdatePhone(newPhone); err != nil {
 		return err
 	}
 
