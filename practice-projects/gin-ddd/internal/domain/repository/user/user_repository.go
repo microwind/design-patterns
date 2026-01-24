@@ -27,7 +27,4 @@ type UserRepository interface {
 
 	// FindAll 查询所有用户
 	FindAll(ctx context.Context) ([]*user.User, error)
-
-	// FindByStatus 根据状态查询用户
-	FindByStatus(ctx context.Context, status user.UserStatus) ([]*user.User, error)
 }

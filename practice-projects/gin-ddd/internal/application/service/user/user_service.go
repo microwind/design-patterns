@@ -121,51 +121,6 @@ func (s *UserService) UpdatePhone(ctx context.Context, id int64, newPhone string
 	return s.userRepo.Update(ctx, u)
 }
 
-// ActivateUser 激活用户
-func (s *UserService) ActivateUser(ctx context.Context, id int64) error {
-	u, err := s.userRepo.FindByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	if u == nil {
-		return errors.New("用户不存在")
-	}
-
-	if err := u.Activate(); err != nil {
-		return err
-	}
-
-	return s.userRepo.Update(ctx, u)
-}
-
-// DeactivateUser 停用用户
-func (s *UserService) DeactivateUser(ctx context.Context, id int64) error {
-	u, err := s.userRepo.FindByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	if u == nil {
-		return errors.New("用户不存在")
-	}
-
-	u.Deactivate()
-	return s.userRepo.Update(ctx, u)
-}
-
-// BlockUser 封禁用户
-func (s *UserService) BlockUser(ctx context.Context, id int64) error {
-	u, err := s.userRepo.FindByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	if u == nil {
-		return errors.New("用户不存在")
-	}
-
-	u.Block()
-	return s.userRepo.Update(ctx, u)
-}
-
 // DeleteUser 删除用户
 func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
 	return s.userRepo.Delete(ctx, id)

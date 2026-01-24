@@ -142,6 +142,22 @@ go run cmd/server/main.go
 # 健康检查
 curl http://localhost:8080/health
 
+# 创建用户（会自动发布用户创建事件到 RocketMQ）
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "张三",
+    "email": "zhangsan@example.com",
+    "phone": "13800138000"
+  }'
+
+# 更新用户手机号
+curl -X PUT http://localhost:8080/api/users/1/phone \
+  -H "Content-Type: application/json" \
+  -d '{
+    "new_phone": "13900139000"
+  }'
+
 # 创建订单（会自动发布订单创建事件到 RocketMQ）
 curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
@@ -177,9 +193,6 @@ curl -X PUT http://localhost:8080/api/orders/1/pay
 
 **用户事件**：
 - `user.created` - 用户创建
-- `user.activated` - 用户激活
-- `user.deactivated` - 用户停用
-- `user.blocked` - 用户封禁
 - `user.deleted` - 用户删除
 
 ### 事件流程
@@ -207,7 +220,7 @@ curl -X PUT http://localhost:8080/api/orders/1/pay
                                                    │
                                                    ▼
                                      ┌───────────────────────────┐
-                                     │ 后续业务处理               │
+                                     │ 后续业务处理                │
                                      │ - 库存扣减                │
                                      │ - 发送通知                │
                                      │ - 更新统计                │
@@ -299,10 +312,7 @@ rocketmq:
 | GET | `/api/users` | 获取所有用户 | - |
 | GET | `/api/users/:id` | 获取用户详情 | - |
 | PUT | `/api/users/:id/email` | 更新邮箱 | - |
-| PUT | `/api/users/:id/password` | 更新密码 | - |
-| PUT | `/api/users/:id/activate` | 激活用户 | user.activated |
-| PUT | `/api/users/:id/deactivate` | 停用用户 | user.deactivated |
-| PUT | `/api/users/:id/block` | 封禁用户 | user.blocked |
+| PUT | `/api/users/:id/phone` | 更新手机 | - |
 | DELETE | `/api/users/:id` | 删除用户 | user.deleted |
 
 ### 订单管理
@@ -335,6 +345,15 @@ type OrderEvent struct {
     TotalAmount float64
     Status      string
 }
+
+// domain/event/user_event.go
+type UserEvent struct {
+    BaseEvent
+    UserID   int64
+    Name     string
+    Email    string
+    Phone    string
+}
 ```
 
 ### 2. 事件发布器接口在领域层定义，实现在基础设施层
@@ -358,6 +377,12 @@ type RocketMQProducer struct {
 // application/service/order/order_service.go
 type OrderService struct {
     orderRepo      order.OrderRepository
+    eventPublisher event.EventPublisher  // 依赖注入
+}
+
+// application/service/user/user_service.go
+type UserService struct {
+    userRepo       user.UserRepository
     eventPublisher event.EventPublisher  // 依赖注入
 }
 ```

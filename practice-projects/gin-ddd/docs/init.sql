@@ -10,13 +10,11 @@ CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     email VARCHAR(100) NOT NULL UNIQUE COMMENT '邮箱',
-    phone VARCHAR(20) NOT NULL COMMENT '手机号',
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE, INACTIVE, BLOCKED',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    phone VARCHAR(20) COMMENT '手机号',
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_name (name),
-    INDEX idx_email (email),
-    INDEX idx_status (status)
+    INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 订单表
@@ -36,10 +34,10 @@ CREATE TABLE IF NOT EXISTS orders (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 
 -- 插入测试数据
-INSERT INTO users (name, email, phone, status) VALUES
-    ('admin', 'admin@example.com', '13800000000', 'ACTIVE'),
-    ('user1', 'user1@example.com', '13800000001', 'ACTIVE'),
-    ('user2', 'user2@example.com', '13800000002', 'INACTIVE');
+INSERT INTO users (name, email, phone) VALUES
+    ('admin', 'admin@example.com', '13800000000'),
+    ('user1', 'user1@example.com', '13800000001'),
+    ('user2', 'user2@example.com', '13800000002');
 
 INSERT INTO orders (order_no, user_id, total_amount, status, items) VALUES
     ('ORD202601090001', 1, 199.99, 'PENDING', '[{"product_id":1,"product_name":"商品A","quantity":2,"price":99.99,"subtotal":199.98}]'),
