@@ -17,7 +17,7 @@ public class UserDemoApplication {
 
     public static void main(String[] args) {
         // 使用简化的API
-        SpringWindApplication app = SpringWindApplication.run(UserDemoApplication.class);
+        SpringWindApplication app = SpringWindApplication.run(UserDemoApplication.class, args);
 
         // 根据启动参数决定运行模式
         if (args.length > 0 && Arrays.asList(args).contains("--web")) {

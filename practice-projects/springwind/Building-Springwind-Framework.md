@@ -2,9 +2,7 @@
 
 > 作者：JarryLi
 > 
-> 适合读者：Java开发工程师、架构师、对框架原理感兴趣的同学。
-> 本框架利用AI进行了Code Review，可以检查出一些隐患来。
-> 本文档利用AI进行了优化，使得文章更具有可读性。
+> 适合读者：Java工程师以及对设计模式和框架原理感兴趣的同学。如果你想学习和运用设计模式，熟悉Spring框架是最佳的途径之一。
 
 ## 前言
 
@@ -15,6 +13,8 @@
 纸上得来终觉浅，绝知此事要躬行。于是参照Spring框架写了一个简化版的SpringWind框架，**用最简洁的代码实现 Spring 的核心功能，让每个想深入理解框架原理的开发者都能看懂**。
 
 在这个过程中，不仅搞懂了IoC、DI、AOP这些核心概念，以及Bean生命周期、DispatcherServlet控制器与ApplicationContext容器体系，还深刻理解了**为什么Spring要这样设计**。现在，我把这些实践经验和心得分享出来，希望能帮助你快速掌握Spring的核心原理。
+
+**代码仓库：** https://github.com/microwind/design-patterns/tree/main/practice-projects/springwind
 
 ## 目录
 
@@ -945,7 +945,7 @@ public Object getBean(String beanName) {
         ObjectFactory<?> factory = singletonFactories.get(beanName);
         if (factory != null) {
             // 调用ObjectFactory获取早期对象，并放入二级缓存
-            bean = factory.getObject();  // 关键！可能创建AOP代理
+            bean = factory.getObject();  // 此处关键！可能创建AOP代理
             earlySingletonObjects.put(beanName, bean);
             singletonFactories.remove(beanName);
             return bean;
@@ -1053,6 +1053,7 @@ public class AspectProcessor implements SmartInstantiationAwareBeanPostProcessor
    - 后续postProcessAfterInitialization检测到已创建代理，跳过
 
 **为什么需要这个机制？**
+
 - 如果不在getEarlyBeanReference中创建代理，B获取到的是原始对象
 - 后续在postProcessAfterInitialization创建代理后，A持有的是代理对象，但B持有的仍是原始对象
 - 导致同一个Bean存在两个不同的对象，违反了单例原则
@@ -1187,6 +1188,7 @@ SpringWind定义了一套完整的注解体系（共21个注解）：
 | `@Bean` | 方法级Bean定义 | - |
 
 **生命周期注解：**
+
 | 注解 | 作用 | 来源 |
 |-----|------|------|
 | `@PostConstruct` | Bean 初始化方法 | javax.annotation |
@@ -1344,7 +1346,7 @@ public class UserController {
 public class Application {
     public static void main(String[] args) {
         // 启动SpringWind应用
-        SpringWindApplication app = SpringWindApplication.run(WebDemoApplication.class);
+        SpringWindApplication app = SpringWindApplication.run(WebDemoApplication.class, args);
         // 启动 Tomcat
         TomcatServer.start(app.getContext());
     }
@@ -1371,16 +1373,6 @@ public class Application {
   - 构造器注入需要添加构造器
   - 事务注解需要启用 @EnableTransactionManagement
 
-**从 Spring MVC 迁移到 SpringWind：**
-- **难度**：⭐⭐⭐ 中等
-- **工作量**：需要调整部分高级特性
-- **代码改动**：
-  - 去除复杂的 SpEL 表达式
-  - 事务代码改为手动管理或 AOP 实现
-  - 复杂切点表达式需要简化
-  - 构造器注入改为字段注入
-- **适用场景**：小型项目降低复杂度
-
 ### 性能对比
 
 | 指标 | SpringWind | Spring MVC |
@@ -1391,7 +1383,7 @@ public class Application {
 | **jar 包大小** | ~2MB | ~20-50MB |
 | **并发性能** | 良好 | 优秀 |
 
-**注意**：SpringWind 的性能优势主要体现在轻量级场景，对于大型应用，Spring 的优化更加全面。
+**注意**：SpringWind 的性能优势主要体现在轻量级场景，没有深入优化高并发，对于大型应用，Spring 的优化更加全面。
 
 ### 学习建议
 
@@ -1412,7 +1404,7 @@ public class Application {
 
 ## Springwind框架有什么用
 
-说实话，SpringWind不是为了替代Spring，而是为了**学习Spring**。但它也有自己的价值：
+SpringWind不是为了替代Spring，而是为了**学习Spring**，掌握**Spring**。但它也有自己的价值：
 
 ### 1. 彻底搞懂Spring原理和运行机制
 
@@ -1622,7 +1614,7 @@ springwind/
 | 异常 | exception | 4个异常类 | ~110 | 框架异常定义 |
 | 工具 | util | ClassScanner、StringUtils | ~420 | 类扫描、字符串处理 |
 
-整个框架核心代码约 **3800 行**，但实现了Spring的核心功能，代码精简而功能完整。
+整个框架核心代码约 **4000 行**，但实现了Spring的核心功能，代码精简而功能完整。
 
 ---
 
@@ -1632,7 +1624,7 @@ springwind/
 
 ### 示例1：User Demo - 完整的用户管理系统
 
-这是一个基于数据库的用户管理系统，展示了SpringWind的IoC、DI、Web MVC和JDBC功能。
+这是一个基于数据库的用户管理系统，展示了SpringWind的IoC、DI、Web MVC和JDBC功能。请从examples里面找到user-demo目录。
 
 #### 项目结构
 
@@ -2099,7 +2091,9 @@ curl -X POST "http://localhost:8080/user/delete?id=1"
 
 ### 示例2：Web Demo - 企业网站内容管理系统
 
-这是一个企业网站的CMS系统，展示了SpringWind的Web MVC功能。
+这是一个企业网站的CMS系统，展示了SpringWind的Web MVC功能。请见examples/web-demo，此处不再展开。
+
+<!--
 
 #### 业务场景
 
@@ -2371,6 +2365,7 @@ public class HomeController {
 2. 再跑Web Demo，理解内存存储的便捷性
 3. 对比两个项目，理解不同的设计选择
 4. 尝试自己写一个项目，综合运用所学知识
+-->
 
 ---
 
@@ -2630,31 +2625,11 @@ public class MemoryMonitor {
 }
 ```
 
-### 贡献指南
-
-欢迎大家为SpringWind贡献代码！
-
-**贡献方向：**
-
-1. **实现上述待改进功能**
-2. **完善单元测试**（目前测试覆盖率还不够）
-3. **优化性能**（减少反射调用、提升并发性能）
-4. **改进文档**（添加更多示例、API文档）
-5. **修复Bug**（提交Issue或PR）
-
-**参与方式：**
-
-1. Fork本项目
-2. 创建功能分支：`git checkout -b feature/transaction-support`
-3. 提交代码：`git commit -m "添加事务支持"`
-4. 推送分支：`git push origin feature/transaction-support`
-5. 创建Pull Request
-
 ---
 
 ## 总结
 
-通过从零实现SpringWind框架（~3800行代码），我们彻底搞懂了Spring的核心原理：
+通过从零实现SpringWind框架（~5000行代码），我们彻底搞懂了Spring的核心原理：
 
 ### 核心机制理解
 
@@ -2689,9 +2664,12 @@ public class MemoryMonitor {
 
 ### 学习价值
 
+为了就是模仿，只有通过模仿完全手搓一个Web框架时，你才能彻底明白框架的核心机制。
+
 SpringWind不是为了替代Spring，而是为了**深入理解Spring**。它用最简洁的代码（~3800行）实现了Spring的核心功能，让每个想深入理解框架原理的开发者都能看懂。
 
-**通过学习SpringWind，你将掌握：**
+**通过学习SpringWind，你将掌握Spring框架核心知识点：**
+
 - ✅ Spring IoC容器的工作机制
 - ✅ 三级缓存解决循环依赖的精妙设计
 - ✅ AOP动态代理的实现原理
@@ -2726,8 +2704,9 @@ SpringWind不是为了替代Spring，而是为了**深入理解Spring**。它用
 ### 快速开始
 
 ```bash
-# 1. 克隆项目
+# 1. 克隆项目，design-patterns是一个设计模式与架构的资源仓库，详细讲解设计模式的原理和用途
 git clone https://github.com/microwind/design-patterns.git
+# springwind就是设计模式的实践运用
 cd practice-projects/springwind
 
 # 2. 编译安装
@@ -2757,4 +2736,4 @@ mvn exec:java -Dexec.args="--web"
 
 ---
 
-**愿你在学习 SpringWind 的过程中，觉得开心愉悦！** 
+**在学习 SpringWind 的过程中，希望你会开心愉悦！** 
