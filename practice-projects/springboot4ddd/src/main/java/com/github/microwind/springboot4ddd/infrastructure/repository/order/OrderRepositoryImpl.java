@@ -25,6 +25,7 @@ import java.util.Optional;
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final OrderRepository orderRepositoryDelegate;
+    private static final String MYBATIS_PLUS = "mybatis-plus";
 
     /**
      * 构造函数注入，根据配置选择具体实现
@@ -39,7 +40,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             @Value("${order.repository.implementation:jdbc}") String implementationType) {
         
         // 根据配置选择委托对象
-        this.orderRepositoryDelegate = "mybatis-plus".equalsIgnoreCase(implementationType) 
+        this.orderRepositoryDelegate = MYBATIS_PLUS.equalsIgnoreCase(implementationType)
                 ? orderMybatisPlusRepositoryImpl 
                 : orderJdbcRepositoryImpl;
     }

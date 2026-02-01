@@ -2,12 +2,7 @@ package com.github.microwind.springboot4ddd.infrastructure.repository.mybatisplu
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,7 +10,8 @@ import java.util.Optional;
 
 /**
  * 订单MyBatis Plus Mapper接口
- * 显式定义所有必需的方法
+ * 继承 BaseMapper 使用默认的 CRUD 方法
+ * 只定义自定义查询方法
  *
  * @author jarry
  * @since 1.0.0
@@ -33,8 +29,8 @@ public interface OrderMybatisPlusMapper extends BaseMapper<Order> {
      * 插入订单（覆盖BaseMapper的insert）
      */
     @Insert("INSERT INTO orders (order_no, user_id, status, created_at, updated_at) " +
-            "VALUES (#{order.orderNo}, #{order.userId}, #{order.status}, #{order.createdAt}, #{order.updatedAt})")
-    @Options(useGeneratedKeys = true, keyProperty = "order.id")
+            "VALUES (#{orderNo}, #{userId}, #{status}, #{createdAt}, #{updatedAt})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Order order);
 
     /**

@@ -5,7 +5,6 @@ import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.Optional;
  * @author jarry
  * @since 1.0.0
  */
-@Repository("orderMybatisPlusRepositoryImpl")
+//@Repository("orderMybatisPlusRepositoryImpl")
 public class OrderMybatisPlusRepositoryImpl implements OrderRepository {
 
     private final OrderMybatisPlusMapper orderMybatisPlusMapper;
