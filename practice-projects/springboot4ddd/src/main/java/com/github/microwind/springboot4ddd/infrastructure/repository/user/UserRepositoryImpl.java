@@ -20,6 +20,7 @@ import java.util.Optional;
 
 /**
  * 用户仓储实现 - MySQL数据源
+ * 直接使用JdbcTemplate实现数据操作示例
  *
  * @author jarry
  * @since 1.0.0

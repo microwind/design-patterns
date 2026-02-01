@@ -156,7 +156,7 @@ public class OrderService {
         log.info("查询所有订单");
 
         // 1. 查询订单列表（PostgreSQL）
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAllOrders();
 
         // 2. 转换为带用户信息的Response（跨库查询MySQL）
         return convertToOrderListResponse(orders);
@@ -172,7 +172,7 @@ public class OrderService {
         log.info("查询所有订单");
 
         // 1. 查询订单列表（PostgreSQL）
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAllOrders();
         List<OrderDTO> orderDTOList = orderMapper.toDTOList(orders);
 
         // 2. 跨库填充用户信息（MySQL）

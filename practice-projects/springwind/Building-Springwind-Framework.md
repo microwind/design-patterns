@@ -163,6 +163,7 @@ public class UserController {
 3. 理解三级缓存如何解决循环依赖
 
 **第三步：深入源码（3-5小时）**
+
 1. 阅读 `SpringWindApplicationContext.java`（IoC 容器核心）
 2. 阅读 `AspectProcessor.java`（AOP 代理创建）
 3. 阅读 `DispatcherServlet.java`（MVC 请求分发）
@@ -2053,10 +2054,8 @@ public class UserDemoApplication {
     }
 
     private static void startWebServer() {
-        // 创建SpringWind容器
-        SpringWindApplicationContext context =
-            new SpringWindApplicationContext(UserDemoApplication.class);
-
+        // 运行SpringWind
+       SpringWindApplication app = SpringWindApplication.run(UserDemoApplication.class, args);
         // 启动Tomcat
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(8080);

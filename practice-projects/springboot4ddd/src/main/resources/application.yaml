@@ -7,6 +7,10 @@ spring:
   profiles:
     active: dev
 
+  autoconfigure:
+    exclude:
+      - com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration
+
   # Spring Boot level
   logging:
     level:
@@ -57,6 +61,24 @@ spring:
       database: 0
       timeout: 3000ms
 
+  # 邮件配置
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your-email@qq.com  # 修改为实际的QQ邮箱
+    password: your-app-password  # 修改为实际的应用密码
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # RocketMQ配置
 rocketmq:
   name-server: localhost:9876
@@ -70,6 +92,20 @@ rocketmq:
     group: test-consumer  # 默认消费者组
     access-key: RocketMQ  # AccessKey
     secret-key: 12345678  # SecretKey
+
+# 订单仓储配置
+order:
+  repository:
+    implementation: mybatis-plus  # 数据访问实现方式：jdbc 或 mybatis-plus（默认使用 jdbc）
+
+# MyBatis Plus 配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.github.microwind.springboot4ddd.domain.model
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
 
 # 签名配置
 sign:

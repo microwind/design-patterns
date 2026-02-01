@@ -3,7 +3,6 @@ package com.github.microwind.springboot4ddd.interfaces.controller.order;
 import com.github.microwind.springboot4ddd.application.dto.order.OrderDTO;
 import com.github.microwind.springboot4ddd.application.service.order.OrderService;
 import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
-import com.github.microwind.springboot4ddd.interfaces.annotation.IgnoreSignHeader;
 import com.github.microwind.springboot4ddd.interfaces.annotation.RequireSign;
 import com.github.microwind.springboot4ddd.interfaces.annotation.WithParams;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;

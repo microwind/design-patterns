@@ -1,5 +1,7 @@
 package com.github.microwind.userdemo;
 
+import com.github.microwind.springwind.SpringWindApplication;
+import com.github.microwind.springwind.core.SpringWindApplicationContext;
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.LifecycleException;
@@ -19,7 +21,7 @@ public class TomcatServer {
         this.port = port;
     }
 
-    public void start(SpringWindApplicationContext context) throws Exception {
+    public void start(SpringWindApplication app) throws Exception {
         tomcat = new Tomcat();
         tomcat.setPort(port);
         tomcat.setBaseDir(new File("target/tomcat").getAbsolutePath());
@@ -29,7 +31,7 @@ public class TomcatServer {
         Context tomcatContext = tomcat.addContext(contextPath, docBase);
 
         // 注入SpringWindApplicationContext的DispatcherServlet
-        DispatcherServlet dispatcherServlet = new DispatcherServlet(context);
+        DispatcherServlet dispatcherServlet = new DispatcherServlet(app.getContext());
         String servletName = "dispatcherServlet";
         Wrapper wrapper = Tomcat.addServlet(tomcatContext, servletName, dispatcherServlet);
         wrapper.setLoadOnStartup(1);

@@ -31,7 +31,7 @@ public class UserDemoApplication {
         try {
             System.out.println("========== 学生信息管理系统 (Web模式) ==========");
             TomcatServer server = new TomcatServer(8080);
-            server.start(app.getContext());
+            server.start(app);
         } catch (Exception e) {
             System.err.println("启动Web服务器失败: " + e.getMessage());
             e.printStackTrace();

@@ -37,6 +37,24 @@ spring:
       username: postgres
       password: lego798
 
+  # 邮件配置（开发环境）
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your-email@qq.com  # 修改为实际的QQ邮箱
+    password: your-app-password  # 修改为实际的应用密码
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # 日志级别配置
 logging:
   level:

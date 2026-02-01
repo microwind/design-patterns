@@ -36,10 +36,18 @@ public interface OrderRepository {
     /**
      * 查找所有订单
      */
-    List<Order> findAll();
+    List<Order> findAllOrders();
 
     /**
      * 删除订单
      */
     void deleteById(Long id);
+
+    /**
+     * 根据订单状态和创建时间查找订单
+     * @param status 订单状态
+     * @param createdAtBefore 创建时间在此时间点之前的订单
+     * @return 符合条件的订单列表
+     */
+    List<Order> findByStatusAndCreatedAtBefore(String status, java.time.LocalDateTime createdAtBefore);
 }
