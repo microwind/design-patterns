@@ -28,7 +28,7 @@ public class InterfaceSegregation_counter {
     }
 
     // 定义具体全部接口实现类，里面方法太多，将不同控制混杂在了一起
-    // 如果按实体分为TV实现类和Light实现类，那么接口是一个，需要实现的方法又太多
+    // 如果按实体分为TV实现类和Light实现类等，那么接口是一个，各实现类需要实现的方法又太多
     public class AllDeviceController implements DeviceController {
         @Override
         public void turnOnTV() {
