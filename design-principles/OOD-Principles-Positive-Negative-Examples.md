@@ -5,7 +5,8 @@
 
 **面向对象设计原则是构建高质量软件系统的基石**，对于软件工程师和架构师来说，不仅要理解这些原则的理论内涵，更要能够在实际项目中灵活运用，识别出违反原则的代码并进行重构。
 
-本文将深入探讨面向对象设计的7大原则，通过正例与反例的对比，结合代码示例，帮助你加深对于7大原则的理解和运用。源码：[https://github.com/microwind/design-patterns/tree/main/design-principles](https://github.com/microwind/design-patterns/tree/main/design-principles)
+本文将深入探讨面向对象设计的7大原则，通过正例与反例的对比，结合代码示例，帮助你加深对于7大原则的理解和运用。
+Java、Go、C、JavaScript、Python源码：[https://github.com/microwind/design-patterns/tree/main/design-principles](https://github.com/microwind/design-patterns/tree/main/design-principles)
 
 ## 1. 单一职责原则（SRP）
 
@@ -1197,4 +1198,4 @@ square.drawSquare()  // 使用扩展方法
 
 记住，设计原则需要灵活地运用，而不是僵化地遵照。其最终目的，是提高代码的可维护性与可扩展性。解决复杂问题的关键，**在于顺着事物本身的思路（发展）去理解**，而非强行改变其原有逻辑。正如《道德经》里的话：人法地，地法天，天法道，道法自然。**当我们顺应事物本来面貌去做事，这时候运用设计原则和设计模式就会得心应手。**“纸上得来终觉浅，绝知此事要躬行”，唯有在实践中不断运用和反思，我们才能真正掌握这些原则的精髓。
 
-**更多设计模式和设计原则源码：[https://github.com/microwind/design-patterns](https://github.com/microwind/design-patterns)**
+**更多设计模式和设计原则源码（多种语言实现）：[https://github.com/microwind/design-patterns](https://github.com/microwind/design-patterns)**
