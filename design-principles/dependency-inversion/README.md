@@ -167,3 +167,11 @@ public class DependencyInversionBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/DependencyInversionGoodExample.java`, `java/src/DependencyInversionBadExample.java`
+- Go: `go/DependencyInversionGoodExample.go`, `go/DependencyInversionBadExample.go`
+- C: `c/dependency_inversion_good_example.c`, `c/dependency_inversion_bad_example.c`
+- JavaScript: `js/DependencyInversionGoodExample.js`, `js/DependencyInversionBadExample.js`
+- TypeScript: `ts/DependencyInversionGoodExample.ts`, `ts/DependencyInversionBadExample.ts`
+- Python: `python/dependency_inversion_good_example.py`, `python/dependency_inversion_bad_example.py`

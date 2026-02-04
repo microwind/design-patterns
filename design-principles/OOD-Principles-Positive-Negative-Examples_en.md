@@ -6,7 +6,10 @@ The 7 principles of object-oriented design aim to improve the **maintainability,
 
 **Object-oriented design principles are the cornerstone of building high-quality software systems**. For software engineers and architects, it's not enough to just understand the theoretical implications of these principles; they must also be able to apply them flexibly in actual projects, identify code that violates these principles, and refactor it accordingly.
 
-This article will delve into the 7 principles of object-oriented design, using positive and negative examples with code samples to help you deepen your understanding and application of these principles. Source code: [https://github.com/microwind/design-patterns/tree/main/design-principles](https://github.com/microwind/design-patterns/tree/main/design-principles)
+This article will delve into the seven principles of object-oriented design, using positive and negative examples, along with code examples, to help you deepen your understanding and application of these principles.
+
+Java, Go, C, JavaScript, and Python source code: [https://github.com/microwind/design-patterns/tree/main/design-principles](https://github.com/microwind/design-patterns/tree/main/design-principles)
+
 
 ## 1. Single Responsibility Principle (SRP)
 

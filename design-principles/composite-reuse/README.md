@@ -177,3 +177,11 @@ public class CompositeReuseBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/CompositeReuseGoodExample.java`, `java/src/CompositeReuseBadExample.java`
+- Go: `go/CompositeReuseGoodExample.go`, `go/CompositeReuseBadExample.go`
+- C: `c/composite_reuse_good_example.c`, `c/composite_reuse_bad_example.c`
+- JavaScript: `js/CompositeReuseGoodExample.js`, `js/CompositeReuseBadExample.js`
+- TypeScript: `ts/CompositeReuseGoodExample.ts`, `ts/CompositeReuseBadExample.ts`
+- Python: `python/composite_reuse_good_example.py`, `python/composite_reuse_bad_example.py`

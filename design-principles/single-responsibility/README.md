@@ -187,3 +187,12 @@ public class SingleResponsibilityBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+
+# 示例文件
+- Java: `java/src/SingleResponsibilityGoodExample.java`, `java/src/SingleResponsibilityBadExample.java`
+- Go: `go/SingleResponsibilityGoodExample.go`, `go/SingleResponsibilityBadExample.go`
+- C: `c/single_responsibility_good_example.c`, `c/single_responsibility_bad_example.c`
+- JavaScript: `js/SingleResponsibilityGoodExample.js`, `js/SingleResponsibilityBadExample.js`
+- TypeScript: `ts/SingleResponsibilityGoodExample.ts`, `ts/SingleResponsibilityBadExample.ts`
+- Python: `python/single_responsibility_good_example.py`, `python/single_responsibility_bad_example.py`

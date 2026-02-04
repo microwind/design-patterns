@@ -159,3 +159,11 @@ public class LiskovSubstitutionBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/LiskovSubstitutionGoodExample.java`, `java/src/LiskovSubstitutionBadExample.java`
+- Go: `go/LiskovSubstitutionGoodExample.go`, `go/LiskovSubstitutionBadExample.go`
+- C: `c/liskov_substitution_good_example.c`, `c/liskov_substitution_bad_example.c`
+- JavaScript: `js/LiskovSubstitutionGoodExample.js`, `js/LiskovSubstitutionBadExample.js`
+- TypeScript: `ts/LiskovSubstitutionGoodExample.ts`, `ts/LiskovSubstitutionBadExample.ts`
+- Python: `python/liskov_substitution_good_example.py`, `python/liskov_substitution_bad_example.py`

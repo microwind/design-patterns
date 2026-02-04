@@ -165,3 +165,11 @@ public class LawDemeterBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/LawDemeterGoodExample.java`, `java/src/LawDemeterBadExample.java`
+- Go: `go/LawDemeterGoodExample.go`, `go/LawDemeterBadExample.go`
+- C: `c/law_demeter_good_example.c`, `c/law_demeter_bad_example.c`
+- JavaScript: `js/LawDemeterGoodExample.js`, `js/LawDemeterBadExample.js`
+- TypeScript: `ts/LawDemeterGoodExample.ts`, `ts/LawDemeterBadExample.ts`
+- Python: `python/law_demeter_good_example.py`, `python/law_demeter_bad_example.py`

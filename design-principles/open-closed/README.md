@@ -328,3 +328,11 @@ public class OpenClosed_example {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/OpenClosedGoodExample.java`, `java/src/OpenClosedBadExample.java`
+- Go: `go/OpenClosedGoodExample.go`, `go/OpenClosedBadExample.go`
+- C: `c/open_closed_good_example.c`, `c/open_closed_bad_example.c`
+- JavaScript: `js/OpenClosedGoodExample.js`, `js/OpenClosedBadExample.js`
+- TypeScript: `ts/OpenClosedGoodExample.ts`, `ts/OpenClosedBadExample.ts`
+- Python: `python/open_closed_good_example.py`, `python/open_closed_bad_example.py`

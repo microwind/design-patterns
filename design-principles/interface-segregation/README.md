@@ -182,3 +182,11 @@ public class InterfaceSegregationBadExample {
 
 ## 更多语言版本
 面向对象设计原则源码：[https://github.com/microwind/design-pattern/oop-principles](https://github.com/microwind/design-pattern/oop-principles)
+
+# 示例文件
+- Java: `java/src/InterfaceSegregationGoodExample.java`, `java/src/InterfaceSegregationBadExample.java`
+- Go: `go/InterfaceSegregationGoodExample.go`, `go/InterfaceSegregationBadExample.go`
+- C: `c/interface_segregation_good_example.c`, `c/interface_segregation_bad_example.c`
+- JavaScript: `js/InterfaceSegregationGoodExample.js`, `js/InterfaceSegregationBadExample.js`
+- TypeScript: `ts/InterfaceSegregationGoodExample.ts`, `ts/InterfaceSegregationBadExample.ts`
+- Python: `python/interface_segregation_good_example.py`, `python/interface_segregation_bad_example.py`
