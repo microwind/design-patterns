@@ -5,8 +5,8 @@ package src;
  * 1. 接口过于庞大，比较臃肿，职责不单一。
  * 2. 实现对象依赖了并不需要的接口方法，在实现时浪费。
  */
-public class InterfaceSegregation_counter {
-    public InterfaceSegregation_counter() {
+public class InterfaceSegregationBadExample {
+    public InterfaceSegregationBadExample() {
         return;
     }
 
@@ -71,5 +71,22 @@ public class InterfaceSegregation_counter {
             // 执行灯光颜色切换
             System.out.println("Change Light color to " + color);
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing InterfaceSegregationBadExample...");
+        InterfaceSegregationBadExample example = new InterfaceSegregationBadExample();
+        DeviceController controller = example.new AllDeviceController();
+        
+        // Test TV controls
+        controller.turnOnTV();
+        controller.adjustTVVolume(10);
+        controller.changeTVChannel(2);
+        controller.turnOffTV();
+        
+        // Test Light controls
+        controller.turnOnLight();
+        controller.changeLightColor("Red");
+        controller.turnOffLight();
     }
 }

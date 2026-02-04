@@ -9,10 +9,10 @@ public class Test {
     /**
      * 测试不符合迪米特原则的例子
      */
-    LawDemeter_counter lawDemeter_counter = new LawDemeter_counter();
-    LawDemeter_counter.Customer customer1 = lawDemeter_counter.new Customer("Jimmy");
-    customer1.buy(lawDemeter_counter.new Product("Computer", 5000L));
-    customer1.buy(lawDemeter_counter.new Product("Book", 200L));
+    LawDemeterBadExample lawDemeterBadExample = new LawDemeterBadExample();
+    LawDemeterBadExample.Customer customer1 = lawDemeterBadExample.new Customer("Jimmy");
+    customer1.buy(lawDemeterBadExample.new Product("Computer", 5000L));
+    customer1.buy(lawDemeterBadExample.new Product("Book", 200L));
 
     // *********************** 分割线 ******************************************/
     System.out.println("***********************");

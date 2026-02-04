@@ -91,8 +91,8 @@ public class Rectangle extends Shape {
  * 1. 子类覆盖了父类的方法，改变了父类方法的意图。
  * 2. 因为子类改变了父类行为，如果用子类替换其父类可能会引起问题。
  */
-public class LiskovSubstitution_counter {
-    public LiskovSubstitution_counter() {
+public class LiskovSubstitutionBadExample {
+    public LiskovSubstitutionBadExample() {
         return;
     }
 

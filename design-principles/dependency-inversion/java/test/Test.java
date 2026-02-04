@@ -9,8 +9,8 @@ public class Test {
     /**
      * 测试不符合依赖反转的例子
      */
-    DependencyInversion_counter dependencyInversion_counter = new DependencyInversion_counter();
-    DependencyInversion_counter.Notification notificationCounter = dependencyInversion_counter.new Notification();
+    DependencyInversionBadExample dependencyInversionBadExample = new DependencyInversionBadExample();
+    DependencyInversionBadExample.Notification notificationCounter = dependencyInversionBadExample.new Notification();
     String content = "hello, how are you!";
     notificationCounter.sendEmail(content);
     notificationCounter.sendMessage(content);

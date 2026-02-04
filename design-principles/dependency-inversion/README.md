@@ -104,8 +104,8 @@ public class PushSender implements Sender {
  * 1. 高层业务应用直接依赖了低层逻辑对象，过度耦合。
  * 2. 依赖的是实现对象而不是接口或抽象类，不便于扩展。
  */
-public class DependencyInversion_counter {
-    public DependencyInversion_counter() {
+public class DependencyInversionBadExample {
+    public DependencyInversionBadExample() {
         return;
     }
 

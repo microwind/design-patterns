@@ -5,8 +5,8 @@ package src;
  * 1. 高层业务应用直接依赖了低层逻辑对象，过度耦合。
  * 2. 依赖的是实现对象而不是接口或抽象类，不便于扩展。
  */
-public class DependencyInversion_counter {
-    public DependencyInversion_counter() {
+public class DependencyInversionBadExample {
+    public DependencyInversionBadExample() {
         return;
     }
 
@@ -62,5 +62,16 @@ public class DependencyInversion_counter {
             // do Something
             System.out.println(this.name + " has sent: " + content);
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing DependencyInversionBadExample...");
+        DependencyInversionBadExample example = new DependencyInversionBadExample();
+        Notification notification = example.new Notification();
+        
+        String content = "Hello, this is a test message.";
+        notification.sendMessage(content);
+        notification.sendEmail(content);
+        notification.sendPush(content);
     }
 }

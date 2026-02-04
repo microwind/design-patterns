@@ -110,8 +110,8 @@ public class TV implements TVController {
  * 1. 接口过于庞大，比较臃肿，职责不单一。
  * 2. 实现对象依赖了并不需要的接口方法，在实现时浪费。
  */
-public class InterfaceSegregation_counter {
-    public InterfaceSegregation_counter() {
+public class InterfaceSegregationBadExample {
+    public InterfaceSegregationBadExample() {
         return;
     }
 

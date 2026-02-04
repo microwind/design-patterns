@@ -5,8 +5,8 @@ package src;
  * 1. 订单处理类实现了订单校验以及保存数据库的两种逻辑。
  * 2. 一旦订单条件有修改或保存数据库方式有变更都需要改动此类。
  */
-public class SingleResponsibility_counter {
-    public SingleResponsibility_counter() {
+public class SingleResponsibilityBadExample {
+    public SingleResponsibilityBadExample() {
         return;
     }
 
@@ -69,5 +69,13 @@ public class SingleResponsibility_counter {
             // doSomething
             return true;
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing SingleResponsibilityBadExample...");
+        SingleResponsibilityBadExample example = new SingleResponsibilityBadExample();
+        OrderProcessor processor = example.new OrderProcessor();
+        processor.processOrder(1001L);
+        processor.processOrder(1002L);
     }
 }

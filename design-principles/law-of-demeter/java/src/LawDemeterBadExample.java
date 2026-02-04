@@ -8,8 +8,8 @@ import java.util.List;
  * 1. 对象职责不清晰，不单一。顾客类下单购物，还实现了价格计算逻辑。
  * 2. 对象依赖了朋友的朋友。顾客类依赖了购买朋友的朋友商品。
  */
-public class LawDemeter_counter {
-    public LawDemeter_counter() {
+public class LawDemeterBadExample {
+    public LawDemeterBadExample() {
         return;
     }
 
@@ -60,5 +60,15 @@ public class LawDemeter_counter {
         public double getPrice() {
             return price;
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing LawDemeterBadExample...");
+        LawDemeterBadExample example = new LawDemeterBadExample();
+        Customer customer = example.new Customer("Jimmy");
+        
+        // Test buying products
+        customer.buy(example.new Product("Computer", 5000L));
+        customer.buy(example.new Product("Book", 200L));
     }
 }

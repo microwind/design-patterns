@@ -107,8 +107,8 @@ public class Product {
  * 1. 对象职责不清晰，不单一。顾客类下单购物，还实现了价格计算逻辑。
  * 2. 对象依赖了朋友的朋友。顾客类依赖了购买朋友的朋友商品。
  */
-public class LawDemeter_counter {
-    public LawDemeter_counter() {
+public class LawDemeterBadExample {
+    public LawDemeterBadExample() {
         return;
     }
 

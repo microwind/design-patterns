@@ -5,8 +5,8 @@ package src;
  * 1. 人的身份会有多重角色，不是适合继承人，如果是物种角度可以是继承，比如男、女继承人。
  * 2. 采用继承会使得不够灵活，修改起来很麻烦，例如一个人既是经理也是雇员。
  */
-public class CompositeReuse_counter {
-    public CompositeReuse_counter() {
+public class CompositeReuseBadExample {
+    public CompositeReuseBadExample() {
         return;
     }
 
@@ -69,5 +69,18 @@ public class CompositeReuse_counter {
                     + ", title = " + this.title + " name = " + this.getName() + ", age = " + this.getAge());
             return true;
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing CompositeReuseBadExample...");
+        CompositeReuseBadExample example = new CompositeReuseBadExample();
+        
+        // Test Engineer
+        Engineer engineer = example.new Engineer("Tom", 25, 1001, "senior engineer");
+        engineer.work();
+        
+        // Test Manager
+        Manager manager = example.new Manager("Jerry", 45, 2002, "advanced director");
+        manager.work();
     }
 }

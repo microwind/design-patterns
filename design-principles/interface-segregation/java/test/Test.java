@@ -1,7 +1,7 @@
 package test;
 
 import src.*;
-import src.InterfaceSegregation_counter.DeviceController;
+import src.InterfaceSegregationBadExample.DeviceController;
 
 public class Test {
 
@@ -10,8 +10,8 @@ public class Test {
     /**
      * 测试不符合接口隔离的例子
      */
-    InterfaceSegregation_counter dependencyInversion_counter = new InterfaceSegregation_counter();
-    InterfaceSegregation_counter.DeviceController controller = dependencyInversion_counter.new AllDeviceController();
+    InterfaceSegregationBadExample interfaceSegregationBadExample = new InterfaceSegregationBadExample();
+    InterfaceSegregationBadExample.DeviceController controller = interfaceSegregationBadExample.new AllDeviceController();
 
     // 控制电视
     controller.turnOnTV();

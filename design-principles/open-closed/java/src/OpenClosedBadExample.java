@@ -5,8 +5,8 @@ package src;
  * 1. 车辆制造类将具体创建方法放在了一起，不利于扩展。
  * 2. 一旦有新的车辆类型加入就需要不断修改车辆建造类。
  */
-public class OpenClosed_counter {
-    public OpenClosed_counter() {
+public class OpenClosedBadExample {
+    public OpenClosedBadExample() {
         return;
     }
 
@@ -93,5 +93,19 @@ public class OpenClosed_counter {
             return vehicle;
         }
 
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("Testing OpenClosedBadExample...");
+        OpenClosedBadExample example = new OpenClosedBadExample();
+        VehicleFactory factory = example.new VehicleFactory();
+        
+        // Test creating a car
+        Vehicle car = example.new Car("BMW");
+        factory.createVehicle(car);
+        
+        // Test creating a bus
+        Vehicle bus = example.new Bus("Volvo");
+        factory.createVehicle(bus);
     }
 }

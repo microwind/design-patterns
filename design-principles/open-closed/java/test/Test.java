@@ -7,13 +7,13 @@ public class Test {
   public static void start() {
 
     /**
-     * 测试不符合单一职责的例子
+     * 测试不符合开闭原则的例子
      */
-    OpenClosed_counter vehicle_counter = new OpenClosed_counter();
-    OpenClosed_counter.VehicleFactory vehicleFactory = vehicle_counter.new VehicleFactory();
-    OpenClosed_counter.Vehicle car1 = vehicleFactory.createVehicle(vehicle_counter.new Car("car1"));
+    OpenClosedBadExample vehicle_counter = new OpenClosedBadExample();
+    OpenClosedBadExample.VehicleFactory vehicleFactory = vehicle_counter.new VehicleFactory();
+    OpenClosedBadExample.Vehicle car1 = vehicleFactory.createVehicle(vehicle_counter.new Car("car1"));
     System.out.println(car1.getName());
-    OpenClosed_counter.Vehicle bus1 = vehicleFactory.createVehicle(vehicle_counter.new Bus("bus1"));
+    OpenClosedBadExample.Vehicle bus1 = vehicleFactory.createVehicle(vehicle_counter.new Bus("bus1"));
     System.out.println(bus1.getName());
 
     // *********************** 分割线 ******************************************/

@@ -7,13 +7,13 @@ public class Test {
   public static void start() {
 
     /**
-     * 测试不符合迪米特原则的例子
+     * 测试不符合里氏替换原则的例子
      */
-    LiskovSubstitution_counter liskovSubstitution_counter = new LiskovSubstitution_counter();
-    LiskovSubstitution_counter.Square square1 = liskovSubstitution_counter.new Square(6);
-    LiskovSubstitution_counter.Shape square2 = liskovSubstitution_counter.new Square(12);
-    LiskovSubstitution_counter.Rectangle rectangle1 = liskovSubstitution_counter.new Rectangle(8, 5);
-    LiskovSubstitution_counter.Shape rectangle2 = liskovSubstitution_counter.new Rectangle(9, 6);
+    LiskovSubstitutionBadExample liskovSubstitutionBadExample = new LiskovSubstitutionBadExample();
+    LiskovSubstitutionBadExample.Square square1 = liskovSubstitutionBadExample.new Square(6);
+    LiskovSubstitutionBadExample.Shape square2 = liskovSubstitutionBadExample.new Square(12);
+    LiskovSubstitutionBadExample.Rectangle rectangle1 = liskovSubstitutionBadExample.new Rectangle(8, 5);
+    LiskovSubstitutionBadExample.Shape rectangle2 = liskovSubstitutionBadExample.new Rectangle(9, 6);
     square1.draw();
     // 会出现不符合父类预期的行为
     square2.draw();
@@ -25,7 +25,7 @@ public class Test {
     System.out.println("***********************");
 
     /**
-     * 测试符合迪米特原则的例子
+     * 测试符合里氏替换原则的例子
      * 删除与父类行为不一致的方法，或者通过重载得到新方法
      * 只实现父类抽象方法，不覆盖父类方法
      */

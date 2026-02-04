@@ -9,8 +9,8 @@ public class Test {
     /**
      * 测试不符合单一职责的例子
      */
-    SingleResponsibility_counter singleResponsibility_counter = new SingleResponsibility_counter();
-    SingleResponsibility_counter.OrderProcessor orderProcessorCounter = singleResponsibility_counter.new OrderProcessor();
+    SingleResponsibilityBadExample singleResponsibilityBadExample = new SingleResponsibilityBadExample();
+    SingleResponsibilityBadExample.OrderProcessor orderProcessorCounter = singleResponsibilityBadExample.new OrderProcessor();
     orderProcessorCounter.processOrder(1001L);
     orderProcessorCounter.processOrder(1002L);
 
