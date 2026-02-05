@@ -318,17 +318,17 @@ High-level modules should not depend on low-level modules; both should depend on
 ### How to Verify
 **Change Level**
 
-❌ When modifying underlying implementation, need to modify high-level calling code simultaneously
-❌ Adding a new implementation method requires modifying multiple calling codes
-❌ Difficult to conduct unit tests, cannot replace dependencies with mock objects
-❌ When replacing underlying technical solutions, the impact is too large
+- ❌ When modifying underlying implementation, need to modify high-level calling code simultaneously
+- ❌ Adding a new implementation method requires modifying multiple calling codes
+- ❌ Difficult to conduct unit tests, cannot replace dependencies with mock objects
+- ❌ When replacing underlying technical solutions, the impact is too large
 
 **Structure Level**
 
-❌ High-level classes directly new low-level class instances
-❌ Use concrete types for declarations in classes instead of interfaces or abstract classes
-❌ Use concrete types for method parameters instead of abstract types
-❌ Code is filled with new keywords to create dependent objects
+- ❌ High-level classes directly new low-level class instances
+- ❌ Use concrete types for declarations in classes instead of interfaces or abstract classes
+- ❌ Use concrete types for method parameters instead of abstract types
+- ❌ Code is filled with new keywords to create dependent objects
 
 ### Negative Example Code
 
@@ -609,11 +609,6 @@ The Interface Segregation Principle complements the Single Responsibility Princi
 ### Core Idea
 
 Try to use composition or aggregation instead of inheritance to achieve reuse. Composition/aggregation is more extensible and has better loose coupling than inheritance.
-
-### Concept Distinction
-
-- Aggregation: Indicates that an object owns another object, generally representing a loose whole-part relationship, where the whole and part can also be unrelated
-- Composition: Indicates that an object owns other objects, which is a stronger ownership relationship, i.e., a whole-part relationship, where the whole object strongly depends on the part objects
 
 ### Concept Distinction
 
