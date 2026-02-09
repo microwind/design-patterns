@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 /**
  * 订单事件生产者
  * 负责将订单领域事件发送到 RocketMQ
+ * 支持优雅降级：当MQ不可用时记录日志但不中断业务流程
  *
  * @author jarry
  * @since 1.0.0
@@ -36,6 +38,9 @@ public class OrderEventProducer {
     private final RocketMQTemplate rocketMQTemplate;
     private final OrderEventMessageMapper messageMapper;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    @Value("${rocketmq.fallback.enabled:true}")
+    private boolean rocketMqFallbackEnabled;
 
     /**
      * RocketMQ Topic
@@ -65,9 +70,16 @@ public class OrderEventProducer {
                     event.getEventId(), event.getEventType(), e);
             throw new RuntimeException("发布订单事件失败: 序列化错误", e);
         } catch (Exception e) {
-            log.error("发送订单事件到 RocketMQ 失败，eventId={}, eventType={}",
-                    event.getEventId(), event.getEventType(), e);
-            throw new RuntimeException("发布订单事件失败: 消息发送错误", e);
+            if (rocketMqFallbackEnabled) {
+                log.error("RocketMQ不可用，订单事件发送失败，系统继续运行，eventId={}, eventType={}, error={}",
+                        event.getEventId(), event.getEventType(), e.getMessage());
+                log.warn("建议检查RocketMQ服务状态，事件将被丢弃但业务流程继续");
+                // 不抛出异常，允许业务继续执行
+            } else {
+                log.error("发送订单事件到 RocketMQ 失败，优雅降级已禁用，eventId={}, eventType={}",
+                        event.getEventId(), event.getEventType(), e);
+                throw new RuntimeException("发布订单事件失败: 消息发送错误", e);
+            }
         }
     }
 
@@ -85,10 +97,14 @@ public class OrderEventProducer {
             try {
                 publishEvent(event);
             } catch (Exception e) {
-                // 记录错误但不中断批量发送
-                log.error("批量发送事件时失败，eventId={}, 继续处理下一个事件", event.getEventId(), e);
-                // 根据业务需求决定是否重新抛出异常
-                throw e;
+                if (rocketMqFallbackEnabled) {
+                    // 记录错误但不中断批量发送
+                    log.error("批量发送事件时失败，eventId={}, 继续处理下一个事件", event.getEventId(), e);
+                } else {
+                    // 如果优雅降级被禁用，则重新抛出异常
+                    log.error("批量发送事件时失败，优雅降级已禁用，停止处理", e);
+                    throw e;
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import com.github.microwind.springboot4ddd.infrastructure.messaging.order.messag
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +30,7 @@ public class OrderEventConsumer {
      */
     @Slf4j
     @Component
+    @ConditionalOnProperty(name = "rocketmq.fallback.enabled", havingValue = "false")
     @RocketMQMessageListener(
             topic = "order-events",
             consumerGroup = "springboot4ddd-order-created-consumer",
@@ -72,6 +74,7 @@ public class OrderEventConsumer {
      */
     @Slf4j
     @Component
+    @ConditionalOnProperty(name = "rocketmq.fallback.enabled", havingValue = "false")
     @RocketMQMessageListener(
             topic = "order-events",
             consumerGroup = "springboot4ddd-order-paid-consumer",
@@ -125,6 +128,7 @@ public class OrderEventConsumer {
      */
     @Slf4j
     @Component
+    @ConditionalOnProperty(name = "rocketmq.fallback.enabled", havingValue = "false")
     @RocketMQMessageListener(
             topic = "order-events",
             consumerGroup = "springboot4ddd-order-cancelled-consumer",
@@ -167,6 +171,7 @@ public class OrderEventConsumer {
      */
     @Slf4j
     @Component
+    @ConditionalOnProperty(name = "rocketmq.fallback.enabled", havingValue = "false")
     @RocketMQMessageListener(
             topic = "order-events",
             consumerGroup = "springboot4ddd-order-completed-consumer",

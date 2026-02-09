@@ -38,6 +38,9 @@ spring:
       transaction-isolation: TRANSACTION_READ_COMMITTED
       connection-init-sql: SELECT 1
       pool-name: UserDB-Pool
+    # 优雅降级配置
+    fallback:
+      enabled: true  # 是否启用优雅降级（当MySQL不可用时，系统仍能启动）
 
   # PostgreSQL - order database (Third)
   order:
@@ -52,6 +55,9 @@ spring:
       transaction-isolation: TRANSACTION_READ_COMMITTED
       connection-init-sql: SELECT 1
       pool-name: OrdersDB-Pool
+    # 优雅降级配置
+    fallback:
+      enabled: true  # 是否启用优雅降级（当PostgreSQL不可用时，系统仍能启动）
 
   # Redis配置
   data:
@@ -92,6 +98,9 @@ rocketmq:
     group: test-consumer  # 默认消费者组
     access-key: RocketMQ  # AccessKey
     secret-key: 12345678  # SecretKey
+  # 优雅降级配置
+  fallback:
+    enabled: true  # 是否启用优雅降级（当RocketMQ不可用时，系统仍能启动）
 
 # 订单仓储配置
 order:

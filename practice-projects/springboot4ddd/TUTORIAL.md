@@ -346,7 +346,171 @@ cd design-patterns/practice-projects/springboot4ddd
 tree -L 3 src/
 ```
 
-### 3.3 数据库初始化
+### 3.3 启动依赖服务（MySQL/PostgreSQL/RocketMQ）
+
+本项目默认使用以下端口：
+- MySQL：`3306`
+- PostgreSQL：`5432`
+- RocketMQ NameServer：`9876`
+- RocketMQ Broker：`10911`
+
+如果你不使用 RocketMQ，可保持默认降级配置 `rocketmq.fallback.enabled=true`，应用仍可启动，仅记录错误日志。
+
+#### 3.3.1 使用 Docker 启动 MySQL
+
+以下示例与 `application-dev.yaml` 的默认账号一致：
+
+```bash
+docker run -d --name springboot4ddd-mysql \
+  -p 3306:3306 \
+  -e MYSQL_DATABASE=frog \
+  -e MYSQL_USER=frog_admin \
+  -e MYSQL_PASSWORD=xxx \
+  -e MYSQL_ROOT_PASSWORD=root \
+  mysql:8
+```
+
+#### 3.3.2 使用 Docker 启动 PostgreSQL
+
+```bash
+docker run -d --name springboot4ddd-postgres \
+  -p 5432:5432 \
+  -e POSTGRES_DB=seed \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=xxx \
+  postgres:15
+```
+
+#### 3.3.3 使用 Docker 启动 RocketMQ
+
+创建一个最小 `broker.conf`：
+
+```bash
+cat > /tmp/rocketmq-broker.conf <<'EOF'
+brokerClusterName=DefaultCluster
+brokerName=broker-a
+brokerId=0
+brokerIP1=127.0.0.1
+listenPort=10911
+autoCreateTopicEnable=true
+EOF
+```
+
+启动 NameServer 与 Broker：
+
+```bash
+docker network create springboot4ddd-rmq
+
+docker run -d --name rmqnamesrv \
+  --network springboot4ddd-rmq \
+  -p 9876:9876 \
+  apache/rocketmq:5.2.0 sh mqnamesrv
+
+docker run -d --name rmqbroker \
+  --network springboot4ddd-rmq \
+  -p 10911:10911 -p 10909:10909 -p 10912:10912 \
+  -e "NAMESRV_ADDR=rmqnamesrv:9876" \
+  -v /tmp/rocketmq-broker.conf:/home/rocketmq/broker.conf \
+  apache/rocketmq:5.2.0 sh mqbroker -c /home/rocketmq/broker.conf
+```
+
+说明：
+- 如果应用运行在宿主机，`brokerIP1=127.0.0.1` 可直接访问
+- 如果应用也运行在 Docker 网络内，请将 `brokerIP1` 改为容器可达 IP 或域名
+
+#### 3.3.4 依赖服务可用性检测
+
+```bash
+# MySQL
+mysql -h 127.0.0.1 -u frog_admin -p -e "SELECT 1;"
+
+# PostgreSQL
+psql -h 127.0.0.1 -U postgres -d seed -c "SELECT 1;"
+
+# RocketMQ（端口连通性）
+nc -zv 127.0.0.1 9876
+nc -zv 127.0.0.1 10911
+```
+
+#### 3.3.5 本地单机启动（非 Docker）
+
+如果你使用本机安装（Homebrew / apt / yum / 安装包），可参考以下方式启动。
+
+**MySQL 启动**
+
+macOS（Homebrew）：
+```bash
+brew services start mysql
+```
+
+Linux（systemd）：
+```bash
+sudo systemctl start mysql
+```
+
+如发行版使用 `mysqld` 服务名：
+```bash
+sudo systemctl start mysqld
+```
+
+**PostgreSQL 启动**
+
+macOS（Homebrew，示例为 15 版本）：
+```bash
+brew services start postgresql@15
+```
+
+Linux（systemd）：
+```bash
+sudo systemctl start postgresql
+```
+
+如发行版使用版本化服务名：
+```bash
+sudo systemctl start postgresql-15
+```
+
+**RocketMQ 启动（单机）**
+
+1. 下载并解压 RocketMQ（官方发布包），假设解压到 `~/rocketmq`
+2. 配置环境变量
+
+```bash
+export ROCKETMQ_HOME=~/rocketmq
+export PATH=$PATH:$ROCKETMQ_HOME/bin
+```
+
+3. 启动 NameServer
+
+```bash
+nohup sh $ROCKETMQ_HOME/bin/mqnamesrv > $ROCKETMQ_HOME/logs/namesrv.log 2>&1 &
+```
+
+4. 创建 `broker.conf`（示例）
+
+```bash
+cat > $ROCKETMQ_HOME/conf/broker.conf <<'EOF'
+brokerClusterName=DefaultCluster
+brokerName=broker-a
+brokerId=0
+brokerIP1=127.0.0.1
+listenPort=10911
+autoCreateTopicEnable=true
+EOF
+```
+
+5. 启动 Broker
+
+```bash
+export NAMESRV_ADDR=127.0.0.1:9876
+nohup sh $ROCKETMQ_HOME/bin/mqbroker -c $ROCKETMQ_HOME/conf/broker.conf > $ROCKETMQ_HOME/logs/broker.log 2>&1 &
+```
+
+启动后请使用 **3.3.4** 的检测命令确认服务可用。
+
+---
+
+### 3.4 数据库初始化
 
 #### 步骤1：创建MySQL数据库（用户数据）
 
@@ -411,7 +575,7 @@ SELECT * FROM orders;
   3 | ORD1000000003 |       2 |       150.00 | COMPLETED | 2024-01-01 12:00:00
 ```
 
-### 3.4 配置应用
+### 3.5 配置应用
 
 编辑配置文件 `src/main/resources/application-dev.yaml`：
 
@@ -449,7 +613,7 @@ rocketmq:
 - 两个数据源的字段名有细微差异（MySQL: `created_time`, PostgreSQL: `created_at`）
 - 生产环境务必修改为强密码
 
-### 3.5 编译项目
+### 3.6 编译项目
 
 ```bash
 # 清理并编译
@@ -466,7 +630,7 @@ mvn clean compile
 [INFO] Finished at: 2024-01-09T10:00:00+08:00
 ```
 
-### 3.6 运行测试
+### 3.7 运行测试
 
 ```bash
 # 运行所有测试
@@ -476,7 +640,7 @@ mvn clean compile
 ./mvnw test -Dtest=ApplicationTests
 ```
 
-### 3.7 启动应用
+### 3.8 启动应用
 
 ```bash
 # 方式1：使用Maven插件
@@ -503,7 +667,7 @@ java -jar target/springboot4ddd-0.0.1-SNAPSHOT.jar
 [main] c.g.m.s.Application  : Started Application in 3.245 seconds
 ```
 
-### 3.8 验证安装
+### 3.9 验证安装
 
 #### 健康检查
 
@@ -511,17 +675,39 @@ java -jar target/springboot4ddd-0.0.1-SNAPSHOT.jar
 curl http://localhost:8080/api/health
 ```
 
-**预期响应**：
+**预期响应（示例）**：
 ```json
 {
-  "code": 200,
-  "message": "Service is healthy",
-  "data": {
+  "mysql_user": {
     "status": "UP",
-    "timestamp": "2024-01-09T10:00:00"
+    "message": "连接正常"
   },
-  "timestamp": "2024-01-09T10:00:00"
+  "postgresql_order": {
+    "status": "UP",
+    "message": "连接正常"
+  },
+  "rocketmq": {
+    "status": "UP",
+    "message": "连接正常"
+  },
+  "system": {
+    "status": "UP",
+    "message": "所有服务正常"
+  },
+  "timestamp": 1704775200000
 }
+```
+
+如果只需要快速探活：
+
+```bash
+curl http://localhost:8080/api/health/simple
+```
+
+首页也会返回依赖状态与错误信息：
+
+```bash
+curl http://localhost:8080/
 ```
 
 #### 查询用户列表
