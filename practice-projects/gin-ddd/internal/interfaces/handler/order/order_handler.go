@@ -4,6 +4,7 @@ import (
 	"gin-ddd/internal/application/service/order"
 	"gin-ddd/internal/infrastructure/common"
 	orderVO "gin-ddd/internal/interfaces/vo/order"
+	"gin-ddd/pkg/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -36,13 +37,17 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("CreateOrder request: user_id=%d total_amount=%.2f", req.UserID, req.TotalAmount)
+
 	orderDTO, err := h.orderService.CreateOrder(c.Request.Context(), req.UserID, req.TotalAmount)
 	if err != nil {
+		utils.GetLogger().Error("CreateOrder failed: %v", err)
 		common.Error(c, 2001, err.Error())
 		return
 	}
 
-	common.SuccessWithMessage(c, "订单创建成功", orderDTO)
+	utils.GetLogger().Info("CreateOrder success: order_id=%d, user_id=%d", orderDTO.OrderID, orderDTO.UserID)
+	common.SuccessWithMessage(c, "订单创建成功", orderVO.FromOrderDTO(orderDTO))
 }
 
 // GetOrder 获取订单
@@ -59,13 +64,17 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("GetOrder request: id=%d", id)
+
 	orderDTO, err := h.orderService.GetOrderByID(c.Request.Context(), id)
 	if err != nil {
+		utils.GetLogger().Error("GetOrder failed: %v", err)
 		common.Error(c, 2001, err.Error())
 		return
 	}
 
-	common.Success(c, orderDTO)
+	utils.GetLogger().Info("GetOrder success: id=%d, status=%s", id, orderDTO.Status)
+	common.Success(c, orderVO.FromOrderDTO(orderDTO))
 }
 
 // GetAllOrders 获取所有订单
@@ -75,13 +84,16 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 // @Success 200 {object} common.Response
 // @Router /api/orders [get]
 func (h *OrderHandler) GetAllOrders(c *gin.Context) {
+	utils.GetLogger().Info("GetAllOrders request")
 	orders, err := h.orderService.GetAllOrders(c.Request.Context())
 	if err != nil {
+		utils.GetLogger().Error("GetAllOrders failed: %v", err)
 		common.InternalServerError(c, err.Error())
 		return
 	}
 
-	common.Success(c, orders)
+	utils.GetLogger().Info("GetAllOrders success: total_count=%d", len(orders))
+	common.Success(c, orderVO.FromOrderDTOs(orders))
 }
 
 // GetUserOrders 获取用户订单
@@ -98,13 +110,17 @@ func (h *OrderHandler) GetUserOrders(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("GetUserOrders request: user_id=%d", userID)
+
 	orders, err := h.orderService.GetUserOrders(c.Request.Context(), userID)
 	if err != nil {
+		utils.GetLogger().Error("GetUserOrders failed: %v", err)
 		common.InternalServerError(c, err.Error())
 		return
 	}
 
-	common.Success(c, orders)
+	utils.GetLogger().Info("GetUserOrders success: user_id=%d, order_count=%d", userID, len(orders))
+	common.Success(c, orderVO.FromOrderDTOs(orders))
 }
 
 // PayOrder 支付订单
@@ -121,11 +137,15 @@ func (h *OrderHandler) PayOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("PayOrder request: id=%d", id)
+
 	if err := h.orderService.PayOrder(c.Request.Context(), id); err != nil {
+		utils.GetLogger().Error("PayOrder failed: %v", err)
 		common.Error(c, 2002, err.Error())
 		return
 	}
 
+	utils.GetLogger().Info("PayOrder success: id=%d", id)
 	common.SuccessWithMessage(c, "订单支付成功", nil)
 }
 
@@ -143,11 +163,15 @@ func (h *OrderHandler) ShipOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("ShipOrder request: id=%d", id)
+
 	if err := h.orderService.ShipOrder(c.Request.Context(), id); err != nil {
+		utils.GetLogger().Error("ShipOrder failed: %v", err)
 		common.Error(c, 2002, err.Error())
 		return
 	}
 
+	utils.GetLogger().Info("ShipOrder success: id=%d", id)
 	common.SuccessWithMessage(c, "订单发货成功", nil)
 }
 
@@ -165,11 +189,15 @@ func (h *OrderHandler) DeliverOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("DeliverOrder request: id=%d", id)
+
 	if err := h.orderService.DeliverOrder(c.Request.Context(), id); err != nil {
+		utils.GetLogger().Error("DeliverOrder failed: %v", err)
 		common.Error(c, 2002, err.Error())
 		return
 	}
 
+	utils.GetLogger().Info("DeliverOrder success: id=%d", id)
 	common.SuccessWithMessage(c, "订单送达确认成功", nil)
 }
 
@@ -187,11 +215,15 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("CancelOrder request: id=%d", id)
+
 	if err := h.orderService.CancelOrder(c.Request.Context(), id); err != nil {
+		utils.GetLogger().Error("CancelOrder failed: %v", err)
 		common.Error(c, 2003, err.Error())
 		return
 	}
 
+	utils.GetLogger().Info("CancelOrder success: id=%d", id)
 	common.SuccessWithMessage(c, "订单取消成功", nil)
 }
 
@@ -209,10 +241,14 @@ func (h *OrderHandler) RefundOrder(c *gin.Context) {
 		return
 	}
 
+	utils.GetLogger().Info("RefundOrder request: id=%d", id)
+
 	if err := h.orderService.RefundOrder(c.Request.Context(), id); err != nil {
+		utils.GetLogger().Error("RefundOrder failed: %v", err)
 		common.Error(c, 2002, err.Error())
 		return
 	}
 
+	utils.GetLogger().Info("RefundOrder success: id=%d", id)
 	common.SuccessWithMessage(c, "订单退款成功", nil)
 }

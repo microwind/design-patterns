@@ -42,7 +42,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	common.SuccessWithMessage(c, "用户创建成功", userDTO)
+	common.SuccessWithMessage(c, "用户创建成功", userVO.FromUserDTO(userDTO))
 }
 
 // GetUser 获取用户
@@ -65,7 +65,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	common.Success(c, userDTO)
+	common.Success(c, userVO.FromUserDTO(userDTO))
 }
 
 // GetAllUsers 获取所有用户
@@ -81,7 +81,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 		return
 	}
 
-	common.Success(c, users)
+	common.Success(c, userVO.FromUserDTOs(users))
 }
 
 // UpdateEmail 更新邮箱
