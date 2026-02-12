@@ -31,7 +31,7 @@ logger:
 
 rocketmq:
   enabled: true
-  nameserver: "localhost:9876"
+  nameserver: "127.0.0.1:9876"
   group_name: "gin-ddd-group"
   instance_name: "gin-ddd-instance"
   retry_times: 3
