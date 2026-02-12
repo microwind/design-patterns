@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -69,17 +70,47 @@ func (c *RocketMQConsumer) Subscribe(topic string, handler event.EventHandler) e
 				continue
 			}
 
-			// 解析事件数据
-			var eventData map[string]interface{}
-			if err := json.Unmarshal(msg.Body, &eventData); err != nil {
-				log.Printf("解析消息失败: %v", err)
-				continue
-			}
-
-			// 创建领域事件（简化版，实际应根据 Tag 创建具体事件）
-			domainEvent := &GenericEvent{
-				Type: msg.GetTags(),
-				Data: eventData,
+			// 根据 Tag 解析具体事件
+			var domainEvent event.DomainEvent
+			tag := msg.GetTags()
+			switch {
+			case strings.HasPrefix(tag, "order."):
+				var orderEvent event.OrderEvent
+				if err := json.Unmarshal(msg.Body, &orderEvent); err != nil {
+					log.Printf("解析订单事件失败: %v", err)
+					continue
+				}
+				if orderEvent.Type == "" {
+					orderEvent.Type = tag
+				}
+				if orderEvent.Timestamp.IsZero() {
+					orderEvent.Timestamp = time.Now()
+				}
+				domainEvent = &orderEvent
+			case strings.HasPrefix(tag, "user."):
+				var userEvent event.UserEvent
+				if err := json.Unmarshal(msg.Body, &userEvent); err != nil {
+					log.Printf("解析用户事件失败: %v", err)
+					continue
+				}
+				if userEvent.Type == "" {
+					userEvent.Type = tag
+				}
+				if userEvent.Timestamp.IsZero() {
+					userEvent.Timestamp = time.Now()
+				}
+				domainEvent = &userEvent
+			default:
+				// 无法识别类型，降级为通用事件
+				var eventData map[string]interface{}
+				if err := json.Unmarshal(msg.Body, &eventData); err != nil {
+					log.Printf("解析消息失败: %v", err)
+					continue
+				}
+				domainEvent = &GenericEvent{
+					Type: tag,
+					Data: eventData,
+				}
 			}
 
 			// 调用处理器

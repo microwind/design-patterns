@@ -8,12 +8,14 @@ import (
 	"gin-ddd/internal/domain/event"
 	orderModel "gin-ddd/internal/domain/model/order"
 	orderDomain "gin-ddd/internal/domain/repository/order"
+	userDomain "gin-ddd/internal/domain/repository/user"
 	"time"
 )
 
 // OrderService 订单应用服务
 type OrderService struct {
 	orderRepo      orderDomain.OrderRepository
+	userRepo       userDomain.UserRepository
 	eventPublisher event.EventPublisher
 }
 
@@ -21,6 +23,15 @@ type OrderService struct {
 func NewOrderService(orderRepo orderDomain.OrderRepository, eventPublisher event.EventPublisher) *OrderService {
 	return &OrderService{
 		orderRepo:      orderRepo,
+		eventPublisher: eventPublisher,
+	}
+}
+
+// NewOrderServiceWithUserRepo 创建订单应用服务（包含用户仓储）
+func NewOrderServiceWithUserRepo(orderRepo orderDomain.OrderRepository, userRepo userDomain.UserRepository, eventPublisher event.EventPublisher) *OrderService {
+	return &OrderService{
+		orderRepo:      orderRepo,
+		userRepo:       userRepo,
 		eventPublisher: eventPublisher,
 	}
 }
@@ -36,25 +47,40 @@ func (s *OrderService) CreateOrder(ctx context.Context, userID int64, totalAmoun
 
 	// 生成订单号
 	orderNo := s.generateOrderNo()
+	fmt.Printf("[OrderService] 开始创建订单: orderNo=%s, userId=%d, amount=%.2f\n", orderNo, userID, totalAmount)
 
 	// 创建订单实体
 	newOrder, err := orderModel.NewOrder(orderNo, userID, totalAmount)
 	if err != nil {
+		fmt.Printf("[OrderService] 创建订单实体失败: %v\n", err)
 		return nil, err
 	}
 
 	// 持久化订单
+	fmt.Printf("[OrderService] 持久化订单到数据库...\n")
 	if err := s.orderRepo.Create(ctx, newOrder); err != nil {
+		fmt.Printf("[OrderService] 订单入库失败: %v\n", err)
 		return nil, err
 	}
+	fmt.Printf("[OrderService] 订单入库成功: orderId=%d\n", newOrder.OrderID)
 
 	// 发布订单创建事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderCreatedEvent(newOrder.OrderID, newOrder.OrderNo, newOrder.UserID, newOrder.TotalAmount)
+		fmt.Printf("[OrderService] 开始发送订单事件到MQ...\n")
+		userEmail, userName := s.getUserInfo(ctx, userID)
+		fmt.Printf("[OrderService] 获取用户信息: email=%s, name=%s\n", userEmail, userName)
+
+		orderEvent := event.NewOrderCreatedEvent(newOrder.OrderID, newOrder.OrderNo, newOrder.UserID, userEmail, userName, newOrder.TotalAmount)
+		fmt.Printf("[OrderService] 创建订单事件: type=%s\n", orderEvent.EventType())
+
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			// 事件发布失败不影响主流程，记录日志即可
-			fmt.Printf("发布订单创建事件失败: %v\n", err)
+			fmt.Printf("[OrderService] 发送订单事件失败: %v (不影响订单创建)\n", err)
+		} else {
+			fmt.Printf("[OrderService] 订单事件发送到MQ成功\n")
 		}
+	} else {
+		fmt.Printf("[OrderService] 事件发布器未初始化，跳过事件发送\n")
 	}
 
 	return order.ToDTO(newOrder), nil
@@ -122,7 +148,8 @@ func (s *OrderService) PayOrder(ctx context.Context, id int64) error {
 
 	// 发布订单支付事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderPaidEvent(o.OrderID, o.OrderNo, o.UserID, o.TotalAmount)
+		userEmail, userName := s.getUserInfo(ctx, o.UserID)
+		orderEvent := event.NewOrderPaidEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName, o.TotalAmount)
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			fmt.Printf("发布订单支付事件失败: %v\n", err)
 		}
@@ -185,7 +212,8 @@ func (s *OrderService) CancelOrder(ctx context.Context, id int64) error {
 
 	// 发布订单取消事件
 	if s.eventPublisher != nil {
-		orderEvent := event.NewOrderCancelledEvent(o.OrderID, o.OrderNo, o.UserID)
+		userEmail, userName := s.getUserInfo(ctx, o.UserID)
+		orderEvent := event.NewOrderCancelledEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName)
 		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
 			fmt.Printf("发布订单取消事件失败: %v\n", err)
 		}
@@ -217,3 +245,25 @@ func (s *OrderService) generateOrderNo() string {
 	// 生产环境建议使用更复杂的算法（如雪花算法）
 	return fmt.Sprintf("ORD%d", time.Now().UnixNano())
 }
+
+// getUserInfo 获取用户信息
+func (s *OrderService) getUserInfo(ctx context.Context, userID int64) (email, name string) {
+	// 如果没有注入 UserRepository，返回空值
+	if s.userRepo == nil {
+		return "", ""
+	}
+
+	// 查询用户信息
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		fmt.Printf("查询用户信息失败: %v\n", err)
+		return "", ""
+	}
+
+	if user == nil {
+		return "", ""
+	}
+
+	return user.Email, user.Name
+}
+

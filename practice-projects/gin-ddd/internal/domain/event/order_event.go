@@ -18,6 +18,8 @@ type OrderEvent struct {
 	OrderID     int64   `json:"order_id"`
 	OrderNo     string  `json:"order_no"`
 	UserID      int64   `json:"user_id"`
+	UserEmail   string  `json:"user_email"`
+	UserName    string  `json:"user_name"`
 	TotalAmount float64 `json:"total_amount"`
 	Status      string  `json:"status"`
 }
@@ -28,7 +30,7 @@ func (e *OrderEvent) EventData() interface{} {
 }
 
 // NewOrderCreatedEvent 创建订单创建事件
-func NewOrderCreatedEvent(orderID int64, orderNo string, userID int64, totalAmount float64) *OrderEvent {
+func NewOrderCreatedEvent(orderID int64, orderNo string, userID int64, userEmail, userName string, totalAmount float64) *OrderEvent {
 	return &OrderEvent{
 		BaseEvent: BaseEvent{
 			Type:      OrderCreatedEvent,
@@ -37,13 +39,15 @@ func NewOrderCreatedEvent(orderID int64, orderNo string, userID int64, totalAmou
 		OrderID:     orderID,
 		OrderNo:     orderNo,
 		UserID:      userID,
+		UserEmail:   userEmail,
+		UserName:    userName,
 		TotalAmount: totalAmount,
 		Status:      "PENDING",
 	}
 }
 
 // NewOrderPaidEvent 创建订单支付事件
-func NewOrderPaidEvent(orderID int64, orderNo string, userID int64, totalAmount float64) *OrderEvent {
+func NewOrderPaidEvent(orderID int64, orderNo string, userID int64, userEmail, userName string, totalAmount float64) *OrderEvent {
 	return &OrderEvent{
 		BaseEvent: BaseEvent{
 			Type:      OrderPaidEvent,
@@ -52,21 +56,25 @@ func NewOrderPaidEvent(orderID int64, orderNo string, userID int64, totalAmount 
 		OrderID:     orderID,
 		OrderNo:     orderNo,
 		UserID:      userID,
+		UserEmail:   userEmail,
+		UserName:    userName,
 		TotalAmount: totalAmount,
 		Status:      "PAID",
 	}
 }
 
 // NewOrderCancelledEvent 创建订单取消事件
-func NewOrderCancelledEvent(orderID int64, orderNo string, userID int64) *OrderEvent {
+func NewOrderCancelledEvent(orderID int64, orderNo string, userID int64, userEmail, userName string) *OrderEvent {
 	return &OrderEvent{
 		BaseEvent: BaseEvent{
 			Type:      OrderCancelledEvent,
 			Timestamp: time.Now(),
 		},
-		OrderID: orderID,
-		OrderNo: orderNo,
-		UserID:  userID,
-		Status:  "CANCELLED",
+		OrderID:   orderID,
+		OrderNo:   orderNo,
+		UserID:    userID,
+		UserEmail: userEmail,
+		UserName:  userName,
+		Status:    "CANCELLED",
 	}
 }

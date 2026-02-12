@@ -14,6 +14,7 @@ type AppConfig struct {
 	Database DatabaseGroup  `yaml:"database"`
 	Logger   LoggerConfig   `yaml:"logger"`
 	RocketMQ RocketMQConfig `yaml:"rocketmq"`
+	Mail     MailConfig     `yaml:"mail"`
 }
 
 // ServerConfig 服务器配置
@@ -56,6 +57,17 @@ type RocketMQConfig struct {
 	InstanceName string            `yaml:"instance_name"`
 	RetryTimes   int               `yaml:"retry_times"`
 	Topics       map[string]string `yaml:"topics"`
+}
+
+// MailConfig 邮件配置
+type MailConfig struct {
+	Enabled   bool   `yaml:"enabled"`
+	Host      string `yaml:"host"`
+	Port      int    `yaml:"port"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	FromEmail string `yaml:"from_email"`
+	FromName  string `yaml:"from_name"`
 }
 
 var config *AppConfig

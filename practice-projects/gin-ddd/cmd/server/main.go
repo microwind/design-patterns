@@ -11,7 +11,9 @@ import (
 	"gin-ddd/internal/application/service/order"
 	"gin-ddd/internal/application/service/user"
 	"gin-ddd/internal/domain/event"
+	"gin-ddd/internal/domain/notification"
 	"gin-ddd/internal/infrastructure/config"
+	"gin-ddd/internal/infrastructure/mail"
 	"gin-ddd/internal/infrastructure/mq"
 	orderPersistence "gin-ddd/internal/infrastructure/persistence/order"
 	userPersistence "gin-ddd/internal/infrastructure/persistence/user"
@@ -83,6 +85,23 @@ func main() {
 	orderRepo := orderPersistence.NewOrderRepository(orderDB)
 	utils.GetLogger().Info("数据仓储初始化完成")
 
+	// 初始化邮件服务
+	var mailService notification.MailService
+	if cfg.Mail.Enabled {
+		utils.GetLogger().Info("初始化邮件服务...")
+		mailService = mail.NewSMTPMailService(
+			cfg.Mail.Host,
+			cfg.Mail.Port,
+			cfg.Mail.Username,
+			cfg.Mail.Password,
+			cfg.Mail.FromEmail,
+			cfg.Mail.FromName,
+		)
+		utils.GetLogger().Info("邮件服务初始化成功")
+	} else {
+		utils.GetLogger().Info("邮件服务未启用")
+	}
+
 	// 初始化 RocketMQ 生产者（可选）
 	utils.GetLogger().Info("RocketMQ 启用状态: %v", cfg.RocketMQ.Enabled)
 	var eventPublisher event.EventPublisher
@@ -103,7 +122,7 @@ func main() {
 
 			// 启动消费者监听事件
 			utils.GetLogger().Info("启动 RocketMQ 消费者...")
-			go startEventConsumer(cfg)
+			go startEventConsumer(cfg, mailService)
 		}
 	} else {
 		utils.GetLogger().Info("RocketMQ 未启用，使用内存事件发布模式")
@@ -112,7 +131,7 @@ func main() {
 	// 初始化应用服务
 	utils.GetLogger().Info("初始化应用服务...")
 	userService := user.NewUserService(userRepo)
-	orderService := order.NewOrderService(orderRepo, eventPublisher)
+	orderService := order.NewOrderServiceWithUserRepo(orderRepo, userRepo, eventPublisher)
 	utils.GetLogger().Info("应用服务初始化完成")
 
 	// 初始化处理器
@@ -136,7 +155,7 @@ func main() {
 }
 
 // startEventConsumer 启动事件消费者
-func startEventConsumer(cfg *config.AppConfig) {
+func startEventConsumer(cfg *config.AppConfig, mailService notification.MailService) {
 	utils.GetLogger().Info("创建 RocketMQ 消费者...")
 	consumer, err := mq.NewRocketMQConsumer(
 		cfg.RocketMQ.NameServer,
@@ -153,7 +172,11 @@ func startEventConsumer(cfg *config.AppConfig) {
 	// 订阅订单事件
 	orderTopic := cfg.RocketMQ.Topics["order_event"]
 	utils.GetLogger().Info("订阅订单事件，Topic: %s", orderTopic)
-	err = consumer.Subscribe(orderTopic, handleOrderEvent)
+	// 创建一个包装函数，将 mailService 传递给事件处理器
+	subscribeFunc := func(ctx context.Context, evt event.DomainEvent) error {
+		return handleOrderEvent(ctx, evt, mailService)
+	}
+	err = consumer.Subscribe(orderTopic, subscribeFunc)
 	if err != nil {
 		utils.GetLogger().Error("订阅订单事件失败: %v", err)
 		return
@@ -173,19 +196,46 @@ func startEventConsumer(cfg *config.AppConfig) {
 }
 
 // handleOrderEvent 处理订单事件
-func handleOrderEvent(ctx context.Context, event event.DomainEvent) error {
-	utils.GetLogger().Info("处理订单事件: Type=%s, Data=%+v", event.EventType(), event.EventData())
+func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService notification.MailService) error {
+	utils.GetLogger().Info("处理订单事件: Type=%s, Data=%+v", evt.EventType(), evt.EventData())
 
 	// 根据事件类型执行不同的业务逻辑
-	switch event.EventType() {
+	switch evt.EventType() {
 	case "order.created":
-		utils.GetLogger().Info("订单创建事件：可以触发库存扣减、发送通知等")
+		fmt.Printf("[Event Handler] 接收到订单创建事件\n")
+		if mailService != nil {
+			// 从事件数据中提取订单信息
+			if orderEvent, ok := evt.(*event.OrderEvent); ok {
+				fmt.Printf("[Event Handler] 开始发送确认邮件...\n")
+				fmt.Printf("[Event Handler] 邮件收件人: email=%s, name=%s\n", orderEvent.UserEmail, orderEvent.UserName)
+				fmt.Printf("[Event Handler] 订单信息: orderId=%d, orderNo=%s, amount=%.2f\n",
+					orderEvent.OrderID, orderEvent.OrderNo, orderEvent.TotalAmount)
+
+				orderData := map[string]interface{}{
+					"order_id":     orderEvent.OrderID,
+					"order_no":     orderEvent.OrderNo,
+					"total_amount": orderEvent.TotalAmount,
+					"status":       orderEvent.Status,
+				}
+
+				fmt.Printf("[Event Handler] 调用MailService.SendOrderConfirmationMail()...\n")
+				if err := mailService.SendOrderConfirmationMail(ctx, orderEvent.UserEmail, orderEvent.UserName, orderData); err != nil {
+					fmt.Printf("[Event Handler] 发送邮件失败: %v (不影响业务流程)\n", err)
+					utils.GetLogger().Error("发送订单确认邮件失败: %v", err)
+				} else {
+					fmt.Printf("[Event Handler] 邮件发送完成\n")
+				}
+			}
+		} else {
+			fmt.Printf("[Event Handler] 邮件服务未启用，跳过邮件发送\n")
+			utils.GetLogger().Info("邮件服务未启用，跳过邮件发送")
+		}
 	case "order.paid":
 		utils.GetLogger().Info("订单支付事件：可以触发发货流程、更新营销数据等")
 	case "order.cancelled":
 		utils.GetLogger().Info("订单取消事件：可以触发库存回滚、退款流程等")
 	default:
-		utils.GetLogger().Error("未知的订单事件类型: %s", event.EventType())
+		utils.GetLogger().Error("未知的订单事件类型: %s", evt.EventType())
 	}
 
 	return nil

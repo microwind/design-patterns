@@ -38,3 +38,12 @@ rocketmq:
   topics:
     order_event: "order-event-topic"
     user_event: "user-event-topic"
+
+mail:
+  enabled: true
+  host: "smtp.qq.com"
+  port: 465
+  username: "12263539@qq.com"
+  password: "fudhzuosrjvybgfh"
+  from_email: "12263539@qq.com"
+  from_name: "订单系统"
