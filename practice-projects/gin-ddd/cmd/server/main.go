@@ -111,7 +111,6 @@ func main() {
 	// 初始化事件发布器（优先使用 RocketMQ，备选内存发布器）
 	utils.GetLogger().Info("RocketMQ 启用状态: %v", cfg.RocketMQ.Enabled)
 	var eventPublisher event.EventPublisher
-	var rocketmqProducer *mq.RocketMQProducer
 
 	if cfg.RocketMQ.Enabled {
 		utils.GetLogger().Info("开始初始化 RocketMQ 生产者...")
@@ -125,7 +124,6 @@ func main() {
 			utils.GetLogger().Error("初始化 RocketMQ 生产者失败: %v，使用内存事件发布器作为备选方案", err)
 			eventPublisher = mq.NewMemoryEventPublisher()
 		} else {
-			rocketmqProducer = producer
 			eventPublisher = producer
 			defer producer.Close()
 			utils.GetLogger().Info("RocketMQ 生产者初始化成功")
