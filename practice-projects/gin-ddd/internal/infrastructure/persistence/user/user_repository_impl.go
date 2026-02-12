@@ -6,15 +6,17 @@ import (
 	"errors"
 	"gin-ddd/internal/domain/model/user"
 	"gin-ddd/pkg/utils"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // UserRepositoryImpl 用户仓储实现
 type UserRepositoryImpl struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
 // NewUserRepository 创建用户仓储实例
-func NewUserRepository(db *sql.DB) *UserRepositoryImpl {
+func NewUserRepository(db *sqlx.DB) *UserRepositoryImpl {
 	return &UserRepositoryImpl{
 		db: db,
 	}
@@ -94,8 +96,7 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int64) (*user.User
 	`
 	utils.GetLogger().Debug("执行SELECT用户SQL by ID: id=%d", id)
 	var u user.User
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Address, &u.CreatedTime, &u.UpdatedTime)
+	err := r.db.GetContext(ctx, &u, query, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			utils.GetLogger().Debug("查询用户: 用户不存在, id=%d", id)
@@ -116,8 +117,7 @@ func (r *UserRepositoryImpl) FindByName(ctx context.Context, name string) (*user
 	`
 	utils.GetLogger().Debug("执行SELECT用户SQL by Name: name=%s", name)
 	var u user.User
-	err := r.db.QueryRowContext(ctx, query, name).Scan(
-		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Address, &u.CreatedTime, &u.UpdatedTime)
+	err := r.db.GetContext(ctx, &u, query, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			utils.GetLogger().Debug("查询用户: 用户不存在, name=%s", name)
@@ -138,8 +138,7 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*us
 	`
 	utils.GetLogger().Debug("执行SELECT用户SQL by Email: email=%s", email)
 	var u user.User
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
-		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Address, &u.CreatedTime, &u.UpdatedTime)
+	err := r.db.GetContext(ctx, &u, query, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			utils.GetLogger().Debug("查询用户: 用户不存在, email=%s", email)
@@ -159,28 +158,14 @@ func (r *UserRepositoryImpl) FindAll(ctx context.Context) ([]*user.User, error) 
 		FROM users ORDER BY created_time DESC
 	`
 	utils.GetLogger().Debug("执行SELECT所有用户SQL")
-	rows, err := r.db.QueryContext(ctx, query)
+	var users []*user.User
+	err := r.db.SelectContext(ctx, &users, query)
 	if err != nil {
 		utils.GetLogger().Error("查询所有用户失败: %v", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	var users []*user.User
-	for rows.Next() {
-		var u user.User
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Phone, &u.Address, &u.CreatedTime, &u.UpdatedTime); err != nil {
-			utils.GetLogger().Error("扫描用户行失败: %v", err)
-			return nil, err
-		}
-		users = append(users, &u)
-	}
-
-	if err := rows.Err(); err != nil {
-		utils.GetLogger().Error("遍历用户行失败: %v", err)
 		return nil, err
 	}
 
 	utils.GetLogger().Debug("所有用户查询成功: 共%d条记录", len(users))
 	return users, nil
 }
+

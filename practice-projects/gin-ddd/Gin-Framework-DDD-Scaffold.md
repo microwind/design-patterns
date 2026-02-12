@@ -1,4 +1,4 @@
-# Gin Framework DDD Scaffold 使用指南
+# 一款go语言Gin框架DDD脚手架，适合快速搭建项目
 
 > 一个开箱即用的 DDD（领域驱动设计）Go 脚手架，基于 Gin + RocketMQ，包含双数据库、统一响应、中间件与事件驱动示例
 
@@ -9,7 +9,6 @@ Gin-Framework-DDD 是一个面向 Go 语言的 DDD 工程脚手架，帮你快�
 源码地址：[https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
 
 项目目录：`gin-ddd/`
-
 
 ## 核心特点
 
@@ -33,7 +32,9 @@ Gin-Framework-DDD 是一个面向 Go 语言的 DDD 工程脚手架，帮你快�
 | YAML | - | 配置文件格式 |
 
 ## 工程结构
+
 ### 工程结构图
+
 ```mermaid
 flowchart TB
     subgraph 接口层
@@ -58,26 +59,19 @@ flowchart TB
         DB[(数据库)]
     end
 
-    %% 依赖关系
     Handler --> AppService
     AppService --> DomainService
     AppService --> RepoInterface
     DomainService --> Model
     DomainService --> NotificationInterface
-
     RepoInterface -.实现.-> RepoImpl
     NotificationInterface -.实现.-> Mail
-
     RepoImpl --> DB
     AppService -.发布事件.-> MQ
-
-    style 接口层 fill:#e1f5ff
-    style 应用层 fill:#fff4e1
-    style 领域层 fill:#f0f0f0
-    style 基础设施层 fill:#e8f5e9
 ```
 
 ### 工程结构列表
+
 ```
 gin-ddd/
 ├── cmd/server/main.go                            # 启动入口，装配各层并启动 HTTP + MQ
@@ -137,7 +131,6 @@ gin-ddd/
 
 ### 1. 环境准备
 
-需要安装：
 - Go 1.21+
 - MySQL 8.0+ 与 PostgreSQL 14+（或自行选择其一）
 - RocketMQ 5.3+（可选）
@@ -181,7 +174,9 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 ```
 
-如果只使用单数据库，请在 `config/config.yaml` 中统一驱动与连接信息，并根据驱动调整仓储实现中的 SQL 占位符。
+数据库适配注意：
+- 若订单库改为 MySQL，需要将 SQL 占位符从 `$1` 形式改为 `?`
+- 若用户库改为 PostgreSQL，需要将插入 ID 获取逻辑改为 `RETURNING id`
 
 ### 3. 配置应用
 
@@ -218,6 +213,10 @@ rocketmq:
     order_event: "order-event-topic"
 ```
 
+说明：
+- `rocketmq.enabled: true` 才会初始化生产者与消费者
+- 当前订单事件 Topic 在代码中使用固定值 `order-event-topic`，需与配置保持一致
+
 ### 4. 启动 RocketMQ（可选）
 
 ```bash
@@ -242,7 +241,7 @@ curl http://localhost:8080/api/orders
 
 ## 如何基于脚手架开发新功能
 
-示例：新增"商品管理"模块
+示例：新增“商品管理”模块
 
 步骤 1：新增领域模型 `internal/domain/model/product/product.go`
 
@@ -299,7 +298,6 @@ func NewProductRepository(db *sql.DB) *ProductRepositoryImpl {
 }
 
 func (r *ProductRepositoryImpl) Create(ctx context.Context, p *product.Product) error {
-	// 按实际数据库驱动选择占位符
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO products (name, price, stock, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
 		p.Name, p.Price, p.Stock, p.CreatedAt, p.UpdatedAt,
@@ -385,22 +383,37 @@ HTTP 请求 -> Application Service -> Domain Model
             -> 事件处理 -> 发送邮件/触发后续流程
 ```
 
-### 启用邮件通知
+### 事件发布与消费关键点
 
-在 `config/config.yaml` 中打开邮件配置：
+- 订单创建后会发布 `order.created` 事件（发布失败不会影响主流程）
+- 消费端按 Tag 解析为 `OrderEvent` 或 `UserEvent`
+- 订单邮件通知仅在 `order.created` 且启用邮件时触发
+
+## 邮件发送配置（QQ 邮箱）
+
+在 `config/config.yaml` 中开启邮件配置：
 
 ```yaml
 mail:
   enabled: true
-  host: "smtp.example.com"
-  port: 587
-  username: "your-email@example.com"
-  password: "your-app-password"
-  from_email: "your-email@example.com"
+  host: "smtp.qq.com"
+  port: 465
+  username: "your@qq.com"
+  password: "你的SMTP授权码"
+  from_email: "your@qq.com"
   from_name: "订单系统"
 ```
 
-订单创建事件会触发邮件发送，具体逻辑见 `cmd/server/main.go` 与 `internal/infrastructure/mail/`。
+注意事项：
+- 必须使用 SMTP 授权码，不是 QQ 登录密码
+- 端口 465 使用 TLS，端口 587 使用 STARTTLS
+- 收件人取自用户表中的 `email` 字段
+
+## 常见问题排查
+
+- 日志提示“事件发布器未初始化”：RocketMQ 未启用或初始化失败
+- 订单事件已发送但邮件未到：确认用户邮箱字段正确，且 SMTP 授权码可用
+- 消费者没有收到消息：确认 Topic 与 Tag 正确、Broker 启动正常
 
 ## 开发规范
 
@@ -425,4 +438,5 @@ go test ./...
 ```
 
 ## 源码地址
+
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)

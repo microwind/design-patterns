@@ -8,13 +8,13 @@ import (
 
 // User 用户实体（聚合根）
 type User struct {
-	ID          int64          `json:"id"`
-	Name        string         `json:"name"`
-	Email       string         `json:"email"`
-	Phone       sql.NullString `json:"phone"`
-	Address     sql.NullString `json:"Address"`
-	CreatedTime time.Time      `json:"created_time"`
-	UpdatedTime time.Time      `json:"updated_time"`
+	ID          int64          `json:"id" db:"id"`
+	Name        string         `json:"name" db:"name"`
+	Email       string         `json:"email" db:"email"`
+	Phone       sql.NullString `json:"phone" db:"phone"`
+	Address     sql.NullString `json:"Address" db:"address"`
+	CreatedTime time.Time      `json:"created_time" db:"created_time"`
+	UpdatedTime time.Time      `json:"updated_time" db:"updated_time"`
 }
 
 // NewUser 创建新用户

@@ -1,13 +1,13 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
 	"gin-ddd/pkg/utils"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	"github.com/jmoiron/sqlx"
 )
 
 // DatabaseConfig 数据库配置
@@ -24,7 +24,7 @@ type DatabaseConfig struct {
 }
 
 // InitDatabase 初始化数据库连接
-func InitDatabase(config *DatabaseConfig) (*sql.DB, error) {
+func InitDatabase(config *DatabaseConfig) (*sqlx.DB, error) {
 	var dsn string
 
 	utils.GetLogger().Info("初始化%s数据库: host=%s, port=%d, database=%s", config.Driver, config.Host, config.Port, config.Database)
@@ -51,7 +51,7 @@ func InitDatabase(config *DatabaseConfig) (*sql.DB, error) {
 		return nil, fmt.Errorf("不支持的数据库驱动: %s", config.Driver)
 	}
 
-	db, err := sql.Open(config.Driver, dsn)
+	db, err := sqlx.Open(config.Driver, dsn)
 	if err != nil {
 		utils.GetLogger().Error("打开数据库连接失败: %v, driver=%s, host=%s", err, config.Driver, config.Host)
 		return nil, fmt.Errorf("打开数据库连接失败: %w", err)

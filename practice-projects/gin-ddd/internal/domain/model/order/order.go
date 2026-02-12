@@ -7,13 +7,13 @@ import (
 
 // Order 订单实体（聚合根）
 type Order struct {
-	OrderID     int64       `json:"order_id"`
-	OrderNo     string      `json:"order_no"`
-	UserID      int64       `json:"user_id"`
-	TotalAmount float64     `json:"total_amount"`
-	Status      OrderStatus `json:"status"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
+	OrderID     int64       `json:"order_id" db:"id"`
+	OrderNo     string      `json:"order_no" db:"order_no"`
+	UserID      int64       `json:"user_id" db:"user_id"`
+	TotalAmount float64     `json:"total_amount" db:"total_amount"`
+	Status      OrderStatus `json:"status" db:"status"`
+	CreatedAt   time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 // OrderStatus 订单状态
