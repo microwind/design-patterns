@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"gin-ddd/internal/infrastructure/common"
-	"log"
+	"gin-ddd/pkg/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,14 +22,14 @@ func Logger() gin.HandlerFunc {
 		// 获取状态码
 		statusCode := c.Writer.Status()
 
-		// 记录日志
-		log.Printf("[%s] %s %s %d %v",
-			c.Request.Method,
-			c.Request.URL.Path,
-			c.ClientIP(),
-			statusCode,
-			latency,
-		)
+		// 根据状态码选择日志级别
+		if statusCode >= 400 {
+			utils.GetLogger().Warn("HTTP请求: Method=%s, Path=%s, ClientIP=%s, StatusCode=%d, Latency=%v",
+				c.Request.Method, c.Request.URL.Path, c.ClientIP(), statusCode, latency)
+		} else {
+			utils.GetLogger().Info("HTTP请求: Method=%s, Path=%s, ClientIP=%s, StatusCode=%d, Latency=%v",
+				c.Request.Method, c.Request.URL.Path, c.ClientIP(), statusCode, latency)
+		}
 	}
 }
 
@@ -38,7 +38,8 @@ func Recovery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Printf("Panic recovered: %v", err)
+				utils.GetLogger().Error("发生严重错误(Panic): %v, Method=%s, Path=%s, ClientIP=%s",
+					err, c.Request.Method, c.Request.URL.Path, c.ClientIP())
 				common.InternalServerError(c, "服务器内部错误")
 				c.Abort()
 			}
@@ -56,6 +57,7 @@ func CORS() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
 
 		if c.Request.Method == "OPTIONS" {
+			utils.GetLogger().Debug("处理CORS OPTIONS预检请求: Path=%s, ClientIP=%s", c.Request.URL.Path, c.ClientIP())
 			c.AbortWithStatus(204)
 			return
 		}

@@ -44,6 +44,7 @@ mail:
   host: "smtp.qq.com"
   port: 465
   username: "12263539@qq.com"
+  # 注意：这里的密码是SMTP授权码，不是登录密码
   password: "fudhzuosrjvybgfh"
   from_email: "12263539@qq.com"
   from_name: "订单系统"

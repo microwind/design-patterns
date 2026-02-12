@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"gin-ddd/pkg/utils"
@@ -20,11 +21,16 @@ import (
 	orderHandler "gin-ddd/internal/interfaces/handler/order"
 	userHandler "gin-ddd/internal/interfaces/handler/user"
 	"gin-ddd/internal/interfaces/router"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
 	// 初始化日志到控制台
 	utils.InitLogger()
+
+	// 注册自定义验证器
+	registerValidators()
 	utils.GetLogger().Info("========================================")
 	utils.GetLogger().Info("应用程序启动")
 	utils.GetLogger().Info("========================================")
@@ -202,14 +208,13 @@ func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService no
 	// 根据事件类型执行不同的业务逻辑
 	switch evt.EventType() {
 	case "order.created":
-		fmt.Printf("[Event Handler] 接收到订单创建事件\n")
+		utils.GetLogger().Info("接收到订单创建事件")
 		if mailService != nil {
 			// 从事件数据中提取订单信息
 			if orderEvent, ok := evt.(*event.OrderEvent); ok {
-				fmt.Printf("[Event Handler] 开始发送确认邮件...\n")
-				fmt.Printf("[Event Handler] 邮件收件人: email=%s, name=%s\n", orderEvent.UserEmail, orderEvent.UserName)
-				fmt.Printf("[Event Handler] 订单信息: orderId=%d, orderNo=%s, amount=%.2f\n",
-					orderEvent.OrderID, orderEvent.OrderNo, orderEvent.TotalAmount)
+				utils.GetLogger().Info("开始发送订单确认邮件")
+				utils.GetLogger().Info("邮件收件人: email=%s, name=%s", orderEvent.UserEmail, orderEvent.UserName)
+				utils.GetLogger().Info("订单信息: orderId=%d, orderNo=%s, amount=%.2f", orderEvent.OrderID, orderEvent.OrderNo, orderEvent.TotalAmount)
 
 				orderData := map[string]interface{}{
 					"order_id":     orderEvent.OrderID,
@@ -218,16 +223,14 @@ func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService no
 					"status":       orderEvent.Status,
 				}
 
-				fmt.Printf("[Event Handler] 调用MailService.SendOrderConfirmationMail()...\n")
+				utils.GetLogger().Debug("调用MailService.SendOrderConfirmationMail()")
 				if err := mailService.SendOrderConfirmationMail(ctx, orderEvent.UserEmail, orderEvent.UserName, orderData); err != nil {
-					fmt.Printf("[Event Handler] 发送邮件失败: %v (不影响业务流程)\n", err)
-					utils.GetLogger().Error("发送订单确认邮件失败: %v", err)
+					utils.GetLogger().Error("发送订单确认邮件失败: %v (不影响业务流程)", err)
 				} else {
-					fmt.Printf("[Event Handler] 邮件发送完成\n")
+					utils.GetLogger().Info("订单确认邮件发送成功")
 				}
 			}
 		} else {
-			fmt.Printf("[Event Handler] 邮件服务未启用，跳过邮件发送\n")
 			utils.GetLogger().Info("邮件服务未启用，跳过邮件发送")
 		}
 	case "order.paid":
@@ -239,4 +242,16 @@ func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService no
 	}
 
 	return nil
+}
+
+// registerValidators 注册自定义验证器
+func registerValidators() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
+			phone := fl.Field().String()
+			// 手机号验证规则：11位数字，以1开头
+			phoneRegex := regexp.MustCompile(`^1[3-9]\d{9}$`)
+			return phoneRegex.MatchString(phone)
+		})
+	}
 }

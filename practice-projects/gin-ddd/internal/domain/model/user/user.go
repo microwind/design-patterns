@@ -8,16 +8,17 @@ import (
 
 // User 用户实体（聚合根）
 type User struct {
-	ID          int64         `json:"id"`
-	Name        string        `json:"name"`
-	Email       string        `json:"email"`
+	ID          int64          `json:"id"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
-	CreatedTime time.Time    `json:"created_time"`
-	UpdatedTime time.Time    `json:"updated_time"`
+	Address     sql.NullString `json:"Address"`
+	CreatedTime time.Time      `json:"created_time"`
+	UpdatedTime time.Time      `json:"updated_time"`
 }
 
 // NewUser 创建新用户
-func NewUser(name, email, phone, password string) (*User, error) {
+func NewUser(name, email, phone, address string) (*User, error) {
 	if name == "" {
 		return nil, errors.New("用户名不能为空")
 	}
@@ -35,6 +36,7 @@ func NewUser(name, email, phone, password string) (*User, error) {
 		Name:        name,
 		Email:       email,
 		Phone:       phoneVal,
+		Address:     sql.NullString{String: address, Valid: true},
 		CreatedTime: now,
 		UpdatedTime: now,
 	}, nil
