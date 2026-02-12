@@ -37,18 +37,17 @@ func NewSMTPMailService(host string, port int, username, password, fromEmail, fr
 
 // SendOrderConfirmationMail 发送订单确认邮件
 func (s *SMTPMailService) SendOrderConfirmationMail(ctx context.Context, userEmail string, userName string, orderData map[string]interface{}) error {
-	fmt.Printf("[MailService] 开始发送订单确认邮件\n")
-	fmt.Printf("[MailService] 收件人: %s <%s>\n", userName, userEmail)
+	utils.GetLogger().Info("[MailService] 开始发送订单确认邮件")
+	utils.GetLogger().Info("[MailService] 收件人: %s <%s>", userName, userEmail)
 
 	if !isValidEmail(userEmail) {
-		fmt.Printf("[MailService] 邮箱验证失败: %s\n", userEmail)
-		utils.GetLogger().Info("无效的邮箱地址: %s", userEmail)
+		utils.GetLogger().Info("[MailService] 邮箱验证失败: %s", userEmail)
 		return fmt.Errorf("无效的邮箱地址: %s", userEmail)
 	}
-	fmt.Printf("[MailService] 邮箱格式验证成功\n")
+	utils.GetLogger().Info("[MailService] 邮箱格式验证成功")
 
 	// 准备模板数据
-	fmt.Printf("[MailService] 准备邮件模板数据...\n")
+	utils.GetLogger().Info("[MailService] 准备邮件模板数据...")
 	templateData := OrderConfirmationMailData{
 		UserName:    userName,
 		OrderNo:     fmt.Sprintf("%v", orderData["order_no"]),
@@ -56,32 +55,29 @@ func (s *SMTPMailService) SendOrderConfirmationMail(ctx context.Context, userEma
 		TotalAmount: toFloat64(orderData["total_amount"]),
 		Status:      fmt.Sprintf("%v", orderData["status"]),
 	}
-	fmt.Printf("[MailService] 模板数据: orderNo=%s, amount=%.2f, status=%s\n",
-		templateData.OrderNo, templateData.TotalAmount, templateData.Status)
+	utils.GetLogger().Info("[MailService] 模板数据: orderNo=%s, amount=%.2f, status=%s", templateData.OrderNo, templateData.TotalAmount, templateData.Status)
 
 	// 生成邮件HTML内容
-	fmt.Printf("[MailService] 生成邮件HTML内容...\n")
+	utils.GetLogger().Info("[MailService] 生成邮件HTML内容...")
 	tmpl := GetOrderConfirmationTemplate()
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, templateData); err != nil {
-		fmt.Printf("[MailService] 生成HTML失败: %v\n", err)
-		utils.GetLogger().Error("生成邮件模板失败: %v", err)
+		utils.GetLogger().Error("[MailService] 生成HTML失败: %v", err)
 		return fmt.Errorf("生成邮件模板失败: %w", err)
 	}
-	fmt.Printf("[MailService] HTML生成成功, 邮件内容大小: %d bytes\n", buf.Len())
+	utils.GetLogger().Info("[MailService] HTML生成成功, 邮件内容大小: %d bytes", buf.Len())
 
 	// 创建邮件
-	fmt.Printf("[MailService] 创建邮件对象...\n")
+	utils.GetLogger().Info("[MailService] 创建邮件对象...")
 	e := email.NewEmail()
 	e.From = fmt.Sprintf("%s <%s>", s.fromName, s.from)
 	e.To = []string{userEmail}
 	e.Subject = fmt.Sprintf("订单确认 - 订单号: %s", templateData.OrderNo)
 	e.HTML = buf.Bytes()
-	fmt.Printf("[MailService] 邮件对象创建成功: From=%s, To=%s, Subject=%s\n",
-		e.From, userEmail, e.Subject)
+	utils.GetLogger().Info("[MailService] 邮件对象创建成功: From=%s, To=%s, Subject=%s", e.From, userEmail, e.Subject)
 
 	// 发送邮件（QQ 邮箱要求 TLS/SSL）
-	fmt.Printf("[MailService] 连接SMTP服务器: %s:%d\n", s.host, s.port)
+	utils.GetLogger().Info("[MailService] 连接SMTP服务器: %s:%d", s.host, s.port)
 	addr := fmt.Sprintf("%s:%d", s.host, s.port)
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
 	tlsConfig := &tls.Config{
@@ -89,7 +85,7 @@ func (s *SMTPMailService) SendOrderConfirmationMail(ctx context.Context, userEma
 		MinVersion: tls.VersionTLS12,
 	}
 
-	fmt.Printf("[MailService] 发送邮件...\n")
+	utils.GetLogger().Info("[MailService] 发送邮件...")
 	var err error
 	if s.port == 465 {
 		err = e.SendWithTLS(addr, auth, tlsConfig)
@@ -98,12 +94,11 @@ func (s *SMTPMailService) SendOrderConfirmationMail(ctx context.Context, userEma
 		err = e.SendWithStartTLS(addr, auth, tlsConfig)
 	}
 	if err != nil {
-		fmt.Printf("[MailService] 邮件发送失败: %v\n", err)
-		utils.GetLogger().Error("发送订单确认邮件失败 (收件人: %s): %v", userEmail, err)
+		utils.GetLogger().Error("[MailService] 邮件发送失败: %v", err)
 		return fmt.Errorf("发送邮件失败: %w", err)
 	}
 
-	fmt.Printf("[MailService] 邮件发送成功\n")
+	utils.GetLogger().Info("[MailService] 邮件发送成功")
 	utils.GetLogger().Info("订单确认邮件发送成功 (收件人: %s, 订单号: %s)", userEmail, templateData.OrderNo)
 	return nil
 }

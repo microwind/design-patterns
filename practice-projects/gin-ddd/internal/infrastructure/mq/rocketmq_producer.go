@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"gin-ddd/internal/domain/event"
+	"gin-ddd/pkg/utils"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -34,7 +34,7 @@ func NewRocketMQProducer(nameServer, groupName, instanceName string, retryTimes 
 		return nil, fmt.Errorf("启动 RocketMQ 生产者失败: %w", err)
 	}
 
-	log.Printf("RocketMQ 生产者启动成功: %s", nameServer)
+	utils.GetLogger().Info("RocketMQ 生产者启动成功: %s", nameServer)
 	return &RocketMQProducer{
 		producer: p,
 	}, nil
@@ -43,19 +43,19 @@ func NewRocketMQProducer(nameServer, groupName, instanceName string, retryTimes 
 // Publish 发布事件
 func (p *RocketMQProducer) Publish(ctx context.Context, topic string, domainEvent event.DomainEvent) error {
 	eventType := domainEvent.EventType()
-	fmt.Printf("[RocketMQ Producer] 开始发布事件: topic=%s, eventType=%s\n", topic, eventType)
+	utils.GetLogger().Info("[RocketMQ Producer] 开始发布事件: topic=%s, eventType=%s", topic, eventType)
 
 	// 序列化事件数据
-	fmt.Printf("[RocketMQ Producer] 序列化事件数据...\n")
+	utils.GetLogger().Info("[RocketMQ Producer] 序列化事件数据...")
 	data, err := json.Marshal(domainEvent.EventData())
 	if err != nil {
-		fmt.Printf("[RocketMQ Producer] 序列化失败: %v\n", err)
+		utils.GetLogger().Error("[RocketMQ Producer] 序列化失败: %v", err)
 		return fmt.Errorf("序列化事件数据失败: %w", err)
 	}
-	fmt.Printf("[RocketMQ Producer] 序列化成功, 消息体大小: %d bytes\n", len(data))
+	utils.GetLogger().Info("[RocketMQ Producer] 序列化成功, 消息体大小: %d bytes", len(data))
 
 	// 创建消息
-	fmt.Printf("[RocketMQ Producer] 创建RocketMQ消息...\n")
+	utils.GetLogger().Info("[RocketMQ Producer] 创建RocketMQ消息...")
 	msg := &primitive.Message{
 		Topic: topic,
 		Body:  data,
@@ -64,15 +64,14 @@ func (p *RocketMQProducer) Publish(ctx context.Context, topic string, domainEven
 	msg.WithKeys([]string{eventType})
 
 	// 发送消息
-	fmt.Printf("[RocketMQ Producer] 发送消息到Broker...\n")
+	utils.GetLogger().Info("[RocketMQ Producer] 发送消息到Broker...")
 	result, err := p.producer.SendSync(ctx, msg)
 	if err != nil {
-		fmt.Printf("[RocketMQ Producer] 消息发送失败: %v\n", err)
+		utils.GetLogger().Error("[RocketMQ Producer] 消息发送失败: %v", err)
 		return fmt.Errorf("发送消息失败: %w", err)
 	}
 
-	fmt.Printf("[RocketMQ Producer] 消息发送成功: topic=%s, msgId=%s\n",
-		topic, result.MsgID)
+	utils.GetLogger().Info("[RocketMQ Producer] 消息发送成功: topic=%s, msgId=%s", topic, result.MsgID)
 	return nil
 }
 
@@ -81,6 +80,6 @@ func (p *RocketMQProducer) Close() error {
 	if err := p.producer.Shutdown(); err != nil {
 		return fmt.Errorf("关闭 RocketMQ 生产者失败: %w", err)
 	}
-	log.Println("RocketMQ 生产者已关闭")
+	utils.GetLogger().Info("RocketMQ 生产者已关闭")
 	return nil
 }
