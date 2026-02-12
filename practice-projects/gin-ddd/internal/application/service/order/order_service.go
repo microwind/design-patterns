@@ -66,22 +66,18 @@ func (s *OrderService) CreateOrder(ctx context.Context, userID int64, totalAmoun
 	utils.GetLogger().Info("[OrderService] 订单入库成功: orderId=%d", newOrder.OrderID)
 
 	// 发布订单创建事件
-	if s.eventPublisher != nil {
-		utils.GetLogger().Info("[OrderService] 开始发送订单事件到MQ...")
-		userEmail, userName := s.getUserInfo(ctx, userID)
-		utils.GetLogger().Info("[OrderService] 获取用户信息: email=%s, name=%s", userEmail, userName)
+	utils.GetLogger().Info("[OrderService] 开始发送订单事件到MQ...")
+	userEmail, userName := s.getUserInfo(ctx, userID)
+	utils.GetLogger().Info("[OrderService] 获取用户信息: email=%s, name=%s", userEmail, userName)
 
-		orderEvent := event.NewOrderCreatedEvent(newOrder.OrderID, newOrder.OrderNo, newOrder.UserID, userEmail, userName, newOrder.TotalAmount)
-		utils.GetLogger().Info("[OrderService] 创建订单事件: type=%s", orderEvent.EventType())
+	orderEvent := event.NewOrderCreatedEvent(newOrder.OrderID, newOrder.OrderNo, newOrder.UserID, userEmail, userName, newOrder.TotalAmount)
+	utils.GetLogger().Info("[OrderService] 创建订单事件: type=%s", orderEvent.EventType())
 
-		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
-			// 事件发布失败不影响主流程，记录日志即可
-			utils.GetLogger().Error("[OrderService] 发送订单事件失败: %v (不影响订单创建)", err)
-		} else {
-			utils.GetLogger().Info("[OrderService] 订单事件发送到MQ成功")
-		}
+	if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
+		// 事件发布失败不影响主流程，记录日志即可
+		utils.GetLogger().Error("[OrderService] 发送订单事件失败: %v (不影响订单创建)", err)
 	} else {
-		utils.GetLogger().Info("[OrderService] 事件发布器未初始化，跳过事件发送")
+		utils.GetLogger().Info("[OrderService] 订单事件发送到MQ成功")
 	}
 
 	return order.ToDTO(newOrder), nil
@@ -148,12 +144,10 @@ func (s *OrderService) PayOrder(ctx context.Context, id int64) error {
 	}
 
 	// 发布订单支付事件
-	if s.eventPublisher != nil {
-		userEmail, userName := s.getUserInfo(ctx, o.UserID)
-		orderEvent := event.NewOrderPaidEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName, o.TotalAmount)
-		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
-			utils.GetLogger().Error("发布订单支付事件失败: %v", err)
-		}
+	userEmail, userName := s.getUserInfo(ctx, o.UserID)
+	orderEvent := event.NewOrderPaidEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName, o.TotalAmount)
+	if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
+		utils.GetLogger().Error("发布订单支付事件失败: %v", err)
 	}
 
 	return nil
@@ -212,12 +206,10 @@ func (s *OrderService) CancelOrder(ctx context.Context, id int64) error {
 	}
 
 	// 发布订单取消事件
-	if s.eventPublisher != nil {
-		userEmail, userName := s.getUserInfo(ctx, o.UserID)
-		orderEvent := event.NewOrderCancelledEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName)
-		if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
-			utils.GetLogger().Error("发布订单取消事件失败: %v", err)
-		}
+	userEmail, userName := s.getUserInfo(ctx, o.UserID)
+	orderEvent := event.NewOrderCancelledEvent(o.OrderID, o.OrderNo, o.UserID, userEmail, userName)
+	if err := s.eventPublisher.Publish(ctx, "order-event-topic", orderEvent); err != nil {
+		utils.GetLogger().Error("发布订单取消事件失败: %v", err)
 	}
 
 	return nil

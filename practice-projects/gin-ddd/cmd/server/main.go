@@ -108,9 +108,11 @@ func main() {
 		utils.GetLogger().Info("邮件服务未启用")
 	}
 
-	// 初始化 RocketMQ 生产者（可选）
+	// 初始化事件发布器（优先使用 RocketMQ，备选内存发布器）
 	utils.GetLogger().Info("RocketMQ 启用状态: %v", cfg.RocketMQ.Enabled)
 	var eventPublisher event.EventPublisher
+	var rocketmqProducer *mq.RocketMQProducer
+
 	if cfg.RocketMQ.Enabled {
 		utils.GetLogger().Info("开始初始化 RocketMQ 生产者...")
 		producer, err := mq.NewRocketMQProducer(
@@ -120,8 +122,10 @@ func main() {
 			cfg.RocketMQ.RetryTimes,
 		)
 		if err != nil {
-			utils.GetLogger().Error("初始化 RocketMQ 生产者失败: %v，将以非MQ模式运行", err)
+			utils.GetLogger().Error("初始化 RocketMQ 生产者失败: %v，使用内存事件发布器作为备选方案", err)
+			eventPublisher = mq.NewMemoryEventPublisher()
 		} else {
+			rocketmqProducer = producer
 			eventPublisher = producer
 			defer producer.Close()
 			utils.GetLogger().Info("RocketMQ 生产者初始化成功")
@@ -131,7 +135,13 @@ func main() {
 			go startEventConsumer(cfg, mailService)
 		}
 	} else {
-		utils.GetLogger().Info("RocketMQ 未启用，使用内存事件发布模式")
+		utils.GetLogger().Info("RocketMQ 未启用，使用内存事件发布器")
+		eventPublisher = mq.NewMemoryEventPublisher()
+	}
+
+	// 确保 eventPublisher 不为 nil
+	if eventPublisher == nil {
+		panic("事件发布器初始化失败")
 	}
 
 	// 初始化应用服务
