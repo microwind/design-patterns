@@ -1,10 +1,16 @@
-# 一款go语言Gin框架DDD脚手架，适合快速搭建项目
+# 一款Go语言Gin框架DDD脚手架，适合快速搭建项目
 
-> 一个开箱即用的 DDD（领域驱动设计）Go 脚手架，基于 Gin + RocketMQ，包含双数据库、统一响应、中间件与事件驱动示例
+> 一个开箱即用的 DDD（领域驱动设计）Go 脚手架，基于 Gin + RocketMQ，包含双数据库、统一响应、中间件与事件驱动示例。
 
 ## 这是什么
 
 Gin-Framework-DDD 是一个面向 Go 语言的 DDD 工程脚手架，帮你快速搭建符合 DDD 分层规范的 Web 服务。项目内置用户与订单示例、领域事件与 RocketMQ 生产/消费、邮件通知示例、统一响应与中间件，适合作为团队工程模板或教学示例。
+
+## 为什么要用DDD？
+
+很多人认为 Go 语言没必要用 DDD，毕竟它和 Python、JS 一样轻巧灵活，用 MVC 就足够了。确实，大多数场景下 MVC 完全够用。工程化无非是把接口处理、业务逻辑、数据处理区分开，让各部分各司其职，方便维护和扩展。DDD 相对更适合中大型项目：如果项目有几十个模块、上百个接口，用 DDD 设计会更合适；模块少、接口不多的话，简单分层就够了。
+
+总之，是否采用 DDD 和语言无关，只跟业务规模有关。一个东西变复杂了，就需要用一些机制去规范它，才能更好掌控。
 
 源码地址：[https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
 
