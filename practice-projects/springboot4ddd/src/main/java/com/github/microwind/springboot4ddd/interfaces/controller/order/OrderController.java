@@ -114,6 +114,15 @@ public class OrderController {
 
     /**
      * 支付订单（需要签名验证，不带参数）
+     * 通过SHA256(ios1secret&!_caller1/api/orders/{id}/pay1772198389223)得到sign
+     * fetch示例:
+     * fetch("http://127.0.0.1:8080/api/orders/5/pay", {
+     *    method: "POST",
+     *    headers: { "Content-Type": "application/json",
+     *    "Sign-appCode": "ios1", "Sign-path": "/api/orders/{id}/pay",
+     *    "Sign-sign": "18b463ec7d1d92981bc0f183aa099c2c6c2ecf773f679845c09f456338af6f97",
+     *    "Sign-time": 1772198389223}
+     * })
      */
     @PostMapping("/{id}/pay")
     @RequireSign(withParams = WithParams.FALSE)

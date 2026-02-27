@@ -38,6 +38,11 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+	<!-- Spring Boot Web (Full web stack for testing) -->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-web</artifactId>
+	</dependency>
 		<!-- Spring Boot Data JDBC -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -144,6 +149,48 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+	<!-- Spring Boot Test - WebMvcTest Support -->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-test-autoconfigure</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+	<!-- Mockito for Unit Testing -->
+	<dependency>
+		<groupId>org.mockito</groupId>
+		<artifactId>mockito-core</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+	<!-- Mockito JUnit Jupiter Integration -->
+	<dependency>
+		<groupId>org.mockito</groupId>
+		<artifactId>mockito-junit-jupiter</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+	<!-- JSON Path for API Response Assertions -->
+	<dependency>
+		<groupId>com.jayway.jsonpath</groupId>
+		<artifactId>json-path</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+	<!-- Hamcrest for Matcher Assertions -->
+	<dependency>
+		<groupId>org.hamcrest</groupId>
+		<artifactId>hamcrest</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+	<!-- AssertJ for Fluent Assertions -->
+	<dependency>
+		<groupId>org.assertj</groupId>
+		<artifactId>assertj-core</artifactId>
+		<scope>test</scope>
+	</dependency>
 	</dependencies>
 
 	<build>
@@ -179,7 +226,7 @@
 		</plugins>
 	</build>
 
-    <!-- ========== 构建配置 ========== -->
+    <!-- ========== 构建配置(可选) ========== -->
 <!--    <build>-->
 <!--        <plugins>-->
 <!--            &lt;!&ndash; Spring Boot 打包插件 &ndash;&gt;-->

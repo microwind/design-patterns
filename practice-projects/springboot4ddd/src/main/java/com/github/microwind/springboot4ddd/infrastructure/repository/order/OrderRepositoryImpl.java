@@ -16,8 +16,7 @@ import java.util.Optional;
 /**
  * 订单仓储实现（委托模式）
  * 支持Spring Data JDBC和MyBatis Plus两种数据访问方式的灵活切换
- * 根据配置自动选择 JDBC 或 MyBatis Plus 实现
- * 任选其一即可，此处只是为了展示多数据访问方式的实现
+ * 根据配置自动选择相应的实现。实际情况采用一种即可，推荐Spring Data JDBC。
  * 注意：Repository 层不应该管理事务，事务由 Service 层控制
  *
  * @author jarry
@@ -29,6 +28,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     private final OrderRepository orderRepositoryDelegate;
     private static final String MYBATIS_PLUS = "mybatis-plus";
+    private static final String JDBC = "jdbc";
 
     /**
      * 构造函数注入，根据配置选择具体实现
@@ -41,11 +41,14 @@ public class OrderRepositoryImpl implements OrderRepository {
             @Qualifier("orderJdbcRepositoryImpl") OrderRepository orderJdbcRepositoryImpl,
             @Qualifier("orderMybatisPlusRepositoryImpl") OrderRepository orderMybatisPlusRepositoryImpl,
             @Value("${order.repository.implementation:jdbc}") String implementationType) {
-        
+
         // 根据配置选择委托对象
-        this.orderRepositoryDelegate = MYBATIS_PLUS.equalsIgnoreCase(implementationType)
-                ? orderMybatisPlusRepositoryImpl 
-                : orderJdbcRepositoryImpl;
+        if (MYBATIS_PLUS.equalsIgnoreCase(implementationType)) {
+            this.orderRepositoryDelegate = orderMybatisPlusRepositoryImpl;
+        } else {
+            // 默认使用 JDBC
+            this.orderRepositoryDelegate = orderJdbcRepositoryImpl;
+        }
     }
 
     @Override
