@@ -70,6 +70,34 @@ src/main/java/com/github/microwind/springboot4ddd/
 - Redis 6+ (可选)
 - RocketMQ 4.9+ (可选)
 
+### 启动mysql
+
+```shell
+$ sudo systemctl start mysql # Linux
+$ sudo mysql.server start # MacOS
+$ brew services start mysql # MacOS
+```
+
+### 启动PostgreSQL
+```shell
+$ brew services start postgresql # MacOS
+$ sudo systemctl start postgresql # Linux
+```
+
+### 启动roketmq
+#### 启动 NameServer
+```shell
+$ nohup sh bin/mqnamesrv &
+# 查看 NameServer 日志
+$ tail -f ~/logs/rocketmqlogs/namesrv.log
+# 启动 Broker，并指定 NameServer 地址为本地
+$ nohup sh bin/mqbroker -n localhost:9876 &
+# 查看 Broker 日志
+$ tail -f ~/logs/rocketmqlogs/broker.log
+# 使用jps命令检查NameServer和Broker的进程是否存在
+$ jps
+```
+
 ### 构建项目
 
 ```bash
@@ -154,5 +182,6 @@ spring:
 MIT License
 
 ## 作者
+jarryli
 
-jarry
+mail:lichunping@buaa.edu.cn
