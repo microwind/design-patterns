@@ -57,13 +57,14 @@ public class MybatisPlusConfig {
 
     /**
      * 配置MyBatis Plus拦截器
+     * MyBatis Plus 3.5.x 版本：分页功能已内置，selectPage 会自动处理分页
+     * 无需额外配置分页拦截器，但需要确保 SQL 不包含 LIMIT/OFFSET
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        // MyBatis Plus 3.5.x 版本分页已内置支持，无需显式配置分页拦截器
-        // 分页使用示例：Page<Order> page = new Page<>(1, 10);
-        // orderRepository.selectPage(page, null);
+        // MyBatis Plus 3.5.16 版本的分页已通过 BaseMapper.selectPage() 内置支持
+        // selectPage 会自动根据 Page 对象的 current 和 size 参数生成分页 SQL
         return interceptor;
     }
 

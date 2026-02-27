@@ -81,7 +81,7 @@ spring:
     host: smtp.qq.com
     port: 587
     username: your-email@qq.com  # 修改为实际的QQ邮箱
-    password: your-app-password  # 修改为实际的应用密码
+    password: your-app-password  # 这里的密码是SMTP授权码，不是登录密码
     default-encoding: UTF-8
     properties:
       mail:
@@ -96,17 +96,13 @@ spring:
 
 # RocketMQ配置
 rocketmq:
-  name-server: localhost:9876
+  name-server: 127.0.0.1:9876
   producer:
     group: test-producer
-    send-message-timeout: 3000  # 发送消息超时时间（毫秒）
+    send-message-timeout: 10000  # 发送消息超时时间（毫秒）
     compress-message-body-threshold: 4096  # 消息体压缩阈值（字节）
-    access-key: RocketMQ  # AccessKey（需要在 RocketMQ 中配置对应的 ACL）
-    secret-key: 12345678  # SecretKey
   consumer:
     group: test-consumer  # 默认消费者组
-    access-key: RocketMQ  # AccessKey
-    secret-key: 12345678  # SecretKey
   # 优雅降级配置
   fallback:
     enabled: true  # 是否启用优雅降级（当RocketMQ不可用时，系统仍能启动）
@@ -114,7 +110,7 @@ rocketmq:
 # 订单仓储配置
 order:
   repository:
-    implementation: mybatis-plus  # 数据访问实现方式：jdbc 或 mybatis-plus（默认使用 jdbc）
+    implementation: mybatis-plus  # 数据访问实现方式：jdbc 或 mybatis-plus
 
 # MyBatis Plus 配置
 mybatis-plus:

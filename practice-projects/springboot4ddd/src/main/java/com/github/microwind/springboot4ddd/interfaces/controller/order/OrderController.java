@@ -32,14 +32,13 @@ public class OrderController {
      * 创建订单（需要签名验证，带参数）
      */
     @PostMapping("/create")
-//    @RequireSign(withParams = WithParams.TRUE)
     public ApiResponse<OrderDTO> createOrder(@RequestBody CreateOrderRequest request) {
         OrderDTO order = orderService.createOrder(request);
         return ApiResponse.success(order);
     }
 
     /**
-     * 获取订单详情（需要签名验证，不带参数）
+     * 获取订单详情
      * 不返回用户详情（因为没有跨库查询）
      */
     @GetMapping("/{id}")
@@ -49,7 +48,7 @@ public class OrderController {
     }
 
     /**
-     * 获取用户订单列表（需要签名验证）
+     * 获取用户订单列表
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/user/{userId}")
@@ -59,11 +58,12 @@ public class OrderController {
     }
 
     /**
-     * 分页查询用户订单列表（需要签名验证）
+     * 分页查询用户订单列表
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/user/{userId}/page")
     public ApiResponse<Page<OrderListResponse>> getUserOrdersByPage(@PathVariable Long userId, Pageable pageable) {
+        validatePageable(pageable);
         Page<OrderListResponse> orders = orderService.getUserOrderList(userId, pageable);
         return ApiResponse.success(orders);
     }
@@ -73,7 +73,6 @@ public class OrderController {
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/list")
-//    @RequireSign
     public ApiResponse<List<OrderListResponse>> listAllOrders() {
         List<OrderListResponse> orders = orderService.getAllOrderList();
         return ApiResponse.success(orders);
@@ -86,12 +85,25 @@ public class OrderController {
     @GetMapping("/page")
 //    @RequireSign
     public ApiResponse<Page<OrderListResponse>> listAllOrdersByPage(Pageable pageable) {
+        validatePageable(pageable);
         Page<OrderListResponse> orders = orderService.getAllOrderList(pageable);
         return ApiResponse.success(orders);
     }
 
     /**
-     * 取消订单（需要签名验证，不带参数测试）
+     * 验证分页参数
+     */
+    private void validatePageable(Pageable pageable) {
+        if (pageable.getPageNumber() < 1) {
+            throw new IllegalArgumentException("分页参数 page 必须从 1 开始，当前值: " + pageable.getPageNumber());
+        }
+        if (pageable.getPageSize() <= 0) {
+            throw new IllegalArgumentException("分页参数 size 必须大于 0，当前值: " + pageable.getPageSize());
+        }
+    }
+
+    /**
+     * 取消订单（需要签名验证，不带参数）
      */
     @PostMapping("/{id}/cancel")
     @RequireSign(withParams = WithParams.FALSE)
@@ -101,7 +113,7 @@ public class OrderController {
     }
 
     /**
-     * 支付订单（需要签名验证，带参数）
+     * 支付订单（需要签名验证，不带参数）
      */
     @PostMapping("/{id}/pay")
     @RequireSign(withParams = WithParams.FALSE)
@@ -111,7 +123,7 @@ public class OrderController {
     }
 
     /**
-     * 完成订单（需要签名验证，带参数）
+     * 完成订单（需要签名验证，不带参数）
      */
     @PostMapping("/{id}/complete")
     @RequireSign(withParams = WithParams.FALSE)

@@ -5,10 +5,12 @@ import com.github.microwind.springboot4ddd.domain.repository.order.OrderReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,6 +54,13 @@ public class OrderJdbcRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public Page<Order> findByUserId(Long userId, Pageable pageable) {
+        // 转换页码：Spring 分页 page 从 1 开始，需要转换为 0-indexed
+        Pageable adjustedPageable = pageable.withPage(pageable.getPageNumber() - 1);
+        return orderJdbcRepository.findByUserId(userId, adjustedPageable);
+    }
+
+    @Override
     public List<Order> findAllOrders() {
         return StreamSupport.stream(orderJdbcRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
@@ -59,7 +68,9 @@ public class OrderJdbcRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<Order> findAllOrders(Pageable pageable) {
-        return orderJdbcRepository.findAll(pageable);
+        // 转换页码：Spring 分页 page 从 1 开始，需要转换为 0-indexed
+        Pageable adjustedPageable = pageable.withPage(pageable.getPageNumber() - 1);
+        return orderJdbcRepository.findAll(adjustedPageable);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.github.microwind.springboot4ddd.domain.model.order;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.microwind.springboot4ddd.domain.event.DomainEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCancelledEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCompletedEvent;
@@ -23,13 +25,15 @@ import java.util.List;
  * @since 1.0.0
  */
 @Data
-@Table("orders")
+@Table("orders")  // @Table("orders") - Spring Data表映射
+@TableName("orders")  // @TableName("orders") - mybatis表映射
 public class Order {
 
     /**
      * 订单ID
      */
     @Id
+    @TableId
     private Long id;
 
     /**

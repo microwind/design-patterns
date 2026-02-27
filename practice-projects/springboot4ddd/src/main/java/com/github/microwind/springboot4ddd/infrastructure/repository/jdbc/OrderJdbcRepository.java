@@ -1,8 +1,11 @@
 package com.github.microwind.springboot4ddd.infrastructure.repository.jdbc;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -17,7 +20,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Repository("orderJdbcRepository")
-public interface OrderJdbcRepository extends CrudRepository<Order, Long> {
+public interface OrderJdbcRepository extends CrudRepository<Order, Long>, PagingAndSortingRepository<Order, Long> {
     /**
      * 根据订单号查找
      */
@@ -29,6 +32,11 @@ public interface OrderJdbcRepository extends CrudRepository<Order, Long> {
      */
     @Query("SELECT * FROM orders WHERE user_id = :userId ORDER BY created_at DESC")
     List<Order> findByUserId(Long userId);
+
+    /**
+     * 根据用户ID分页查找订单
+     */
+    Page<Order> findByUserId(Long userId, Pageable pageable);
 
     /**
      * 根据订单状态和创建时间查找订单

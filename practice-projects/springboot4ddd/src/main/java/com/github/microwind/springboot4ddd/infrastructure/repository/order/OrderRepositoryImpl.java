@@ -5,6 +5,8 @@ import com.github.microwind.springboot4ddd.domain.repository.order.OrderReposito
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.util.Optional;
  * 订单仓储实现（委托模式）
  * 支持Spring Data JDBC和MyBatis Plus两种数据访问方式的灵活切换
  * 根据配置自动选择 JDBC 或 MyBatis Plus 实现
+ * 任选其一即可，此处只是为了展示多数据访问方式的实现
  * 注意：Repository 层不应该管理事务，事务由 Service 层控制
  *
  * @author jarry
@@ -32,7 +35,7 @@ public class OrderRepositoryImpl implements OrderRepository {
      *
      * @param orderJdbcRepositoryImpl JDBC实现
      * @param orderMybatisPlusRepositoryImpl MyBatis Plus实现
-     * @param implementationType 配置的实现类型
+     * @param implementationType 配置的实现类型，详见application.yaml
      */
     public OrderRepositoryImpl(
             @Qualifier("orderJdbcRepositoryImpl") OrderRepository orderJdbcRepositoryImpl,
@@ -66,8 +69,18 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public Page<Order> findByUserId(Long userId, Pageable pageable) {
+        return orderRepositoryDelegate.findByUserId(userId, pageable);
+    }
+
+    @Override
     public List<Order> findAllOrders() {
         return orderRepositoryDelegate.findAllOrders();
+    }
+
+    @Override
+    public Page<Order> findAllOrders(Pageable pageable) {
+        return orderRepositoryDelegate.findAllOrders(pageable);
     }
 
     @Override

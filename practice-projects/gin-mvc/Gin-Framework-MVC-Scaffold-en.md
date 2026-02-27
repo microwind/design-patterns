@@ -42,39 +42,51 @@ Project Directory: `gin-mvc/`
 ### Architecture Diagram
 
 ```mermaid
-flowchart TB
-    subgraph InterfaceLayer["Interface Layer"]
-        Controller[HTTP Controller / Routes]
+flowchart LR
+    Client[Client]
+
+    subgraph Web["Web Entry"]
+        Router[Gin Router]
+        Middleware[Middleware]
     end
 
-    subgraph ServiceLayer["Service Layer"]
-        Service[Business Service]
-        EventHandler[Event Handler]
+    subgraph MVC["MVC Core"]
+        Controller[Controller]
+        Service[Service]
+        Model[Model]
+        View[View JSON/Template]
     end
 
-    subgraph RepositoryLayer["Repository Layer"]
-        Repository[Repository Interface & Implementation]
+    subgraph Repo["Data Access"]
+        Repository[Repository]
+        UserDB[(MySQL User DB)]
+        OrderDB[(PostgreSQL Order DB)]
     end
 
-    subgraph ModelLayer["Model Layer"]
-        Model[Business Model / State Machine]
-        EventModel[Event Model]
+    subgraph Event["Event & Notification"]
+        Producer[RocketMQ Producer]
+        Topic[(RocketMQ Topic)]
+        Consumer[RocketMQ Consumer]
+        Handler[Event Handler]
+        Mail[SMTP Mail]
     end
 
-    subgraph InfrastructureLayer["Infrastructure Layer"]
-        MQ[Message Queue]
-        Mail[Mail Service]
-        DB[(Database)]
-    end
-
+    Client --> Router
+    Router --> Middleware
+    Middleware --> Controller
     Controller --> Service
-    Service --> Repository
     Service --> Model
-    Service --> EventModel
-    Repository --> DB
-    Service -.Publish Event.-> MQ
-    MQ -.Consume Message.-> EventHandler
-    EventHandler --> Mail
+    Service --> Repository
+    Repository --> UserDB
+    Repository --> OrderDB
+    Controller --> View
+    View --> Client
+
+    Service -.Publish Event.-> Producer
+    Producer --> Topic
+    Topic --> Consumer
+    Consumer --> Handler
+    Handler --> Mail
 ```
 
 ### Project Directory Structure

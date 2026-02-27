@@ -30,7 +30,7 @@ public class SignConfig {
     private SignatureConfig signature = new SignatureConfig();
 
     /**
-     * 是否允许缓存body
+     * 是否允许缓存body，见application.yaml文件allow-cached-body
      */
     private Boolean allowCachedBody = false;
 

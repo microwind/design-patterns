@@ -64,12 +64,12 @@ public class CachedBodyFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldCacheBody(HttpServletRequest request) {
-        // 1. 是否开启了缓存
+        // 1. 是否开启了缓存，见配置文件
         if (!Boolean.TRUE.equals(signConfig.getAllowCachedBody())) {
             return false;
         }
 
-        // 2. 验证签名 Header
+        // 2. 验证是否有签名 Header
         String sign = request.getHeader(SignConfig.HEADER_SIGN);
         if (!StringUtils.hasText(sign)) {
             return false;

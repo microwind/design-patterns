@@ -73,33 +73,88 @@ src/main/java/com/github/microwind/springboot4ddd/
 - Redis 6+ (可选)
 - RocketMQ 4.9+ (可选)
 
-### 启动mysql
+### 启动依赖服务
+
+#### 启动 MySQL（用于存储用户数据）
 
 ```shell
-$ sudo systemctl start mysql # Linux
-$ sudo mysql.server start # MacOS
-$ brew services start mysql # MacOS
+# Linux 系统
+$ sudo systemctl start mysql
+
+# MacOS 系统
+$ sudo mysql.server start
+# 或者使用 Homebrew
+$ brew services start mysql
 ```
 
-### 启动PostgreSQL
+#### 启动 PostgreSQL（用于存储订单数据）
+
 ```shell
-$ brew services start postgresql # MacOS
-$ sudo systemctl start postgresql # Linux
+# MacOS 系统
+$ brew services start postgresql
+
+# Linux 系统
+$ sudo systemctl start postgresql
+
+# 验证连接（可选）
+$ psql -h localhost -U postgres -d postgres
 ```
 
-### 启动roketmq
-#### 启动 NameServer
+#### 启动 Redis（可选，用于缓存）
+
 ```shell
-$ nohup sh bin/mqnamesrv &
-# 查看 NameServer 日志
-$ tail -f ~/logs/rocketmqlogs/namesrv.log
-# 启动 Broker，并指定 NameServer 地址为本地
-$ nohup sh bin/mqbroker -n localhost:9876 &
-# 查看 Broker 日志
-$ tail -f ~/logs/rocketmqlogs/broker.log
-# 使用jps命令检查NameServer和Broker的进程是否存在
+# MacOS 系统
+$ brew services start redis
+
+# Linux 系统
+$ sudo systemctl start redis-server
+
+# 验证连接（可选）
+$ redis-cli ping
+# 返回 PONG 表示连接成功
+```
+
+#### 启动 RocketMQ（用于事件驱动架构）
+
+```shell
+# 进入 RocketMQ 安装目录
+$ cd /path/to/rocketmq-all-x.x.x-bin-release
+
+# 1. 启动 NameServer（消息名称服务，管理 Topic 和 Broker 信息）
+# 建议在后台运行：
+$ nohup sh bin/mqnamesrv > /tmp/namesrv.log 2>&1 &
+
+# 查看 NameServer 启动日志
+$ tail -f /tmp/namesrv.log
+
+# 2. 启动 Broker（消息代理服务，负责存储和转发消息）
+# 需要指定 NameServer 地址，等待 NameServer 启动后再启动 Broker
+$ sleep 5  # 等待 NameServer 完全启动
+$ nohup sh bin/mqbroker -n localhost:9876 > /tmp/broker.log 2>&1 &
+
+# 查看 Broker 启动日志
+$ tail -f /tmp/broker.log
+
+# 3. 验证启动成功
+# 检查进程是否运行（NameServer 和 Broker 都应该存在）
+$ ps aux | grep -E "NamesrvStartup|BrokerStartup" | grep -v grep
+
+# 或者使用 jps 命令查看
 $ jps
+# 应该看到 NamesrvStartup 和 BrokerStartup 进程
+
+# 4. 清理 RocketMQ 数据（开发调试时）
+# 如果需要清理 RocketMQ 中的消息数据和存储，执行以下步骤：
+$ pkill -f "org.apache.rocketmq.broker.BrokerStartup"      # 停止 Broker
+$ pkill -f "org.apache.rocketmq.namesrv.NamesrvStartup"    # 停止 NameServer
+$ rm -rf ~/store                                             # 删除存储数据
+$ rm -rf /path/to/logs/rocketmqlogs                         # 删除日志文件
+# 然后重新启动 NameServer 和 Broker（重复步骤1和2）
 ```
+
+**RocketMQ 默认配置：**
+- NameServer 监听地址：`127.0.0.1:9876`
+- Broker 监听地址：`127.0.0.1:10911`（通常无需修改）
 
 ### 构建项目
 
@@ -115,17 +170,108 @@ $ jps
 
 ### 启动应用
 
+#### 方式一：使用 Maven 直接启动（推荐开发环境）
+
 ```bash
-./mvnw spring-boot:run
+# 启动应用，使用 Spring Boot Maven 插件
+$ ./mvnw spring-boot:run
+
+# 或者如果已经编译过：
+$ mvn spring-boot:run
 ```
 
-应用将在 `http://localhost:8080` 启动。
+#### 方式二：编译后启动（推荐生产环境）
 
-### 健康检查
-
-访问健康检查接口：
 ```bash
-curl http://localhost:8080/api/health
+# 1. 编译项目（跳过测试，加快编译）
+$ ./mvnw clean package -DskipTests
+
+# 2. 启动应用
+# 找到生成的 jar 文件（通常在 target 目录下）
+$ java -jar target/microwind.springboot4ddd-0.0.1-SNAPSHOT.jar
+
+# 3. 以后台进程启动（推荐用于服务器）
+$ nohup java -jar target/microwind.springboot4ddd-0.0.1-SNAPSHOT.jar > /tmp/app.log 2>&1 &
+
+# 4. 查看启动日志
+$ tail -f /tmp/app.log
+```
+
+#### 方式三：使用 IDE 启动（适合 IntelliJ IDEA）
+
+在 IntelliJ IDEA 中：
+1. 右键点击 `Application.java`
+2. 选择 `Run 'Application.main()'`
+3. 或者按 `⌃⇧R` (MacOS) / `Ctrl+Shift+F10` (Windows/Linux)
+
+#### 启动验证
+
+应用启动成功后，应该看到以下日志信息：
+
+```
+RocketMQ 配置验证通过
+MySQL(User) 数据库连接正常
+PostgreSQL(Order) 数据库连接正常
+RocketMQ NameServer 可连接: 127.0.0.1:9876
+外部依赖服务检查通过
+Tomcat started on port 8080 (http) with context path '/'
+Started Application in X.XXX seconds
+```
+
+如果看到类似日志说明启动成功。
+
+#### 健康检查
+
+应用启动后，可以通过健康检查接口验证服务状态：
+
+```bash
+# 基础健康检查
+$ curl http://localhost:8080/api/health
+
+# 返回示例：
+# {
+#   "code": 200,
+#   "message": "健康检查通过",
+#   "data": {
+#     "status": "UP",
+#     "dependencies": {
+#       "MySQL": "正常",
+#       "PostgreSQL": "正常",
+#       "Redis": "正常",
+#       "RocketMQ": "正常"
+#     }
+#   },
+#   "timestamp": "2026-02-27T12:00:00"
+# }
+```
+
+#### 常见问题排查
+
+**问题：启动失败，提示数据库连接错误**
+- 检查 PostgreSQL 和 MySQL 是否已启动
+- 检查 `application.yaml` 中数据库配置是否正确
+- 默认配置启用了优雅降级，数据库不可用时系统仍能启动
+
+**问题：RocketMQ 连接失败**
+- 检查 NameServer 是否已启动：`ps aux | grep NamesrvStartup`
+- 检查 Broker 是否已启动：`ps aux | grep BrokerStartup`
+- 检查配置文件中的 NameServer 地址是否正确：`127.0.0.1:9876`
+- 如果磁盘满（消息发送失败时），需要清理存储数据：`rm -rf ~/store`
+
+**问题：Redis 连接失败（可选）**
+- 如果不使用缓存功能，可以忽略 Redis 连接错误
+- Redis 启动：`brew services start redis` (MacOS) 或 `sudo systemctl start redis-server` (Linux)
+
+#### 停止应用
+
+```bash
+# 如果是使用 Maven 或 IDE 启动：
+# 直接在控制台按 Ctrl+C
+
+# 如果是后台进程启动：
+$ pkill -f "microwind.springboot4ddd"
+# 或者
+$ kill -9 <PID>
 ```
 
 ## 配置说明
@@ -210,14 +356,14 @@ spring:
 **使用 Spring Data 的 Pageable 参数：**
 
 ```bash
-# 获取第0页，每页10条数据，按照创建时间降序排列
-curl "http://localhost:8080/api/users/page?page=0&size=10&sort=id,desc"
+# 获取第1页，每页10条数据，按照ID降序排列
+curl "http://localhost:8080/api/users/page?page=1&size=10&sort=id,desc"
 
-# 获取用户的订单分页数据
-curl "http://localhost:8080/api/orders/user/1/page?page=0&size=5&sort=id,desc"
+# 获取用户的订单分页数据（第1页）
+curl "http://localhost:8080/api/orders/user/1/page?page=1&size=5&sort=id,desc"
 
-# 获取所有订单的分页数据
-curl "http://localhost:8080/api/orders/page?page=0&size=15&sort=createdTime,desc"
+# 获取所有订单的分页数据（第1页）
+curl "http://localhost:8080/api/orders/page?page=1&size=15&sort=createdTime,desc"
 ```
 
 **响应格式（分页数据）：**
@@ -232,7 +378,7 @@ curl "http://localhost:8080/api/orders/page?page=0&size=15&sort=createdTime,desc
       { "id": 2, "name": "user2", ... }
     ],
     "pageable": {
-      "pageNumber": 0,
+      "pageNumber": 1,
       "pageSize": 10,
       "offset": 0,
       "paged": true,
@@ -242,7 +388,7 @@ curl "http://localhost:8080/api/orders/page?page=0&size=15&sort=createdTime,desc
     "totalElements": 50,
     "last": false,
     "size": 10,
-    "number": 0,
+    "number": 1,
     "sort": { ... },
     "numberOfElements": 10,
     "first": true,
@@ -253,14 +399,14 @@ curl "http://localhost:8080/api/orders/page?page=0&size=15&sort=createdTime,desc
 ```
 
 **Pageable 参数说明：**
-- `page`: 页码（从0开始，默认0）
+- `page`: 页码（从1开始，默认1）
 - `size`: 每页记录数（默认20）
 - `sort`: 排序规则，格式为 `sort=字段名,desc|asc`（可选，多个排序用逗号分隔）
 
 **示例：**
-- `?page=0&size=10` - 获取第一页，每页10条
-- `?page=1&size=20` - 获取第二页，每页20条
-- `?page=0&size=10&sort=id,desc&sort=name,asc` - 按ID降序，名称升序排列
+- `?page=1&size=10` - 获取第一页，每页10条
+- `?page=2&size=20` - 获取第二页，每页20条
+- `?page=1&size=10&sort=id,desc&sort=name,asc` - 按ID降序，名称升序排列
 
 ### 脚手架使用指南
 

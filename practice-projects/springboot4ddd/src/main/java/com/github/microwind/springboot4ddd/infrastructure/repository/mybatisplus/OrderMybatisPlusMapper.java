@@ -53,10 +53,18 @@ public interface OrderMybatisPlusMapper extends BaseMapper<Order> {
     List<Order> selectList(Object entity);
 
     /**
-     * 查找所有订单
+     * 分页查询所有订单
+     * @param offset 偏移量
+     * @param limit  每页条数
      */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders")
-    List<Order> findAllOrders();
+    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders LIMIT #{limit} OFFSET #{offset}")
+    List<Order> selectPageData(@Param("offset") long offset, @Param("limit") int limit);
+
+    /**
+     * 查询订单总数
+     */
+    @Select("SELECT COUNT(*) FROM orders")
+    long countAll();
 
     /**
      * 根据订单号查找

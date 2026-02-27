@@ -54,6 +54,7 @@ public class UserController {
      */
     @GetMapping("/page")
     public ApiResponse<Page<UserResponse>> getUsersByPage(Pageable pageable) {
+        validatePageable(pageable);
         log.info("Getting users by page, page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         Page<UserResponse> users = userService.getAllUsers(pageable);
         return ApiResponse.success("分页查询用户成功", users);
@@ -97,5 +98,17 @@ public class UserController {
         log.info("Deleting user: id={}", id);
         userService.deleteUser(id);
         return ApiResponse.success("用户删除成功", null);
+    }
+
+    /**
+     * 验证分页参数
+     */
+    private void validatePageable(Pageable pageable) {
+        if (pageable.getPageNumber() < 1) {
+            throw new IllegalArgumentException("分页参数 page 必须从 1 开始，当前值: " + pageable.getPageNumber());
+        }
+        if (pageable.getPageSize() <= 0) {
+            throw new IllegalArgumentException("分页参数 size 必须大于 0，当前值: " + pageable.getPageSize());
+        }
     }
 }

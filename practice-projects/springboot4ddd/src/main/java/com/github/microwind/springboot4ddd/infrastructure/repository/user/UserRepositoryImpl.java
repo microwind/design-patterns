@@ -25,6 +25,7 @@ import java.util.Optional;
 /**
  * 用户仓储实现 - MySQL数据源
  * 直接使用JdbcTemplate实现数据操作示例
+ * JdbcTemplate适合简单清晰的数据库操作，性能最高
  *
  * @author jarry
  * @since 1.0.0
@@ -125,8 +126,8 @@ public class UserRepositoryImpl implements UserRepository {
         // 构建 ORDER BY 子句
         String orderBy = buildOrderByClause(pageable.getSort());
 
-        // 构建分页查询
-        long offset = pageable.getOffset();
+        // 构建分页查询（page 从 1 开始）
+        long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
         int pageSize = pageable.getPageSize();
         String sql = "SELECT * FROM users" + orderBy + " LIMIT ? OFFSET ?";
 
