@@ -1,12 +1,12 @@
-# 一款 Go 语言 Gin 框架 MVC 脚手架，适合快速搭建项目
+# 一款Go语言Gin框架MVC脚手架，满足大部分场景
 
 > 一个开箱即用的 MVC（Model-View-Controller）Go 脚手架，基于 Gin + RocketMQ，包含双数据库、统一响应、中间件与事件驱动示例。
 
 ## 这是什么
 
-Gin-Framework-MVC 是一个面向 Go 语言的 MVC 工程脚手架，帮你快速搭建分层清晰的 Web 服务。项目内置用户与订单示例、RocketMQ 生产/消费、邮件通知示例、统一响应与中间件，适合作为团队工程模板或教学示例。
+Gin-Framework-MVC 是一个面向 Go 语言的 MVC 工程脚手架，帮你快速搭建分层清晰的 Web 服务。项目内置用户与订单示例、RocketMQ 生产/消费、邮件通知示例、统一响应与中间件，适合作为团队工程模板，用于代码初始化，适用于大多数场景。
 
-功能与 `practice-projects/gin-ddd`对齐，可以对比下`DDD`与`MVC`工程目录结构的差异。
+功能与 `practice-projects/gin-ddd`一致。有别于`DDD`架构，`MVC`架构更加简洁清晰，可以对比下`DDD`与`MVC`工程目录结构的差异，根据业务需要选择`DDD`或者`MVC`架构。
 
 ## 为什么要用 MVC？
 
@@ -516,7 +516,8 @@ go test ./...
 ```
 
 ## 源码地址
-
+**MVC架构：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc)
-
+**DDD架构：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
+

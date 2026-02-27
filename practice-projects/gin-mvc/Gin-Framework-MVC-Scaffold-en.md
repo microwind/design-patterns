@@ -1,10 +1,12 @@
-# Gin Framework MVC Scaffold - A Go MVC Engineering Framework for Rapid Project Development
+# A Go Gin MVC Scaffold for Most Scenarios
 
 > An out-of-the-box MVC (Model-View-Controller) Go scaffold based on Gin + RocketMQ, featuring dual databases, unified response format, middleware, and event-driven architecture examples.
 
 ## What is This?
 
-Gin-Framework-MVC is an MVC engineering scaffold for Go language that helps you quickly build web services with clear layering. The project includes User and Order examples, RocketMQ producer/consumer, email notification examples, unified response format, and middleware. It's suitable as a team engineering template or teaching material.
+Gin-Framework-MVC is an MVC engineering scaffold for Go language that helps you quickly build web services with clear layering. The project includes User and Order examples, RocketMQ producer/consumer, email notification examples, unified response format, and middleware. It is suitable as a team engineering template for project bootstrapping and works for most business scenarios.
+
+Its feature scope is aligned with `practice-projects/gin-ddd`. Compared with DDD architecture, MVC is more concise and straightforward. You can compare the DDD and MVC project structures and choose one based on business needs.
 
 ## Why Use MVC?
 
@@ -515,6 +517,8 @@ go test ./...
 
 ## Source Code
 
+**MVC：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc)
 
+**DDD：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
