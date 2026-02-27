@@ -1,0 +1,16 @@
+CREATE DATABASE gin_mvc_order;
+\c gin_mvc_order;
+
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_no VARCHAR(50) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO orders (order_no, user_id, total_amount, status) VALUES
+    ('ORD202602270001', 1, 199.99, 'PENDING'),
+    ('ORD202602270002', 2, 299.99, 'PAID');

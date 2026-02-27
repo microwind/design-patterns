@@ -11,6 +11,15 @@ spring:
     exclude:
       - com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration
 
+  # Spring MVC 配置
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  # Web 资源配置
+  web:
+    resources:
+      add-mappings: false
+
   # Spring Boot level
   logging:
     level:

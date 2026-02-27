@@ -1,0 +1,50 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  mode: "debug" # debug, release, test
+
+database:
+  user:
+    driver: "mysql" # mysql, postgres
+    host: "localhost"
+    port: 3306
+    username: "frog_admin"
+    password: "frog798"
+    database: "frog"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: 3600 # 秒
+  order:
+    driver: "postgres" # mysql, postgres
+    host: "localhost"
+    port: 5432
+    username: "postgres"
+    password: "lego798"
+    database: "seed"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: 3600 # 秒
+
+logger:
+  level: "info" # debug, info, warn, error
+  format: "text" # json, text
+
+rocketmq:
+  enabled: true
+  nameserver: "127.0.0.1:9876"
+  group_name: "gin-ddd-group"
+  instance_name: "gin-ddd-instance"
+  retry_times: 3
+  topics:
+    order_event: "order-event-topic"
+    user_event: "user-event-topic"
+
+mail:
+  enabled: true
+  host: "smtp.qq.com"
+  port: 465
+  username: "xxx@qq.com"
+  # 注意：这里的密码是SMTP授权码，不是登录密码
+  password: "******"
+  from_email: "xxx@qq.com"
+  from_name: "订单系统"

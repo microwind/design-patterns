@@ -30,12 +30,15 @@ src/main/java/com/github/microwind/springboot4ddd/
 │   │   ├── ApiResponse.java            # 统一API响应对象
 │   │   └── GlobalExceptionHandler.java # 全局异常处理器
 │   ├── config/                         # 配置类
-│   ├── persistence/                    # 持久化实现
+│   ├── repository/                     # 持久化实现
 │   └── util/                           # 工具类
 │       └── SignatureUtil.java          # 签名工具类
 └── interfaces/                         # 接口层
-    └── rest/                           # REST API
-        └── HealthController.java       # 健康检查控制器
+│   ├── controller/                     # 控制器 REST API
+|   |   └── HealthController.java       # 健康检查控制器
+│   ├── annotation/                     # 注解声明
+│   ├── vo/                             # requset与response对象
+        
 ```
 
 ## DDD 层次说明
@@ -172,6 +175,92 @@ spring:
 - 使用 Lombok 简化代码
 - 保持领域层纯净，不依赖框架
 - 所有对外接口使用统一响应格式 `ApiResponse`
+
+### 测试访问链接
+
+**User**
+
+| 方法 | HTTP | 路由 | 功能 |
+| :--- | :--- | :--- | :--- |
+| createUser | POST | `/api/users` | 创建用户 |
+| getAllUsers | GET | `/api/users` | 获取所有用户 |
+| getUsersByPage | GET | `/api/users/page` | 分页查询用户 |
+| getUserById | GET | `/api/users/{id}` | 根据ID获取用户 |
+| getUserByName | GET | `/api/users/name/{name}` | 根据用户名获取用户 |
+| updateUser | PUT | `/api/users/{id}` | 更新用户 |
+| deleteUser | DELETE | `/api/users/{id}` | 删除用户 |
+
+**Order**
+
+| 方法 | HTTP | 路由 | 功能 |
+| :--- | :--- | :--- | :--- |
+| createOrder | POST | `/api/orders/create` | 创建订单 |
+| getOrder | GET | `/api/orders/{id}` | 获取订单详情 |
+| getUserOrders | GET | `/api/orders/user/{userId}` | 获取用户订单列表 |
+| getUserOrdersByPage | GET | `/api/orders/user/{userId}/page` | 分页查询用户订单 |
+| listAllOrders | GET | `/api/orders/list` | 获取所有订单 |
+| listAllOrdersByPage | GET | `/api/orders/page` | 分页查询所有订单 |
+| cancelOrder | POST | `/api/orders/{id}/cancel` | 取消订单 |
+| payOrder | POST | `/api/orders/{id}/pay` | 支付订单 |
+| completeOrder | POST | `/api/orders/{id}/complete` | 完成订单 |
+| deleteOrder | DELETE | `/api/orders/{id}` | 删除订单 |
+
+#### 分页请求示例
+
+**使用 Spring Data 的 Pageable 参数：**
+
+```bash
+# 获取第0页，每页10条数据，按照创建时间降序排列
+curl "http://localhost:8080/api/users/page?page=0&size=10&sort=id,desc"
+
+# 获取用户的订单分页数据
+curl "http://localhost:8080/api/orders/user/1/page?page=0&size=5&sort=id,desc"
+
+# 获取所有订单的分页数据
+curl "http://localhost:8080/api/orders/page?page=0&size=15&sort=createdTime,desc"
+```
+
+**响应格式（分页数据）：**
+
+```json
+{
+  "code": 200,
+  "message": "分页查询用户成功",
+  "data": {
+    "content": [
+      { "id": 1, "name": "user1", ... },
+      { "id": 2, "name": "user2", ... }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 10,
+      "offset": 0,
+      "paged": true,
+      "unpaged": false
+    },
+    "totalPages": 5,
+    "totalElements": 50,
+    "last": false,
+    "size": 10,
+    "number": 0,
+    "sort": { ... },
+    "numberOfElements": 10,
+    "first": true,
+    "empty": false
+  },
+  "timestamp": "2026-02-27T12:00:00"
+}
+```
+
+**Pageable 参数说明：**
+- `page`: 页码（从0开始，默认0）
+- `size`: 每页记录数（默认20）
+- `sort`: 排序规则，格式为 `sort=字段名,desc|asc`（可选，多个排序用逗号分隔）
+
+**示例：**
+- `?page=0&size=10` - 获取第一页，每页10条
+- `?page=1&size=20` - 获取第二页，每页20条
+- `?page=0&size=10&sort=id,desc&sort=name,asc` - 按ID降序，名称升序排列
 
 ### 脚手架使用指南
 

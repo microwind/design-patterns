@@ -4,6 +4,8 @@ import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -53,6 +55,11 @@ public class OrderJdbcRepositoryImpl implements OrderRepository {
     public List<Order> findAllOrders() {
         return StreamSupport.stream(orderJdbcRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Order> findAllOrders(Pageable pageable) {
+        return orderJdbcRepository.findAll(pageable);
     }
 
     @Override

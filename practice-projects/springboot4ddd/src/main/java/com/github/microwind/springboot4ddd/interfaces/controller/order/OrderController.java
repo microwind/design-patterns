@@ -9,6 +9,8 @@ import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderReques
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,13 +59,34 @@ public class OrderController {
     }
 
     /**
+     * 分页查询用户订单列表（需要签名验证）
+     * 返回包含用户详情的订单信息（进行了跨库查询）
+     */
+    @GetMapping("/user/{userId}/page")
+    public ApiResponse<Page<OrderListResponse>> getUserOrdersByPage(@PathVariable Long userId, Pageable pageable) {
+        Page<OrderListResponse> orders = orderService.getUserOrderList(userId, pageable);
+        return ApiResponse.success(orders);
+    }
+
+    /**
      * 获取所有订单
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
     @GetMapping("/list")
 //    @RequireSign
-    public ApiResponse<List<OrderListResponse>> getAllOrders() {
+    public ApiResponse<List<OrderListResponse>> listAllOrders() {
         List<OrderListResponse> orders = orderService.getAllOrderList();
+        return ApiResponse.success(orders);
+    }
+
+    /**
+     * 分页查询所有订单
+     * 返回包含用户详情的订单信息（进行了跨库查询）
+     */
+    @GetMapping("/page")
+//    @RequireSign
+    public ApiResponse<Page<OrderListResponse>> listAllOrdersByPage(Pageable pageable) {
+        Page<OrderListResponse> orders = orderService.getAllOrderList(pageable);
         return ApiResponse.success(orders);
     }
 

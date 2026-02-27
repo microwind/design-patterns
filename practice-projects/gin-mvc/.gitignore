@@ -1,0 +1,15 @@
+# binaries
+server
+*.exe
+*.test
+
+# caches
+.cache/
+
+# local overrides
+config/config.local.yaml
+
+# editor
+.DS_Store
+.idea/
+.vscode/

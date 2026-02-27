@@ -10,7 +10,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +36,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理请求路径不存在异常（404）
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+        log.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
+        return ApiResponse.error(404, "Endpoint not found: " + ex.getRequestURL());
+    }
+
+    /**
      * 处理业务异常
      */
     @ExceptionHandler(BusinessException.class)
@@ -41,6 +53,17 @@ public class GlobalExceptionHandler {
         log.warn("Business exception: code={}, message={}", ex.getCode(), ex.getMessage());
         return ApiResponse.error(ex.getCode(), ex.getMessage());
     }
+
+    /**
+     * 处理数据库连接异常
+     */
+    @ExceptionHandler(SQLException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ApiResponse<Void> handleSQLException(SQLException ex) {
+        log.error("Database exception: {}", ex.getMessage(), ex);
+        return ApiResponse.error(503, "数据库服务不可用，请检查数据库连接状态");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException ex) {
@@ -80,6 +103,16 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleRuntimeException(RuntimeException ex) {
         log.error("RuntimeException: {}", ex.getMessage(), ex);
+
+        String message = ex.getMessage();
+        if (message != null) {
+            if (message.contains("RocketMQ") || message.contains("rocketmq")) {
+                return ApiResponse.error(503, "消息队列服务不可用，请检查MQ服务状态");
+            } else if (message.contains("数据库") || message.contains("database") || message.contains("Database")) {
+                return ApiResponse.error(503, "数据库服务不可用，请检查数据库连接状态");
+            }
+        }
+
         return ApiResponse.serverError("Internal server error: " + ex.getMessage());
     }
 

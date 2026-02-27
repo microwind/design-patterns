@@ -8,6 +8,8 @@ import com.github.microwind.springboot4ddd.infrastructure.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +47,16 @@ public class UserController {
         log.info("Getting all users");
         List<UserResponse> users = userService.getAllUsers();
         return ApiResponse.success("获取用户列表成功", users);
+    }
+
+    /**
+     * 分页查询用户
+     */
+    @GetMapping("/page")
+    public ApiResponse<Page<UserResponse>> getUsersByPage(Pageable pageable) {
+        log.info("Getting users by page, page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<UserResponse> users = userService.getAllUsers(pageable);
+        return ApiResponse.success("分页查询用户成功", users);
     }
 
     /**

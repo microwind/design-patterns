@@ -5,6 +5,10 @@ import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -109,6 +113,44 @@ public class UserRepositoryImpl implements UserRepository {
     public List<User> findAll() {
         String sql = "SELECT * FROM users ORDER BY created_time DESC";
         return jdbcTemplate.query(sql, USER_ROW_MAPPER);
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        // 查询总数
+        String countSql = "SELECT COUNT(*) FROM users";
+        Integer total = jdbcTemplate.queryForObject(countSql, Integer.class);
+        long totalElements = total != null ? total : 0;
+
+        // 构建 ORDER BY 子句
+        String orderBy = buildOrderByClause(pageable.getSort());
+
+        // 构建分页查询
+        long offset = pageable.getOffset();
+        int pageSize = pageable.getPageSize();
+        String sql = "SELECT * FROM users" + orderBy + " LIMIT ? OFFSET ?";
+
+        List<User> content = jdbcTemplate.query(sql, USER_ROW_MAPPER, pageSize, offset);
+
+        return new PageImpl<>(content, pageable, totalElements);
+    }
+
+    /**
+     * 根据 Sort 构建 ORDER BY 子句
+     */
+    private String buildOrderByClause(Sort sort) {
+        if (sort.isEmpty()) {
+            return " ORDER BY created_time DESC";
+        }
+
+        StringBuilder sb = new StringBuilder(" ORDER BY ");
+        sort.forEach(order -> {
+            if (sb.length() > 10) {
+                sb.append(", ");
+            }
+            sb.append(order.getProperty()).append(" ").append(order.getDirection().name());
+        });
+        return sb.toString();
     }
 
     @Override

@@ -13,12 +13,16 @@ import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 订单应用服务
@@ -128,6 +132,24 @@ public class OrderService {
     }
 
     /**
+     * 分页查询用户订单列表（包含用户信息）
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 订单列表Response分页结果
+     */
+    public Page<OrderListResponse> getUserOrderList(Long userId, Pageable pageable) {
+        log.info("分页查询用户订单列表，userId={}, page={}, size={}", userId, pageable.getPageNumber(), pageable.getPageSize());
+
+        // 1. 分页查询订单列表（PostgreSQL）
+        Page<Order> orderPage = orderRepository.findByUserId(userId, pageable);
+
+        // 2. 转换为带用户信息的Response（跨库查询MySQL）
+        List<OrderListResponse> responses = convertToOrderListResponse(orderPage.getContent());
+        return new PageImpl<>(responses, pageable, orderPage.getTotalElements());
+    }
+
+    /**
      * 获取用户订单列表
      *
      * @param userId 用户ID
@@ -160,6 +182,23 @@ public class OrderService {
 
         // 2. 转换为带用户信息的Response（跨库查询MySQL）
         return convertToOrderListResponse(orders);
+    }
+
+    /**
+     * 分页查询所有订单（包含用户信息）
+     *
+     * @param pageable 分页参数
+     * @return 订单列表Response分页结果
+     */
+    public Page<OrderListResponse> getAllOrderList(Pageable pageable) {
+        log.info("分页查询所有订单，page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+
+        // 1. 分页查询订单列表（PostgreSQL）
+        Page<Order> orderPage = orderRepository.findAllOrders(pageable);
+
+        // 2. 转换为带用户信息的Response（跨库查询MySQL）
+        List<OrderListResponse> responses = convertToOrderListResponse(orderPage.getContent());
+        return new PageImpl<>(responses, pageable, orderPage.getTotalElements());
     }
 
     /**

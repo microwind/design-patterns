@@ -9,6 +9,9 @@ import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessExce
 import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,6 +92,17 @@ public class UserService {
         return userRepository.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 分页查询所有用户
+     */
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        Page<User> userPage = userRepository.findAll(pageable);
+        List<UserResponse> responses = userPage.getContent().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return new PageImpl<>(responses, pageable, userPage.getTotalElements());
     }
 
     /**

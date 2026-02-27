@@ -1,6 +1,8 @@
 package com.github.microwind.springboot4ddd.domain.repository.order;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,9 +36,26 @@ public interface OrderRepository {
     List<Order> findByUserId(Long userId);
 
     /**
+     * 分页查询用户的订单
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 订单分页结果
+     */
+    Page<Order> findByUserId(Long userId, Pageable pageable);
+
+    /**
      * 查找所有订单
      */
     List<Order> findAllOrders();
+
+    /**
+     * 分页查询所有订单
+     *
+     * @param pageable 分页参数
+     * @return 订单分页结果
+     */
+    Page<Order> findAllOrders(Pageable pageable);
 
     /**
      * 删除订单
