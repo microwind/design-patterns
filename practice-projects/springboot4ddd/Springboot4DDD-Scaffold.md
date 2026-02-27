@@ -1,4 +1,4 @@
-# Springboot4DDD 脚手架使用指南
+# 一款开箱即用的Spring Boot 4 DDD工程脚手架
 
 > 一个开箱即用的 DDD（领域驱动设计）工程脚手架，基于 Spring Boot 4.0.1 和 Java 21
 

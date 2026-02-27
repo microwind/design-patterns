@@ -76,6 +76,43 @@ Modular design, easily add new features.
 
 ## 📁 Project Structure Details
 
+### DDD structure
+```text
+┌─────────────────────────────────────────────────┐
+│            Interfaces Layer                     │
+│  - REST Controllers                             │
+│  - Request/Response Objects (VO)                │
+│  - API router                                   │
+└─────────────────────────────────────────────────┘
+                      ↓
+┌─────────────────────────────────────────────────┐
+│          Application Layer                      │
+│  - Application Services                         │
+│  - DTO (Data Transfer Objects)                  │
+│  - Use case orchestration                       │
+└─────────────────────────────────────────────────┘
+                      ↓
+┌─────────────────────────────────────────────────┐
+│            Domain Layer                         │
+│  - Entities                                     │
+│  - Value Objects                                │
+│  - Aggregates                                   │
+│  - Domain Services                              │
+│  - Repository Interfaces                        │
+│  - Core business logic                          │
+└─────────────────────────────────────────────────┘
+                      ↓
+┌─────────────────────────────────────────────────┐
+│         Infrastructure Layer                    │
+│  - Repository Implementations                   │
+│  - Database Access                              │
+│  - External Services                            │
+│  - Configuration                                │
+│  - Utilities                                    │
+└─────────────────────────────────────────────────┘
+```
+
+### Director structure
 ```
 springboot4ddd/
 ├── src/main/java/com/github/microwind/springboot4ddd/

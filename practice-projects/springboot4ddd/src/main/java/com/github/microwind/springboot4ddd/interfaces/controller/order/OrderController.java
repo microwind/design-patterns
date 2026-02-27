@@ -72,8 +72,8 @@ public class OrderController {
      * 获取所有订单
      * 返回包含用户详情的订单信息（进行了跨库查询）
      */
-    @GetMapping("/list")
-    public ApiResponse<List<OrderListResponse>> listAllOrders() {
+    @GetMapping("")
+    public ApiResponse<List<OrderListResponse>> getAllOrders() {
         List<OrderListResponse> orders = orderService.getAllOrderList();
         return ApiResponse.success(orders);
     }
