@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PosterRecommendationResponse",
+  "type": "object",
+  "required": ["movieTitle", "recommendations", "sources"],
+  "properties": {
+    "movieTitle": {
+      "type": "string"
+    },
+    "recommendations": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["site", "url"],
+        "properties": {
+          "site": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        }
+      }
+    }
+  }
+}

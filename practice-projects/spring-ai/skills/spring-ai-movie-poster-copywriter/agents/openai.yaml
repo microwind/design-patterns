@@ -1,0 +1,4 @@
+interface:
+  display_name: "Movie Poster Copywriter"
+  short_description: "Generate concise Chinese movie poster one-liners"
+  default_prompt: "Implement a workflow that fetches movie context and generates validated 12-character recommendation lines."

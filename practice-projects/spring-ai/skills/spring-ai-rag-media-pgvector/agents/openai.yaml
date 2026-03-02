@@ -1,0 +1,4 @@
+interface:
+  display_name: "RAG Media PgVector"
+  short_description: "Build media-asset RAG with PostgreSQL pgvector and Spring AI"
+  default_prompt: "Implement RAG ingestion, indexing, retrieval, and answer grounding with Spring AI and pgvector."

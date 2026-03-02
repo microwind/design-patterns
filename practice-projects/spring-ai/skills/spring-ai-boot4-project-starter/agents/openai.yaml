@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring AI Boot4 Starter"
+  short_description: "Bootstrap Spring Boot 4.0.3 + Spring AI project scaffold"
+  default_prompt: "Create and configure a Spring Boot 4.0.3 project with Spring AI baseline architecture."
