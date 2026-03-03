@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+logging:
+  level:
+    com.jarry.springai: DEBUG

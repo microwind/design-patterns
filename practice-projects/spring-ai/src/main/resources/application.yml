@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: spring-ai-movie-ddd
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/movie_ai}
+    username: ${DB_USERNAME:movie_ai}
+    password: ${DB_PASSWORD:movie_ai}
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_CHAT_MODEL:gpt-4.1-mini}
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        schema-name: public
+        table-name: media_chunk
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  poster:
+    candidate-count: 8
+    min-final-count: 3
+    max-final-count: 5
+  rag:
+    top-k: 5
+    accept-score-threshold: 0.82
+    min-passing-hits: 3

@@ -1363,7 +1363,7 @@ By implementing SpringWind framework from scratch (~5000 lines of code), we have
 
 The best way to learn is through imitation. Only by completely hand-crafting a web framework can you thoroughly understand the core mechanisms of frameworks.
 
-SpringWind is not meant to replace Spring, but to **deeply understand Spring**. It implements Spring's core functionality with the most concise code (~3800 lines), making it understandable for every developer who wants to deeply understand framework principles.
+SpringWind is not meant to replace Spring, but to **deeply understand Spring**. It implements Spring's core functionality with the most concise code (~4000 lines), making it understandable for every developer who wants to deeply understand framework principles.
 
 **By learning SpringWind, you will master Spring framework core knowledge points:**
 

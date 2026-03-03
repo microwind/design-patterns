@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  level:
+    com.jarry.springai: INFO
