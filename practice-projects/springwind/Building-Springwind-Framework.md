@@ -75,7 +75,7 @@ SpringWind 参考了 Spring Framework 的设计思想，但做了大量简化：
 - 模板方法封装样板代码
 
 **不同点：**
-- **代码规模**：SpringWind 代码约 4000 行，Spring Framework 超过 50 万行
+- **代码规模**：SpringWind 代码约 5000 行，Spring Framework 超过 50 万行
 - **功能范围**：SpringWind 聚焦核心功能，Spring 提供全面的企业级特性
 - **复杂度**：SpringWind 去除了大量抽象层次，更易理解
 - **生产就绪**：Spring 经过大规模验证，SpringWind 主要用于学习
@@ -1615,7 +1615,7 @@ springwind/
 | 异常 | exception | 4个异常类 | ~110 | 框架异常定义 |
 | 工具 | util | ClassScanner、StringUtils | ~420 | 类扫描、字符串处理 |
 
-整个框架核心代码约 **4000 行**，但实现了Spring的核心功能，代码精简而功能完整。
+整个框架核心代码约 **5000 行**，但实现了Spring的核心功能，代码精简而功能完整。
 
 ---
 

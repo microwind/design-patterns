@@ -75,7 +75,7 @@ SpringWind references Spring Framework's design philosophy but makes extensive s
 - Template method pattern to encapsulate boilerplate code
 
 **Differences:**
-- **Code Scale**: SpringWind has about 4000 lines of code, Spring Framework has over 500,000 lines
+- **Code Scale**: SpringWind has about 5000 lines of code, Spring Framework has over 500,000 lines
 - **Feature Scope**: SpringWind focuses on core features, Spring provides comprehensive enterprise-level features
 - **Complexity**: SpringWind removes many abstraction layers, making it easier to understand
 - **Production Ready**: Spring has been extensively validated, SpringWind is mainly for learning
@@ -1023,7 +1023,7 @@ springwind/
     └── web-demo/                                # Web application example
 ```
 
-The entire framework core code is about **4000 lines**, implementing Spring's core functionality with concise yet complete code.
+The entire framework core code is about **5000 lines**, implementing Spring's core functionality with concise yet complete code.
 
 ---
 
