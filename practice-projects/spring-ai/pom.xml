@@ -10,10 +10,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.jarry</groupId>
-    <artifactId>spring-ai-movie-ddd</artifactId>
+    <groupId>com.github.microwind</groupId>
+    <artifactId>spring-ai-ddd</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>spring-ai-movie-ddd</name>
+    <name>spring-ai-ddd</name>
     <description>Spring AI movie poster + RAG project with DDD architecture</description>
 
     <properties>

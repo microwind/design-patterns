@@ -4,4 +4,4 @@ spring:
       on-profile: prod
 logging:
   level:
-    com.jarry.springai: INFO
+    com.microwind.springai: INFO

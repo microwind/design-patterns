@@ -1,7 +1,7 @@
-package com.jarry.springai.domain.rag;
+package com.microwind.springai.domain.rag;
 
-import com.jarry.springai.domain.rag.model.RetrievedChunk;
-import com.jarry.springai.domain.rag.policy.RetrievalAcceptancePolicy;
+import com.github.microwind.springai.domain.rag.model.RetrievedChunk;
+import com.github.microwind.springai.domain.rag.policy.RetrievalAcceptancePolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

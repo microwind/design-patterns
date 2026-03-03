@@ -1,6 +1,6 @@
-package com.jarry.springai.domain.poster;
+package com.microwind.springai.domain.poster;
 
-import com.jarry.springai.domain.poster.policy.SloganValidationPolicy;
+import com.github.microwind.springai.domain.poster.policy.SloganValidationPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
