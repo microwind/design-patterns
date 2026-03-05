@@ -93,6 +93,41 @@
 | **编程范式** | 定义了组织代码的基本方法和结构，反映了程序员思考问题的方式。 | 根据范式选择合适的编程风格和工具 | 根据项目需求和个人偏好选择 | 面向过程、面向对象、函数式 |
 
 
+## 实践项目 Practice Projects
+
+| 项目 | 语言 | 架构模式 | 项目特色 | 设计模式结合点 |
+|---|---|---|---|---|
+| **[springwind](./practice-projects/springwind)** | Java | 框架原理实现 | 从零实现IoC、DI、AOP、MVC、JDBC模板 | **单例模式**（Bean管理）、**工厂模式**（Bean创建）、**代理模式**（AOP实现）、**模板方法模式**（JdbcTemplate）、**策略模式**（多种代理策略） |
+| **[knife](./practice-projects/knife)** | Java | Spring Boot 3.x + DDD | 完整签名验证、企业工具化、分层架构 | **策略模式**（签名策略）、**建造者模式**（签名构建）、**适配器模式**（数据源适配）、**装饰器模式**（拦截器增强）、**观察者模式**（事件发布） |
+| **[springboot4ddd](./practice-projects/springboot4ddd)** | Java | Spring Boot 4 + DDD | Java 21、RocketMQ、多数据源、事件驱动 | **领域事件模式**（事件驱动）、**仓储模式**（数据访问）、**命令模式**（CQRS）、**外观模式**（统一API响应）、**责任链模式**（异常处理） |
+| **[gin-ddd](./practice-projects/gin-ddd)** | Go | Gin + DDD | 四层架构、领域事件、RocketMQ、严格DDD | **领域事件模式**（事件驱动架构）、**仓储模式**（数据持久化）、**策略模式**（事件处理）、**工厂模式**（事件创建）、**观察者模式**（事件订阅） |
+| **[gin-mvc](./practice-projects/gin-mvc)** | Go | Gin + MVC | Controller/Service/Repository分层、双数据库 | **MVC模式**（分层架构）、**适配器模式**（数据库适配）、**策略模式**（邮件服务）、**模板方法模式**（通用CRUD）、**单例模式**（配置管理） |
+
+### 实践项目特色说明
+
+#### 🏗️ **架构学习路径**
+- **框架原理** → **DDD实践** → **现代技术栈** → **Go语言实现**
+- 从底层原理到企业应用，循序渐进掌握设计模式
+
+#### 🎯 **设计模式深度结合**
+- **创建型模式**：Bean管理、对象创建、配置构建
+- **结构型模式**：分层架构、数据适配、代理增强
+- **行为型模式**：事件驱动、策略选择、责任处理
+
+#### 💡 **企业级特性**
+- **事件驱动架构**：RocketMQ集成，异步解耦
+- **多数据源支持**：MySQL + PostgreSQL，灵活配置
+- **安全机制**：完整签名验证，API安全保障
+- **监控健康**：统一健康检查，依赖状态监控
+
+#### 🔧 **技术栈覆盖**
+- **Java生态**：Spring Boot 3/4、JPA、Lombok、MapStruct
+- **Go生态**：Gin框架、GORM、标准库最佳实践
+- **中间件**：RocketMQ、Redis、数据库连接池
+- **工具链**：Maven、Go Modules、Docker支持
+
+---
+
 ### [查看全部源码](https://microwind.github.io/design-patterns/)
 
 ### 联系 Contact

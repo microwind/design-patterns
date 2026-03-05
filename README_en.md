@@ -83,6 +83,38 @@
 | **[MVVM (Model-View-ViewModel)](./mvx/mvvm)** | MVVM is a design pattern that separates the View from the state and business logic. By introducing a `ViewModel`, it decouples the View's display logic from the business logic. The ViewModel provides data to the View and responds to user actions. | Suitable for applications requiring reactive data binding, such as modern frontend frameworks (e.g., Angular, Vue.js) and desktop applications (e.g., WPF). | [Demo Example](./mvx/mvvm) |
 | **[DDD (Domain-Driven Design)](./domain-driven-design/)** | Domain-Driven Design is a software design approach that aims to separate business logic from implementation details, improving code maintainability and scalability. `DDD` structures the system into multiple layers, each with clear responsibilities and boundaries. | Suitable for complex business logic and highly evolving business requirements, particularly for large-scale enterprise applications such as financial systems, supply chain management, and healthcare management. | [Demo Example](./domain-driven-design/) |
 
+### Practice Projects
+
+| Project | Language | Architecture Pattern | Project Features | Design Pattern Integration |
+|---|---|---|---|---|
+| **[springwind](./practice-projects/springwind)** | Java | Framework Principles Implementation | Implement IoC, DI, AOP, MVC, JDBC Template from scratch | **Singleton Pattern** (Bean management), **Factory Pattern** (Bean creation), **Proxy Pattern** (AOP implementation), **Template Method Pattern** (JdbcTemplate), **Strategy Pattern** (multiple proxy strategies) |
+| **[knife](./practice-projects/knife)** | Java | Spring Boot 3.x + DDD | Complete signature verification, enterprise tooling, layered architecture | **Strategy Pattern** (signature strategies), **Builder Pattern** (signature construction), **Adapter Pattern** (data source adaptation), **Decorator Pattern** (interceptor enhancement), **Observer Pattern** (event publishing) |
+| **[springboot4ddd](./practice-projects/springboot4ddd)** | Java | Spring Boot 4 + DDD | Java 21, RocketMQ, multi-datasource, event-driven | **Domain Event Pattern** (event-driven), **Repository Pattern** (data access), **Command Pattern** (CQRS), **Facade Pattern** (unified API response), **Chain of Responsibility Pattern** (exception handling) |
+| **[gin-ddd](./practice-projects/gin-ddd)** | Go | Gin + DDD | Four-layer architecture, domain events, RocketMQ, strict DDD | **Domain Event Pattern** (event-driven architecture), **Repository Pattern** (data persistence), **Strategy Pattern** (event handling), **Factory Pattern** (event creation), **Observer Pattern** (event subscription) |
+| **[gin-mvc](./practice-projects/gin-mvc)** | Go | Gin + MVC | Controller/Service/Repository layered, dual databases | **MVC Pattern** (layered architecture), **Adapter Pattern** (database adaptation), **Strategy Pattern** (email service), **Template Method Pattern** (generic CRUD), **Singleton Pattern** (configuration management) |
+
+### Practice Projects Features
+
+#### 🏗️ **Architecture Learning Path**
+- **Framework Principles** → **DDD Practice** → **Modern Tech Stack** → **Go Implementation**
+- Master design patterns progressively from underlying principles to enterprise applications
+
+#### 🎯 **Deep Design Pattern Integration**
+- **Creational Patterns**: Bean management, object creation, configuration building
+- **Structural Patterns**: Layered architecture, data adaptation, proxy enhancement
+- **Behavioral Patterns**: Event-driven, strategy selection, responsibility handling
+
+#### 💡 **Enterprise-Grade Features**
+- **Event-Driven Architecture**: RocketMQ integration, asynchronous decoupling
+- **Multi-Datasource Support**: MySQL + PostgreSQL, flexible configuration
+- **Security Mechanisms**: Complete signature verification, API security protection
+- **Health Monitoring**: Unified health checks, dependency status monitoring
+
+#### 🔧 **Technology Stack Coverage**
+- **Java Ecosystem**: Spring Boot 3/4, JPA, Lombok, MapStruct
+- **Go Ecosystem**: Gin framework, GORM, standard library best practices
+- **Middleware**: RocketMQ, Redis, database connection pools
+- **Toolchain**: Maven, Go Modules, Docker support
 
 
 ### [View All Source Code](https://microwind.github.io/design-patterns/)
