@@ -130,10 +130,18 @@
 
 ---
 
-### [查看全部源码](https://microwind.github.io/design-patterns/)
+### 相关链接：AI时代程序员成长体系
+- [《AI时代，人人都是Agent工程师》](https://github.com/microwind/algorithms/blob/main/start-here/AI-Era-Programmers-as-Agent-Engineers.md)
+- ai-prompt - AI编程提示词库：[https://github.com/microwind/ai-prompt](https://github.com/microwind/ai-prompt)
+- ai-skills - AI编程Skill库：[https://github.com/microwind/ai-skills](https://github.com/microwind/ai-skills)
+- algorithms - 算法思想与数据结构：[https://github.com/microwind/algorithms](https://github.com/microwind/algorithms)
+- design-patterns - 设计模式与编程范式：[https://github.com/microwind/design-patterns](https://github.com/microwind/design-patterns)
 
 ### 联系 Contact
-欢迎共建 Welcome to join
-- Wechat:  **springbuild**
+**我是Jarry 李春平** 欢迎共建 Welcome to join!
+- 📧 mail: `jarryli@gmail.com`  or `lichunping@buaa.edu.cn`
+- 💬 wechat: `springbuild`
 - QQ: **12263539**
-- Mail: lichunping@buaa.edu.cn
+- 🌟 如果这个项目对你有帮助，请给个 Star 支持一下！
+
+
