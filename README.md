@@ -138,7 +138,10 @@
 - design-patterns - 设计模式与编程范式：[https://github.com/microwind/design-patterns](https://github.com/microwind/design-patterns)
 
 ### 联系 Contact
-**我是Jarry 李春平** 欢迎共建 Welcome to join!
+
+**我是Jarry 李春平, 从业20多年的互联网工程师。**
+
+欢迎共建 Welcome to join!
 - 📧 mail: `jarryli@gmail.com`  or `lichunping@buaa.edu.cn`
 - 💬 wechat: `springbuild`
 - QQ: **12263539**

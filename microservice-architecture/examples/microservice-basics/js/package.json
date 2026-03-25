@@ -1,0 +1,9 @@
+{
+  "name": "microservice-basics-js",
+  "version": "1.0.0",
+  "main": "test/test.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "type": "module"
+}
