@@ -1,4 +1,6 @@
-# 设计模式Design Patterns与编程范式Programming Paradigms [English](./README_en.md)
+# AI编程：设计模式与编程思想知识库 [English](./README_en.md)
+
+> 设计模式Design Patterns与编程范式Programming Paradigms大全。**AI时代，助你快速掌握设计模式与编程思想。**
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Last Updated](https://img.shields.io/github/last-commit/microwind/design-patterns) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![GitHub stars](https://img.shields.io/github/stars/microwind/design-patterns.svg?style=social&label=Star)](https://github.com/microwind/design-patterns) [![GitHub forks](https://img.shields.io/github/forks/microwind/design-patterns.svg?style=social&label=Fork)](https://github.com/microwind/design-patterns/fork)
 
@@ -139,7 +141,7 @@
 
 ### 联系 Contact
 
-**我是Jarry 李春平, 从业20多年的互联网工程师。**
+**我是Jarry 李春平**
 
 欢迎共建 Welcome to join!
 - 📧 mail: `jarryli@gmail.com`  or `lichunping@buaa.edu.cn`
