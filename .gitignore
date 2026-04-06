@@ -4,7 +4,10 @@ a.out
 *.class
 target/
 *.pyc
+
+# IDE files
 .idea
+.vscode/
 
 # Log file
 *.log

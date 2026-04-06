@@ -1,0 +1,86 @@
+export class OperationTimeoutError extends Error {}
+export class CircuitOpenError extends Error {}
+
+export type Result = {
+  value?: string;
+  error?: Error;
+  delayMs?: number;
+};
+
+export class ScriptedDependency {
+  private index = 0;
+
+  constructor(private readonly results: Result[]) {}
+
+  async call(): Promise<string> {
+    if (this.results.length === 0) {
+      throw new Error("no scripted result available");
+    }
+    const index = this.index < this.results.length ? this.index : this.results.length - 1;
+    const result = this.results[index];
+    this.index++;
+
+    if (result.delayMs && result.delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, result.delayMs));
+    }
+    if (result.error) {
+      throw result.error;
+    }
+    return result.value ?? "";
+  }
+}
+
+export async function callWithTimeout(timeoutMs: number, operation: () => Promise<string>): Promise<string> {
+  const timeoutPromise = new Promise<string>((_, reject) => {
+    setTimeout(() => reject(new OperationTimeoutError("operation timed out")), timeoutMs);
+  });
+  return Promise.race([operation(), timeoutPromise]);
+}
+
+export async function retry(
+  maxAttempts: number,
+  operation: () => Promise<string>
+): Promise<{ value: string; attempts: number }> {
+  const attemptsLimit = Math.max(1, maxAttempts);
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= attemptsLimit; attempt++) {
+    try {
+      return { value: await operation(), attempts: attempt };
+    } catch (error) {
+      lastError = error as Error;
+    }
+  }
+
+  throw lastError;
+}
+
+export class CircuitBreaker {
+  private consecutiveFailures = 0;
+  private open = false;
+
+  constructor(private readonly failureThreshold: number) {}
+
+  async execute(operation: () => Promise<string>, fallback: string): Promise<string> {
+    if (this.open) {
+      throw new CircuitOpenError(fallback);
+    }
+
+    try {
+      const value = await operation();
+      this.consecutiveFailures = 0;
+      return value;
+    } catch {
+      this.consecutiveFailures++;
+      if (this.consecutiveFailures >= Math.max(1, this.failureThreshold)) {
+        this.open = true;
+      }
+      return fallback;
+    }
+  }
+
+  reset(): void {
+    this.consecutiveFailures = 0;
+    this.open = false;
+  }
+}

@@ -1,12 +1,16 @@
-# AI编程：设计模式与编程思想知识库 [English](./README_en.md)
+# AI编程：设计模式与编程思想知识库大全 [English](./README_en.md)
 
-> 设计模式Design Patterns与编程范式Programming Paradigms大全。**AI时代，助你快速掌握设计模式与编程思想。**
+> 设计模式Design Patterns与编程范式Programming Paradigms大全。
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Last Updated](https://img.shields.io/github/last-commit/microwind/design-patterns) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![GitHub stars](https://img.shields.io/github/stars/microwind/design-patterns.svg?style=social&label=Star)](https://github.com/microwind/design-patterns) [![GitHub forks](https://img.shields.io/github/forks/microwind/design-patterns.svg?style=social&label=Fork)](https://github.com/microwind/design-patterns/fork)
 
+
+AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。**充分理解设计模式和架构思想，将有助你更好地设计系统和指导AI。**
+## 主要内容
 - 经典设计模式与编程范式等详解，结合实际场景，充分注释说明。
 - 不同语言实现语言，包括`C` `Java` `JavaScript` `Python` `Go`等，体现不同语言特性。
-- 不断补充和完善，打造设计模式与编程思想的资源库。
+- 不断补充和完善，打造设计模式与编程思想的核心资源库。
+
 
 ## 设计模式结构图 Design-patterns structure
 
@@ -68,7 +72,7 @@
 
 | **编程范式** | **描述** | **应用场景** |
 | --- | --- | --- |
-| **[面向过程编程 (Procedural Programming, PP)](./programming-paradigm/procedural-programming)** | 强调按步骤执行程序，关注程序流程和每个操作步骤，通常通过函数或过程来实现。 | 适用于小型项目或功能明确的任务，常见于脚本编程或系统工具开发。 |
+| **[面向过程编程 (Procedural Programming, PP)](./programming-paradigm/procedural-programming)** | 按步骤执行程序，关注程序流程和每个操作步骤，通常通过函数或过程来实现。 | 适用于小型项目或功能明确的任务，常见于脚本编程或系统工具开发。 |
 | **[面向对象编程 (Object-Oriented Programming, OOP)](./programming-paradigm/object-oriented-programming)** | 通过类和对象来组织程序，强调封装、继承、组合和多态性，关注“谁来做”而非“怎么做”。 | 适用于大型复杂项目，特别是需要良好的模块化和可扩展性时。 |
 | **[封装 (Encapsulation)](./programming-paradigm/object-oriented-programming/encapsulation/)** | 将数据和操作数据的函数包装在一起，控制外部访问方式，保障数据安全。 | 用于保证数据的完整性和安全性，通常在复杂对象建模时使用。 |
 | **[继承 (Inheritance)](./programming-paradigm/object-oriented-programming/inheritance/)** | 通过父类与子类关系，子类继承父类的属性和方法，从而实现代码复用。 | 用于需要构建共享代码和功能层次结构的应用，如继承多个不同类型的动物类。 |
@@ -87,14 +91,6 @@
 | **[MVP (Model-View-Presenter)](./mvx/mvp)** | MVP模式是MVC的变种，其中`控制器（Controller）`被替换为`展示者（Presenter）`。Presenter负责将数据从模型传递给视图，视图只负责显示内容，不直接与模型交互。 | 适用于需要更精细控制视图展示和与用户交互的应用，特别是当视图需要大量更新或变化时。 | [演示例子](./mvx/mvp) |
 | **[MVVM (Model-View-ViewModel)](./mvx/mvvm)** | MVVM是一种设计模式，它将视图与视图的状态和业务逻辑分开。通过引入`视图模型（ViewModel）`，将视图的显示逻辑与业务逻辑分离，ViewModel负责为视图提供数据并响应用户操作。 | 适用于需要响应式数据绑定的应用，例如现代的前端开发框架（如Angular、Vue.js）和桌面应用程序（如WPF）。 | [演示例子](./mvx/mvvm) |
 | **[DDD (Domain-Driven Design)](./domain-driven-design/)** | 领域驱动设计是一种软件设计方法，旨在通过将业务逻辑与实现细节分离，提高代码的可维护性和可扩展性。`DDD`将系统划分为多个层次，每个层次都有明确的职责和边界。| 适用于复杂业务逻辑和高度演化的业务需求，适用于大型企业级应用，如金融系统、供应链管理、医疗管理等。 | [演示例子](./domain-driven-design/) |
-
-
-## 设计模式、分层架构、编程范式区别
-| 特性/概念 | 目的 | 实现方式 | 适用场景 | 示例 |
-| --- | --- | --- | --- | --- |
-| **设计模式** | 提供解决特定问题的最佳设计实践，让代码组织合理有序。 | 通过模板、类或接口定义具体实现 | 当面临常见的设计问题时 | 单例模式、工厂模式、观察者模式 |
-| **分层架构** | 将应用程序划分为多个独立但相互协作的层次或模块，每一层负责不同的功能。 | 使用不同层次或模块来构建系统 | 在构建大型、复杂的系统时 | MVC、MVP、MVVM、DDD |
-| **编程范式** | 定义了组织代码的基本方法和结构，反映了程序员思考问题的方式。 | 根据范式选择合适的编程风格和工具 | 根据项目需求和个人偏好选择 | 面向过程、面向对象、函数式 |
 
 
 ## 实践项目 Practice Projects
@@ -134,6 +130,7 @@
 
 ### 相关链接：AI时代程序员成长体系
 - [《AI时代，人人都是Agent工程师》](https://github.com/microwind/algorithms/blob/main/start-here/AI-Era-Programmers-as-Agent-Engineers.md)
+- [《AI时代，人人都是系统设计工程师》](https://github.com/microwind/algorithms/blob/main/start-here/AI-Era-Programmers-as-System-DesignersEngineers.md)
 - ai-prompt - AI编程提示词库：[https://github.com/microwind/ai-prompt](https://github.com/microwind/ai-prompt)
 - ai-skills - AI编程Skill库：[https://github.com/microwind/ai-skills](https://github.com/microwind/ai-skills)
 - algorithms - 算法思想与数据结构：[https://github.com/microwind/algorithms](https://github.com/microwind/algorithms)
@@ -141,12 +138,14 @@
 
 ### 联系 Contact
 
+AI时代，我们一起学习设计模式与编程思想。
+
 **我是Jarry 李春平**
 
 欢迎共建 Welcome to join!
+
 - 📧 mail: `jarryli@gmail.com`  or `lichunping@buaa.edu.cn`
 - 💬 wechat: `springbuild`
 - QQ: **12263539**
 - 🌟 如果这个项目对你有帮助，请给个 Star 支持一下！
-
 

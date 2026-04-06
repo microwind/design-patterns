@@ -1,0 +1,5 @@
+{
+  "name": "circuit-breaker-js",
+  "version": "1.0.0",
+  "type": "module"
+}
