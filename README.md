@@ -1,11 +1,11 @@
 # AI编程：设计模式与编程思想知识库大全 [English](./README_en.md)
 
-> 设计模式Design Patterns与编程范式Programming Paradigms大全。
+> 设计模式Design Patterns与编程范式Programming Paradigms大全。 **充分理解设计模式和架构思想，将有助你更好地设计系统和指导AI。**
+
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Last Updated](https://img.shields.io/github/last-commit/microwind/design-patterns) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![GitHub stars](https://img.shields.io/github/stars/microwind/design-patterns.svg?style=social&label=Star)](https://github.com/microwind/design-patterns) [![GitHub forks](https://img.shields.io/github/forks/microwind/design-patterns.svg?style=social&label=Fork)](https://github.com/microwind/design-patterns/fork)
 
-AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。**充分理解设计模式和架构思想，将有助你更好地设计系统和指导AI。**
-
+AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。只有在深入理解编程核心（数据结构 + 算法 + 设计模式 + 系统架构）的基础上，**人们才能真正驾驭AI，并让AI产生更高的效率与价值。**
 ## 仓库特点
 - 经典设计模式与编程范式、分层架构等详解，充分注释说明，助您彻底理解系统架构与设计思想。
 - 多种语言实现，包括`C` `Java` `JavaScript` `Python` `Go`、`Rust`等，体现不同语言特性，让你理解不同语言的差异。
