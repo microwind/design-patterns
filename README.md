@@ -4,13 +4,13 @@
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Last Updated](https://img.shields.io/github/last-commit/microwind/design-patterns) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![GitHub stars](https://img.shields.io/github/stars/microwind/design-patterns.svg?style=social&label=Star)](https://github.com/microwind/design-patterns) [![GitHub forks](https://img.shields.io/github/forks/microwind/design-patterns.svg?style=social&label=Fork)](https://github.com/microwind/design-patterns/fork)
 
-
 AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。**充分理解设计模式和架构思想，将有助你更好地设计系统和指导AI。**
-## 主要内容
-- 经典设计模式与编程范式等详解，结合实际场景，充分注释说明。
-- 不同语言实现语言，包括`C` `Java` `JavaScript` `Python` `Go`等，体现不同语言特性。
-- 不断补充和完善，打造设计模式与编程思想的核心资源库。
 
+## 仓库特点
+- 经典设计模式与编程范式、分层架构等详解，充分注释说明，助您彻底理解系统架构与设计思想。
+- 多种语言实现，包括`C` `Java` `JavaScript` `Python` `Go`、`Rust`等，体现不同语言特性，让你理解不同语言的差异。
+- 结合实际场景，合理运用设计模式与架构思想，提供可参考的实践示例，让您在实际项目中运用自如。
+- 不断补充和完善，打造面向工程实践的设计模式与编程思想核心资源库。与时俱进，不断打磨。
 
 ## 设计模式结构图 Design-patterns structure
 
