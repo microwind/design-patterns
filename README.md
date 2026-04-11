@@ -5,7 +5,7 @@
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Last Updated](https://img.shields.io/github/last-commit/microwind/design-patterns) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) [![GitHub stars](https://img.shields.io/github/stars/microwind/design-patterns.svg?style=social&label=Star)](https://github.com/microwind/design-patterns) [![GitHub forks](https://img.shields.io/github/forks/microwind/design-patterns.svg?style=social&label=Fork)](https://github.com/microwind/design-patterns/fork)
 
-AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。只有在深入理解编程核心（`算法`+`数据结构`、`设计模式`+`系统架构`），程序员才能在AI时代完成转型。 **充分理解设计模式和架构思想，将有助你提升系统化思考与全局认知，以便更好地设计系统和指导AI。**
+AI时代已经到来。AI可以替代人工编码工作，但难以替代人的认知与思考。只有在深入理解编程核心（`算法`+`数据结构`、`设计模式`+`系统架构`），程序员才能在AI时代完成转型。 **充分理解设计模式和架构思想，将有助你更好地设计系统和指导AI。**
 
 **本仓库旨在帮助程序员和架构师构建底层能力、打牢基础，从“编码执行者”转型为“驱动AI的决策者”，从而让AI发挥更高的效率与价值。** 
 
