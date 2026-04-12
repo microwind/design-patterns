@@ -1,12 +1,30 @@
-# distributed-tracing (js)
+# distributed-tracing (JavaScript)
 
-当前目录演示一个最小 trace 传播流程：
+## 模块说明
 
-- gateway 生成 traceId
-- order-service 创建子 span
-- inventory-service 继续继承 traceId
+分布式链路追踪的 JavaScript (ESM) 实现。用普通对象表示追踪上下文。
 
-## 运行方式
+## 设计模式应用
+
+- **责任链模式**：上下文通过对象参数沿调用链传递。
+
+## 代码结构
+
+```
+src/
+  tracing.js        — gatewayEntry / childSpan 函数
+test/
+  test_tracing.js   — 验证 traceId 传播和 parentSpanId 关联
+```
+
+## 与实际工程对比
+
+| 维度 | 本示例 | OpenTelemetry JS |
+|---|---|---|
+| 传播 | 对象参数 | Context API + HTTP Header |
+| 埋点 | 手动 | auto-instrumentation |
+
+## 测试验证
 
 ```bash
 cd microservice-architecture/distributed-tracing/js

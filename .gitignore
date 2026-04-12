@@ -1,9 +1,12 @@
 # Compiled class file
 a.out
+*.out
 *.o
 *.class
 target/
 *.pyc
+
+**/node_modules/
 
 # IDE files
 .idea

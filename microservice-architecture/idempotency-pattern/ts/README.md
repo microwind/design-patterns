@@ -1,12 +1,33 @@
-# idempotency-pattern (ts)
+# idempotency-pattern (TypeScript)
 
-当前目录演示一个最小幂等服务：
+## 模块说明
 
-- 首次请求创建订单
-- 相同幂等键重复请求返回缓存结果
-- 相同幂等键但不同参数返回冲突
+幂等模式的 TypeScript 实现。通过 OrderResponse 和 StoredResult 类型提供编译期安全。
 
-## 运行方式
+## 设计模式应用
+
+- **备忘录模式**：Record 存储首次执行结果，类型安全。
+- **代理模式**：幂等检查包裹在业务逻辑之外。
+
+## 代码结构
+
+```
+src/
+  idempotency.ts        — OrderResponse 类型 + StoredResult 类型 + IdempotencyOrderService
+test/
+  test_idempotency.ts   — 验证三条路径
+dist/                   — tsc 编译输出
+```
+
+## 与实际工程对比
+
+| 维度 | 本示例 | NestJS + Redis |
+|---|---|---|
+| 类型 | TypeScript type | 运行时校验 |
+| 存储 | 内存 Record | Redis + ioredis |
+| 中间件 | 无 | NestJS 拦截器 |
+
+## 测试验证
 
 ```bash
 cd microservice-architecture/idempotency-pattern/ts
