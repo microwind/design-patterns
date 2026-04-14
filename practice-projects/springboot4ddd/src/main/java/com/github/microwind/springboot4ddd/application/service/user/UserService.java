@@ -5,7 +5,8 @@ import com.github.microwind.springboot4ddd.interfaces.vo.user.UpdateUserRequest;
 import com.github.microwind.springboot4ddd.interfaces.vo.user.UserResponse;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
-import com.github.microwind.springboot4ddd.infrastructure.cache.CachePenetrationService;
+import com.github.microwind.springboot4ddd.infrastructure.cache.SimpleCacheService;
+import com.github.microwind.springboot4ddd.infrastructure.config.RedisConfig;
 import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;
 import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +37,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final CachePenetrationService cachePenetrationService;
+    private final SimpleCacheService simpleCacheService;
 
     /**
      * 创建用户
@@ -73,22 +75,32 @@ public class UserService {
      * 根据ID获取用户
      */
     public UserResponse getUserById(Long id) {
-        return cachePenetrationService.getUserById(id, () -> {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-            return toResponse(user);
-        });
+        return simpleCacheService.getOrSet(
+            RedisConfig.USER_CACHE_PREFIX + id,
+            UserResponse.class,
+            Duration.ofSeconds(RedisConfig.USER_CACHE_TTL),
+            () -> {
+                User user = userRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+                return toResponse(user);
+            }
+        );
     }
 
     /**
      * 根据用户名获取用户
      */
     public UserResponse getUserByName(String name) {
-        return cachePenetrationService.getUserByName(name, () -> {
-            User user = userRepository.findByName(name)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "name", name));
-            return toResponse(user);
-        });
+        return simpleCacheService.getOrSet(
+            RedisConfig.USER_CACHE_PREFIX + "name:" + name,
+            UserResponse.class,
+            Duration.ofSeconds(RedisConfig.USER_CACHE_TTL),
+            () -> {
+                User user = userRepository.findByName(name)
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "name", name));
+                return toResponse(user);
+            }
+        );
     }
 
     /**
@@ -144,8 +156,8 @@ public class UserService {
         User updatedUser = userRepository.update(user);
         log.info("User updated: id={}, name={}", updatedUser.getId(), updatedUser.getName());
 
-        // Evict cache for the updated user
-        cachePenetrationService.evictUserCache(updatedUser.getId());
+        // 清除缓存
+        simpleCacheService.delete(RedisConfig.USER_CACHE_PREFIX + updatedUser.getId());
 
         return toResponse(updatedUser);
     }
@@ -161,9 +173,9 @@ public class UserService {
 
         userRepository.deleteById(id);
         log.info("User deleted: id={}", id);
-        
-        // Evict cache for the deleted user
-        cachePenetrationService.evictUserCache(id);
+
+        // 清除缓存
+        simpleCacheService.delete(RedisConfig.USER_CACHE_PREFIX + id);
     }
 
     /**
