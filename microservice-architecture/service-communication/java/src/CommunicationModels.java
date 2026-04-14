@@ -10,6 +10,28 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * CommunicationModels - 服务间通信模式的 Java 实现
+ *
+ * 本模块演示微服务架构中两种核心通信方式：同步通信（请求-响应）和异步通信（事件驱动）。
+ *
+ * 【设计模式】
+ *   - 外观模式（Facade Pattern）：SynchronousOrderService 将 InventoryService 和
+ *     PaymentService 的调用封装为统一的 placeOrder 接口，调用方无需了解内部编排逻辑。
+ *   - 观察者模式（Observer Pattern）：EventBus 实现发布-订阅机制，AsyncOrderService
+ *     发布事件，下游服务通过 subscribe 注册处理器，实现生产者与消费者解耦。
+ *   - 中介者模式（Mediator Pattern）：EventBus 充当中介者，协调多个服务之间的交互，
+ *     各服务不直接通信，而是通过 EventBus 间接协作。
+ *
+ * 【架构思想】
+ *   同步通信简单直观但耦合度高，调用链中任一服务故障会级联影响调用方；
+ *   异步通信通过事件总线解耦，服务间无直接依赖，支持独立扩展和故障隔离。
+ *
+ * 【开源对比】
+ *   - 同步通信：Spring Cloud OpenFeign（声明式 HTTP 客户端）、gRPC（高性能 RPC 框架）
+ *   - 异步通信：Spring Cloud Stream + Kafka/RabbitMQ、Apache Pulsar
+ *   本示例简化了网络传输、序列化、错误处理等工程细节，聚焦于同步/异步两种编排模式的对比。
+ */
 public class CommunicationModels {
 
     public static class Order {

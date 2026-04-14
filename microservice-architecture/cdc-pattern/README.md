@@ -55,6 +55,74 @@ Connector 扫描未处理变更
 
 > **整体思路一致**：变更捕获 + 事件发布 + 已处理标记是所有 CDC 实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 观察者模式 —— Broker 接收变更事件并分发
+public static class DataStore {
+    public void createOrder(String orderId) { ... }
+    // 代理模式 —— Connector 扫描未处理变更并发布
+    public void relayChanges(Broker broker) { ... }
+}
+
+public static class Broker {
+    public void publish(String changeId) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+type DataStore struct { ... }
+func (s *DataStore) CreateOrder(orderID string) { ... }
+func (s *DataStore) RelayChanges(broker *Broker) { ... }
+
+type Broker struct { ... }
+func (b *Broker) Publish(changeID string) { ... }
+```
+
+## Python 核心实现
+
+```python
+class DataStore:
+    def create_order(self, order_id: str) -> None: ...
+    def relay_changes(self, broker: "Broker") -> None: ...
+
+class Broker:
+    def publish(self, change_id: str) -> None: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class DataStore {
+  createOrder(orderId) { ... }
+  relayChanges(broker) { ... }
+}
+export class Broker {
+  publish(changeId) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class DataStore {
+  createOrder(orderId: string): void { ... }
+  relayChanges(broker: Broker): void { ... }
+}
+```
+
+## C 核心实现
+
+```c
+void data_store_create_order(DataStore *store, const char *order_id);
+void relay_changes(DataStore *store, Broker *broker);
+void broker_publish(Broker *broker, const char *change_id);
+```
+
 # 测试验证
 
 ```bash

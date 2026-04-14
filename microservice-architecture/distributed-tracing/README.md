@@ -52,6 +52,80 @@
 
 > **整体思路一致**：traceId 串联 + spanId/parentSpanId 父子关系是所有实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 责任链模式 —— 上下文沿调用链传播
+public static class TraceContext {
+    private final String traceId;     // 全局唯一追踪 ID
+    private final String spanId;      // 当前节点 ID
+    private final String parentSpanId; // 父节点 ID
+    private final String serviceName;
+}
+
+// 入口创建 root span
+public static TraceContext gatewayEntry(String traceId) { ... }
+// 子 span 继承 traceId，设置 parentSpanId
+public static TraceContext childSpan(TraceContext parent, String serviceName, String spanId) { ... }
+```
+
+## Go 核心实现
+
+```go
+type TraceContext struct {
+    TraceID      string
+    SpanID       string
+    ParentSpanID string
+    ServiceName  string
+}
+func GatewayEntry(traceID string) TraceContext { ... }
+func ChildSpan(parent TraceContext, serviceName, spanID string) TraceContext { ... }
+```
+
+## Python 核心实现
+
+```python
+@dataclass
+class TraceContext:
+    trace_id: str
+    span_id: str
+    parent_span_id: str
+    service_name: str
+
+def gateway_entry(trace_id: str) -> TraceContext: ...
+def child_span(parent: TraceContext, service_name: str, span_id: str) -> TraceContext: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export function gatewayEntry(traceId) { ... }
+export function childSpan(parent, serviceName, spanId) { ... }
+```
+
+## TypeScript 核心实现
+
+```typescript
+export function gatewayEntry(traceId: string): TraceContext { ... }
+export function childSpan(parent: TraceContext, serviceName: string, spanId: string): TraceContext { ... }
+```
+
+## C 核心实现
+
+```c
+typedef struct {
+    char trace_id[64];
+    char span_id[64];
+    char parent_span_id[64];
+    char service_name[64];
+} TraceContext;
+
+TraceContext gateway_entry(const char *trace_id);
+TraceContext child_span(const TraceContext *parent, const char *service_name, const char *span_id);
+```
+
 # 测试验证
 
 ```bash

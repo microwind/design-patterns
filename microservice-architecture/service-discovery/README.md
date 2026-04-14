@@ -53,6 +53,76 @@
 
 > **整体思路一致**：注册中心 + 实例注册/摘除 + 客户端发现是所有实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 注册中心 —— 中介者模式：服务间通过注册中心发现彼此
+public class ServiceRegistry {
+    public void register(String serviceName, ServiceInstance instance) { ... }
+    public boolean deregister(String serviceName, String instanceId) { ... }
+    public List<ServiceInstance> instances(String serviceName) { ... }
+}
+
+// 客户端发现 —— 迭代器模式：轮询选择实例
+public static class RoundRobinDiscoverer {
+    public ServiceInstance next(String serviceName) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+type ServiceRegistry struct { ... }
+func (r *ServiceRegistry) Register(serviceName string, instance ServiceInstance) { ... }
+func (r *ServiceRegistry) Deregister(serviceName, instanceID string) bool { ... }
+func (r *ServiceRegistry) Instances(serviceName string) []ServiceInstance { ... }
+
+type RoundRobinDiscoverer struct { ... }
+func (d *RoundRobinDiscoverer) Next(serviceName string) *ServiceInstance { ... }
+```
+
+## Python 核心实现
+
+```python
+class ServiceRegistry:
+    def register(self, service_name: str, instance: ServiceInstance) -> None: ...
+    def deregister(self, service_name: str, instance_id: str) -> bool: ...
+    def instances(self, service_name: str) -> List[ServiceInstance]: ...
+
+class RoundRobinDiscoverer:
+    def next(self, service_name: str) -> Optional[ServiceInstance]: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class ServiceRegistry {
+  register(serviceName, instance) { ... }
+  deregister(serviceName, instanceId) { ... }
+  instances(serviceName) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class ServiceRegistry {
+  register(serviceName: string, instance: ServiceInstance): void { ... }
+  deregister(serviceName: string, instanceId: string): boolean { ... }
+  instances(serviceName: string): ServiceInstance[] { ... }
+}
+```
+
+## C 核心实现
+
+```c
+void registry_register(ServiceRegistry *reg, const char *service, const ServiceInstance *inst);
+int registry_deregister(ServiceRegistry *reg, const char *service, const char *instance_id);
+int registry_instances(ServiceRegistry *reg, const char *service, ServiceInstance *out, int max);
+```
+
 # 测试验证
 
 ```bash

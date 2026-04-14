@@ -51,6 +51,65 @@
 
 > **整体思路一致**：循环调用 + 最大次数限制 + 结果判断是所有实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 模板方法 —— retry 定义循环骨架，操作由调用方提供
+public static RetryResult retry(int maxAttempts, BooleanSupplier operation) {
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (operation.getAsBoolean()) return new RetryResult(true, attempt);
+    }
+    return new RetryResult(false, maxAttempts);
+}
+
+// 策略模式 —— ScriptedOperation 模拟可编排的操作策略
+public static class ScriptedOperation {
+    public boolean call() { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+func Retry(maxAttempts int, operation func() bool) RetryResult { ... }
+type ScriptedOperation struct { ... }
+func (o *ScriptedOperation) Call() bool { ... }
+```
+
+## Python 核心实现
+
+```python
+def retry(max_attempts: int, operation: Callable[[], bool]) -> RetryResult: ...
+class ScriptedOperation:
+    def call(self) -> bool: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export function retry(maxAttempts, operation) { ... }
+export class ScriptedOperation {
+  call() { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export function retry(maxAttempts: number, operation: () => boolean): RetryResult { ... }
+export class ScriptedOperation {
+  call(): boolean { ... }
+}
+```
+
+## C 核心实现
+
+```c
+RetryResult retry(int max_attempts, int (*operation)(void *), void *ctx);
+```
+
 # 测试验证
 
 ```bash

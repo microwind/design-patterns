@@ -7,6 +7,7 @@ import com.github.microwind.springboot4ddd.domain.model.order.Order;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
+import com.github.microwind.springboot4ddd.infrastructure.cache.CachePenetrationService;
 import com.github.microwind.springboot4ddd.infrastructure.messaging.order.producer.OrderEventProducer;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.CreateOrderRequest;
 import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
@@ -41,6 +42,7 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;  // 注入用户仓储，用于跨库查询
     private final OrderEventProducer orderEventProducer;  // 注入订单事件生产者
+    private final CachePenetrationService cachePenetrationService;
 
     /**
      * 创建订单
@@ -75,12 +77,13 @@ public class OrderService {
      * @return 订单详情Response
      */
     public OrderResponse getOrderDetail(Long id) {
-        log.info("查询订单详情，id={}", id);
+        log.info("Querying order detail, id={}", id);
 
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在，id=" + id));
-
-        return orderMapper.toOrderResponse(order);
+        return cachePenetrationService.getOrderById(id, () -> {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found, id=" + id));
+            return orderMapper.toOrderResponse(order);
+        });
     }
 
     /**
@@ -93,10 +96,11 @@ public class OrderService {
     public OrderDTO getOrder(Long id) {
         log.info("查询订单详情，id={}", id);
 
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在，id=" + id));
-
-        return orderMapper.toDTO(order);
+        return cachePenetrationService.getOrderById(id, () -> {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("订单不存在，id=" + id));
+            return orderMapper.toDTO(order);
+        });
     }
 
     /**
@@ -109,10 +113,11 @@ public class OrderService {
     public OrderDTO getOrderByNo(String orderNo) {
         log.info("根据订单号查询订单，orderNo={}", orderNo);
 
-        Order order = orderRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在，orderNo=" + orderNo));
-
-        return orderMapper.toDTO(order);
+        return cachePenetrationService.getOrderByNo(orderNo, () -> {
+            Order order = orderRepository.findByOrderNo(orderNo)
+                    .orElseThrow(() -> new IllegalArgumentException("订单不存在，orderNo=" + orderNo));
+            return orderMapper.toDTO(order);
+        });
     }
 
     /**
@@ -306,6 +311,10 @@ public class OrderService {
         // 发布领域事件到 RocketMQ
         publishDomainEvents(updatedOrder);
 
+        // Evict cache for the updated order
+        cachePenetrationService.evictOrderCacheById(updatedOrder.getId());
+        cachePenetrationService.evictOrderCacheByNo(updatedOrder.getOrderNo());
+
         log.info("订单取消成功，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
     }
@@ -331,6 +340,10 @@ public class OrderService {
 
         // 发布领域事件到 RocketMQ
         publishDomainEvents(updatedOrder);
+
+        // Evict cache for the updated order
+        cachePenetrationService.evictOrderCacheById(updatedOrder.getId());
+        cachePenetrationService.evictOrderCacheByNo(updatedOrder.getOrderNo());
 
         log.info("订单支付成功，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
@@ -358,6 +371,10 @@ public class OrderService {
         // 发布领域事件到 RocketMQ
         publishDomainEvents(updatedOrder);
 
+        // Evict cache for the updated order
+        cachePenetrationService.evictOrderCacheById(updatedOrder.getId());
+        cachePenetrationService.evictOrderCacheByNo(updatedOrder.getOrderNo());
+
         log.info("订单完成，orderNo={}", updatedOrder.getOrderNo());
         return orderMapper.toDTO(updatedOrder);
     }
@@ -377,6 +394,9 @@ public class OrderService {
 
         orderRepository.deleteById(id);
         log.info("订单删除成功，id={}", id);
+        
+        // Evict cache for the deleted order
+        cachePenetrationService.evictOrderCacheById(id);
     }
 
     /**

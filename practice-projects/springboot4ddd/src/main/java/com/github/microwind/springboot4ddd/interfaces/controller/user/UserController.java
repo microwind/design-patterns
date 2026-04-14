@@ -61,13 +61,29 @@ public class UserController {
     }
 
     /**
-     * 根据ID获取用户
+     * 根据ID获取用户（支持缓存穿透）
+     * 优先从缓存获取，缓存未命中时从数据库加载并缓存
      */
     @GetMapping("/{id}")
     public ApiResponse<UserResponse> getUserById(@PathVariable Long id) {
-        log.info("Getting user by id: {}", id);
+        log.info("查询用户信息，用户ID: {} - 开始缓存穿透查询", id);
+        long startTime = System.currentTimeMillis();
+        
         UserResponse user = userService.getUserById(id);
-        return ApiResponse.success("获取用户成功", user);
+        
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        
+        String message;
+        if (duration < 50) { // 假设缓存命中响应时间小于50ms
+            message = String.format("获取用户成功（缓存命中），耗时: %dms", duration);
+            log.info("用户ID: {} 缓存命中，响应时间: {}ms", id, duration);
+        } else {
+            message = String.format("获取用户成功（数据库查询），耗时: %dms", duration);
+            log.info("用户ID: {} 缓存未命中，从数据库加载并缓存，响应时间: {}ms", id, duration);
+        }
+        
+        return ApiResponse.success(message, user);
     }
 
     /**

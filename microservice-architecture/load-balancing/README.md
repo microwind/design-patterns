@@ -53,6 +53,121 @@ index++                 index++                    connections++
 
 > **整体思路一致**：后端列表 + 选择算法 + 连接管理是所有负载均衡实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 策略模式 —— 三种负载均衡算法可互换
+public static class RoundRobinBalancer {
+    private final List<Backend> backends;
+    private int nextIndex;
+    public Backend next() {
+        Backend backend = backends.get(nextIndex % backends.size());
+        nextIndex++;
+        return backend;
+    }
+}
+
+public static class WeightedRoundRobinBalancer {
+    private final List<Backend> sequence = new ArrayList<>(); // 预展开权重序列
+    private int nextIndex;
+    public Backend next() { ... }
+}
+
+public static class LeastConnectionsBalancer {
+    private final Map<String, Backend> backends = new HashMap<>();
+    public Backend acquire() { ... } // 选最小连接数的后端
+    public void release(String backendId) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+// RoundRobinBalancer 轮询负载均衡
+type RoundRobinBalancer struct {
+    backends []Backend
+    next     int
+}
+func (b *RoundRobinBalancer) Next() Backend { ... }
+
+// WeightedRoundRobinBalancer 加权轮询
+type WeightedRoundRobinBalancer struct {
+    sequence []Backend // 按权重展开的序列
+    next     int
+}
+
+// LeastConnectionsBalancer 最少连接
+type LeastConnectionsBalancer struct { ... }
+func (b *LeastConnectionsBalancer) Acquire() Backend { ... }
+func (b *LeastConnectionsBalancer) Release(backendID string) { ... }
+```
+
+## Python 核心实现
+
+```python
+class RoundRobinBalancer:
+    """轮询负载均衡"""
+    def next(self) -> Backend: ...
+
+class WeightedRoundRobinBalancer:
+    """加权轮询 —— 按权重预展开序列"""
+    def next(self) -> Backend: ...
+
+class LeastConnectionsBalancer:
+    """最少连接 —— 选活跃连接数最小的后端"""
+    def acquire(self) -> Backend: ...
+    def release(self, backend_id: str) -> None: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class RoundRobinBalancer {
+  next() { ... }
+}
+export class WeightedRoundRobinBalancer {
+  next() { ... }
+}
+export class LeastConnectionsBalancer {
+  acquire() { ... }
+  release(backendId) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class RoundRobinBalancer {
+  next(): Backend { ... }
+}
+export class WeightedRoundRobinBalancer {
+  next(): Backend { ... }
+}
+export class LeastConnectionsBalancer {
+  acquire(): Required<Backend> { ... }
+  release(backendId: string): void { ... }
+}
+```
+
+## C 核心实现
+
+```c
+// 轮询
+void rr_init(RoundRobinBalancer *balancer, const Backend *backends, int count);
+const Backend *rr_next(RoundRobinBalancer *balancer);
+
+// 加权轮询
+void wrr_init(WeightedRoundRobinBalancer *balancer, const Backend *backends, int count);
+const Backend *wrr_next(WeightedRoundRobinBalancer *balancer);
+
+// 最少连接
+void lc_init(LeastConnectionsBalancer *balancer, const Backend *backends, int count);
+Backend *lc_acquire(LeastConnectionsBalancer *balancer);
+void lc_release(LeastConnectionsBalancer *balancer, const char *backend_id);
+```
+
 # 测试验证
 
 ```bash

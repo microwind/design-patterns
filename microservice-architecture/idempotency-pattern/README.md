@@ -54,6 +54,63 @@
 
 > **整体思路一致**：幂等键 + 结果存储 + 指纹校验是所有实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 备忘录模式 —— 首次结果被存储，重复请求返回备忘结果
+// 代理模式 —— 幂等层包裹业务逻辑，透明拦截重复请求
+public static class IdempotencyOrderService {
+    private final Map<String, StoredResult> store = new HashMap<>();
+
+    public OrderResponse placeOrder(String idempotencyKey, String orderId,
+            String sku, int quantity) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+type IdempotencyOrderService struct {
+    store map[string]storedResult
+}
+func (s *IdempotencyOrderService) PlaceOrder(idempotencyKey, orderID, sku string, qty int) OrderResponse { ... }
+```
+
+## Python 核心实现
+
+```python
+class IdempotencyOrderService:
+    """幂等下单服务 —— 备忘录 + 代理模式"""
+    def place_order(self, idempotency_key: str, order_id: str,
+                    sku: str, quantity: int) -> OrderResponse: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class IdempotencyOrderService {
+  placeOrder(idempotencyKey, orderId, sku, quantity) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class IdempotencyOrderService {
+  placeOrder(idempotencyKey: string, orderId: string, sku: string, quantity: number): OrderResponse { ... }
+}
+```
+
+## C 核心实现
+
+```c
+OrderResponse idempotency_place_order(IdempotencyService *svc,
+    const char *idempotency_key, const char *order_id,
+    const char *sku, int quantity);
+```
+
 # 测试验证
 
 ```bash

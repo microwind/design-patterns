@@ -5,6 +5,7 @@ import com.github.microwind.springboot4ddd.interfaces.vo.user.UpdateUserRequest;
 import com.github.microwind.springboot4ddd.interfaces.vo.user.UserResponse;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
+import com.github.microwind.springboot4ddd.infrastructure.cache.CachePenetrationService;
 import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;
 import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final CachePenetrationService cachePenetrationService;
 
     /**
      * 创建用户
@@ -71,18 +73,22 @@ public class UserService {
      * 根据ID获取用户
      */
     public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("用户", "id", id));
-        return toResponse(user);
+        return cachePenetrationService.getUserById(id, () -> {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+            return toResponse(user);
+        });
     }
 
     /**
      * 根据用户名获取用户
      */
     public UserResponse getUserByName(String name) {
-        User user = userRepository.findByName(name)
-                .orElseThrow(() -> new ResourceNotFoundException("用户", "name", name));
-        return toResponse(user);
+        return cachePenetrationService.getUserByName(name, () -> {
+            User user = userRepository.findByName(name)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "name", name));
+            return toResponse(user);
+        });
     }
 
     /**
@@ -138,6 +144,9 @@ public class UserService {
         User updatedUser = userRepository.update(user);
         log.info("User updated: id={}, name={}", updatedUser.getId(), updatedUser.getName());
 
+        // Evict cache for the updated user
+        cachePenetrationService.evictUserCache(updatedUser.getId());
+
         return toResponse(updatedUser);
     }
 
@@ -152,6 +161,9 @@ public class UserService {
 
         userRepository.deleteById(id);
         log.info("User deleted: id={}", id);
+        
+        // Evict cache for the deleted user
+        cachePenetrationService.evictUserCache(id);
     }
 
     /**

@@ -66,6 +66,75 @@ createOrder(orderId, sku, quantity)
   → 库存不足 → Order(status="REJECTED")
 ```
 
+## 代码
+
+### Java 核心实现
+
+```java
+// 依赖倒置 —— OrderService 依赖 InventoryClient 接口而非具体实现
+public class OrderService {
+    private final InventoryClient inventory;
+    public Order createOrder(String orderId, String sku, int qty) { ... }
+}
+
+public interface InventoryClient {
+    boolean checkStock(String sku, int quantity);
+}
+
+// HttpInventoryClient 是接口的 HTTP 实现
+public class HttpInventoryClient implements InventoryClient { ... }
+```
+
+### Go 核心实现
+
+```go
+type InventoryClient interface {
+    CheckStock(sku string, quantity int) bool
+}
+type OrderService struct { inventory InventoryClient }
+func (s *OrderService) CreateOrder(orderID, sku string, qty int) Order { ... }
+```
+
+### Python 核心实现
+
+```python
+class OrderService:
+    def create_order(self, order_id: str, sku: str, quantity: int) -> Order: ...
+
+class InventoryService:
+    def check_stock(self, sku: str, quantity: int) -> bool: ...
+```
+
+### JavaScript 核心实现
+
+```javascript
+export class OrderService {
+  createOrder(orderId, sku, quantity) { ... }
+}
+export class InventoryService {
+  checkStock(sku, quantity) { ... }
+}
+```
+
+### TypeScript 核心实现
+
+```typescript
+export class OrderService {
+  createOrder(orderId: string, sku: string, quantity: number): Order { ... }
+}
+export interface InventoryClient {
+  checkStock(sku: string, quantity: number): boolean;
+}
+```
+
+### C 核心实现
+
+```c
+Order create_order(InventoryService *inv, const char *order_id,
+    const char *sku, int quantity);
+int check_stock(InventoryService *inv, const char *sku, int quantity);
+```
+
 ## 测试验证
 
 ```bash

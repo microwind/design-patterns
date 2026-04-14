@@ -5,6 +5,7 @@ a.out
 *.class
 target/
 *.pyc
+*.rdb
 
 **/node_modules/
 

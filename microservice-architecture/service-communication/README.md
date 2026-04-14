@@ -58,6 +58,110 @@ payment.charge()                      ▼ （drain 时）
 
 > **整体思路一致**：同步调用链 vs 事件驱动异步是所有微服务通信的基本二选一，实际系统中按场景混合使用。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 同步通信 —— 外观模式：封装多个服务调用为统一接口
+public static class SynchronousOrderService {
+    private final InventoryService inventory;
+    private final PaymentService payment;
+
+    public Order placeOrder(String orderId, String sku, int quantity) {
+        if (!inventory.reserve(sku, quantity)) return new Order(orderId, sku, quantity, "REJECTED");
+        if (!payment.charge(orderId)) return new Order(orderId, sku, quantity, "PAYMENT_FAILED");
+        return new Order(orderId, sku, quantity, "CREATED");
+    }
+}
+
+// 异步通信 —— 观察者模式：通过 EventBus 发布事件解耦
+public static class AsyncOrderService {
+    public Order placeOrder(String orderId, String sku, int quantity) {
+        Order order = new Order(orderId, sku, quantity, "PENDING");
+        store.save(order);
+        bus.publish(new Event("order_placed", orderId, sku, quantity));
+        return order;
+    }
+}
+```
+
+## Go 核心实现
+
+```go
+// SynchronousOrderService 同步下单 —— 外观模式
+func (s *SynchronousOrderService) PlaceOrder(orderID, sku string, qty int) Order { ... }
+
+// EventBus 事件总线 —— 观察者模式 + 中介者模式
+type EventBus struct {
+    subscribers map[string][]func(Event)
+    queue       []Event
+}
+
+func (b *EventBus) Subscribe(eventName string, handler func(Event)) { ... }
+func (b *EventBus) Publish(event Event) { ... }
+func (b *EventBus) Drain() { ... }
+```
+
+## Python 核心实现
+
+```python
+class SynchronousOrderService:
+    """同步下单 —— 外观模式：封装多服务编排"""
+    def place_order(self, order_id, sku, quantity) -> Order: ...
+
+class EventBus:
+    """事件总线 —— 观察者模式 + 中介者模式"""
+    def subscribe(self, event_name, handler) -> None: ...
+    def publish(self, event: Event) -> None: ...
+    def drain(self) -> None: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+// 同步通信 —— 外观模式
+export class SynchronousOrderService {
+  placeOrder(orderId, sku, quantity) { ... }
+}
+
+// 异步通信 —— 观察者/中介者模式
+export class EventBus {
+  subscribe(eventName, handler) { ... }
+  publish(event) { ... }
+  drain() { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class SynchronousOrderService {
+  placeOrder(orderId: string, sku: string, quantity: number): Order { ... }
+}
+
+export class EventBus {
+  subscribe(eventName: string, handler: (event: Event) => void): void { ... }
+  publish(event: Event): void { ... }
+  drain(): void { ... }
+}
+```
+
+## C 核心实现
+
+```c
+// 同步下单 —— 外观模式
+CommOrder sync_place_order(CommInventoryService *inventory,
+    CommPaymentService *payment, const char *order_id,
+    const char *sku, int quantity);
+
+// 异步通信 —— 观察者模式
+void async_place_order(EventQueue *queue, CommOrderStore *store,
+    const char *order_id, const char *sku, int quantity);
+void async_drain(EventQueue *queue, CommOrderStore *store,
+    CommInventoryService *inventory, CommPaymentService *payment);
+```
+
 # 测试验证
 
 ```bash

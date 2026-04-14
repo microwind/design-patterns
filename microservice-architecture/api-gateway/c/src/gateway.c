@@ -1,3 +1,9 @@
+/**
+ * @file gateway.c - API 网关模式（API Gateway Pattern）的 C 语言实现
+ *
+ * 实现路由匹配、鉴权中间件和 Correlation ID 注入。
+ */
+
 #include "func.h"
 
 #include <stdio.h>

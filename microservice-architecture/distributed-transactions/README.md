@@ -58,6 +58,61 @@
 
 > **整体思路一致**：正向步骤 + 补偿动作 + 协调者是所有 Saga 实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 命令模式 —— reserve/charge 是正向命令，release 是补偿命令
+// 责任链模式 —— 正向步骤按链式顺序执行
+// 状态模式 —— 订单状态 PENDING → COMPLETED / CANCELLED
+public static class SagaCoordinator {
+    public SagaOrder execute(String orderId, String sku, int quantity) {
+        // Step 1: 库存预留
+        // Step 2: 支付扣款
+        // 失败时逆序补偿
+    }
+}
+```
+
+## Go 核心实现
+
+```go
+type SagaCoordinator struct { ... }
+func (c *SagaCoordinator) Execute(orderID, sku string, quantity int) SagaOrder { ... }
+```
+
+## Python 核心实现
+
+```python
+class SagaCoordinator:
+    """Saga 协调者 —— 命令 + 责任链 + 状态模式"""
+    def execute(self, order_id: str, sku: str, quantity: int) -> SagaOrder: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class SagaCoordinator {
+  execute(orderId, sku, quantity) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class SagaCoordinator {
+  execute(orderId: string, sku: string, quantity: number): SagaOrder { ... }
+}
+```
+
+## C 核心实现
+
+```c
+SagaOrder saga_execute(SagaCoordinator *coord, const char *order_id,
+    const char *sku, int quantity);
+```
+
 # 测试验证
 
 ```bash

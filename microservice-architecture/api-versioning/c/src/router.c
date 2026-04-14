@@ -1,3 +1,9 @@
+/**
+ * @file router.c - API 版本管理模式（API Versioning Pattern）的 C 语言实现
+ *
+ * 实现 URL 路径版本解析和 Header 版本回退逻辑。
+ */
+
 #include "func.h"
 
 #include <stdio.h>

@@ -62,6 +62,94 @@ Future.get(timeout)     执行 operation                ▼
 
 > **整体思路一致**：超时保护 + 自动重试 + 熔断兜底是所有弹性方案的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 超时控制 —— 代理模式：包裹操作，限制最长等待时间
+public static String callWithTimeout(Duration timeout, Callable<String> operation) throws Exception { ... }
+
+// 重试 —— 模板方法：循环调用 → 判断 → 继续/停止
+public static RetryOutcome retry(int maxAttempts, Callable<String> operation) throws Exception { ... }
+
+// 断路器 —— 状态模式：closed/open 状态下行为不同
+public static class CircuitBreaker {
+    private final int failureThreshold;
+    private int consecutiveFailures;
+    private boolean open;
+
+    public String execute(Callable<String> operation, String fallback) throws Exception { ... }
+    public void reset() { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+// 超时控制
+func CallWithTimeout(timeout time.Duration, operation func() (string, error)) (string, error) { ... }
+
+// 重试
+func Retry(maxAttempts int, operation func() (string, error)) (string, int, error) { ... }
+
+// 断路器 —— 状态模式
+type CircuitBreaker struct {
+    failureThreshold    int
+    consecutiveFailures int
+    open                bool
+}
+func (c *CircuitBreaker) Execute(operation func() (string, error), fallback string) (string, error) { ... }
+```
+
+## Python 核心实现
+
+```python
+def call_with_timeout(timeout_seconds: float, operation: Callable) -> str: ...
+def retry(max_attempts: int, operation: Callable) -> Tuple[str, int]: ...
+
+class CircuitBreaker:
+    """断路器 —— 状态模式：closed/open 状态下行为不同"""
+    def execute(self, operation: Callable, fallback: str) -> str: ...
+    def reset(self) -> None: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export function callWithTimeout(timeoutMs, operation) { ... }
+export async function retry(maxAttempts, operation) { ... }
+export class CircuitBreaker {
+  async execute(operation, fallback) { ... }
+  reset() { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export async function callWithTimeout(timeoutMs: number, operation: () => Promise<string>): Promise<string> { ... }
+export async function retry(maxAttempts: number, operation: () => Promise<string>): Promise<{value: string; attempts: number}> { ... }
+export class CircuitBreaker {
+  async execute(operation: () => Promise<string>, fallback: string): Promise<string> { ... }
+  reset(): void { ... }
+}
+```
+
+## C 核心实现
+
+```c
+// 超时控制
+int call_with_timeout(ScriptedDependency *dep, int timeout_ms, const char **value_out);
+// 重试
+int retry_call(ScriptedDependency *dep, int max_attempts, const char **value_out, int *attempts_out);
+// 断路器
+void circuit_breaker_init(CircuitBreaker *breaker, int failure_threshold);
+int circuit_breaker_execute(CircuitBreaker *breaker, ScriptedDependency *dep,
+    const char *fallback, const char **value_out, int *circuit_open);
+void circuit_breaker_reset(CircuitBreaker *breaker);
+```
+
 # 测试验证
 
 ```bash

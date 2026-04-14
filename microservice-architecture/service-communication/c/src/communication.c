@@ -1,3 +1,9 @@
+/**
+ * @file communication.c - 服务间通信模式（Service Communication Pattern）的 C 语言实现
+ *
+ * 实现同步下单（sync_place_order）和异步事件驱动下单（async_place_order + async_drain）。
+ */
+
 #include "func.h"
 
 #include <string.h>

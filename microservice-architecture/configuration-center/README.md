@@ -64,6 +64,85 @@
 流程：发布 V1 → 加载 → 更新 V2 → 刷新 → 验证版本变化
 ```
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 观察者模式 —— 配置变更通知客户端刷新
+// 单例模式 —— ConfigCenter 作为全局配置存储
+public static class ConfigCenter {
+    private final Map<String, ServiceConfig> store = new HashMap<>();
+    public void put(ServiceConfig config) { ... }
+    public ServiceConfig get(String serviceName, String environment) { ... }
+}
+
+// 代理模式 —— ConfigClient 缓存配置，按需刷新
+public static class ConfigClient {
+    public ServiceConfig load() { ... }
+    public ServiceConfig refresh() { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+type ConfigCenter struct { ... }
+func (c *ConfigCenter) Put(config ServiceConfig) { ... }
+func (c *ConfigCenter) Get(serviceName, environment string) *ServiceConfig { ... }
+
+type ConfigClient struct { ... }
+func (c *ConfigClient) Load() *ServiceConfig { ... }
+func (c *ConfigClient) Refresh() *ServiceConfig { ... }
+```
+
+## Python 核心实现
+
+```python
+class ConfigCenter:
+    def put(self, config: ServiceConfig) -> None: ...
+    def get(self, service_name: str, environment: str) -> Optional[ServiceConfig]: ...
+
+class ConfigClient:
+    def load(self) -> Optional[ServiceConfig]: ...
+    def refresh(self) -> Optional[ServiceConfig]: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class ConfigCenter {
+  put(config) { ... }
+  get(serviceName, environment) { ... }
+}
+export class ConfigClient {
+  load() { ... }
+  refresh() { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class ConfigCenter {
+  put(config: ServiceConfig): void { ... }
+  get(serviceName: string, environment: string): ServiceConfig | undefined { ... }
+}
+export class ConfigClient {
+  load(): ServiceConfig | undefined { ... }
+  refresh(): ServiceConfig | undefined { ... }
+}
+```
+
+## C 核心实现
+
+```c
+void config_center_put(ConfigCenter *center, const ServiceConfig *config);
+const ServiceConfig *config_center_get(ConfigCenter *center, const char *service, const char *env);
+const ServiceConfig *config_client_load(ConfigClient *client);
+const ServiceConfig *config_client_refresh(ConfigClient *client);
+```
+
 # 测试验证
 
 ```bash

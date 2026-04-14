@@ -1,3 +1,24 @@
+/**
+ * @file communication.js - 服务间通信模式（Service Communication Pattern）的 JavaScript 实现
+ *
+ * 本模块演示微服务架构中两种核心通信方式：同步通信（请求-响应）和异步通信（事件驱动）。
+ *
+ * 【设计模式】
+ *   - 外观模式（Facade Pattern）：SynchronousOrderService 将多个服务调用封装为
+ *     统一的 placeOrder 接口，调用方无需了解内部编排逻辑。
+ *   - 观察者模式（Observer Pattern）：EventBus 实现发布-订阅机制，
+ *     AsyncOrderService 发布事件，下游通过 subscribe 注册处理函数。
+ *   - 中介者模式（Mediator Pattern）：EventBus 充当中介者，协调多服务间交互。
+ *
+ * 【架构思想】
+ *   同步通信简单直观但耦合度高；异步通信通过事件总线解耦，支持独立扩展和故障隔离。
+ *
+ * 【开源对比】
+ *   - 同步：axios / node-fetch（HTTP 客户端）、@grpc/grpc-js（gRPC Node.js）
+ *   - 异步：bullmq（任务队列）、kafkajs、amqplib（RabbitMQ）
+ *   本示例省略了网络传输和序列化，聚焦于同步/异步两种编排模式的对比。
+ */
+
 export class InventoryService {
   constructor(stock) {
     this.stock = { ...stock }

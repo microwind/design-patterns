@@ -5,6 +5,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Balancers - 负载均衡模式的 Java 实现
+ *
+ * 本模块演示微服务架构中三种经典负载均衡算法：轮询（Round-Robin）、
+ * 加权轮询（Weighted Round-Robin）和最少连接（Least Connections）。
+ *
+ * 【设计模式】
+ *   - 策略模式（Strategy Pattern）：三种负载均衡算法（RoundRobin / WeightedRoundRobin /
+ *     LeastConnections）是可互换的策略。调用方根据场景选择不同策略，接口统一。
+ *     实际工程中通常抽象出 LoadBalancer 接口，各算法作为具体策略类实现。
+ *   - 迭代器模式（Iterator Pattern）：RoundRobin 和 WeightedRoundRobin 的 next()
+ *     方法按序遍历后端列表，通过取模实现循环迭代。
+ *
+ * 【架构思想】
+ *   负载均衡将流量分散到多个后端实例，避免单点过载。轮询适用于同质节点，
+ *   加权轮询适用于异构节点（按性能分配权重），最少连接适用于请求耗时差异大的场景。
+ *
+ * 【开源对比】
+ *   - Nginx：支持 round-robin、weighted、least_conn、ip_hash 等多种策略
+ *   - Spring Cloud LoadBalancer：基于 ServiceInstance 列表的客户端负载均衡
+ *   - Envoy：支持 round-robin、least-request、random、ring-hash 等策略
+ *   本示例省略了健康检查、权重动态调整、一致性哈希等工程细节，聚焦于算法核心。
+ */
 public class Balancers {
 
     public static class Backend {

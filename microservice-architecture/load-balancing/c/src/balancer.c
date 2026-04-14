@@ -1,3 +1,9 @@
+/**
+ * @file balancer.c - 负载均衡模式（Load Balancing Pattern）的 C 语言实现
+ *
+ * 实现轮询（rr）、加权轮询（wrr）和最少连接（lc）三种负载均衡算法。
+ */
+
 #include "func.h"
 
 #include <string.h>

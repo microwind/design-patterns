@@ -1,3 +1,9 @@
+/**
+ * @file resilience.c - 弹性模式组合（Resilience Patterns）的 C 语言实现
+ *
+ * 实现超时（call_with_timeout）、重试（retry_call）、断路器（circuit_breaker_execute）。
+ */
+
 #include "func.h"
 
 #include <stddef.h>

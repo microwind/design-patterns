@@ -5,6 +5,30 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * VersionedRouter - API 版本管理模式的 Java 实现
+ *
+ * 本模块演示微服务架构中 API 版本管理的核心机制：支持 URL 路径版本（/v1/、/v2/）
+ * 和 Header 版本（X-API-Version），并提供默认版本兜底。
+ *
+ * 【设计模式】
+ *   - 策略模式（Strategy Pattern）：不同版本的处理器（v1/v2）是可互换的策略，
+ *     路由器根据解析到的版本号选择对应的处理策略执行。
+ *   - 工厂方法模式（Factory Method）：resolveVersion 根据请求上下文（URL/Header/默认值）
+ *     决定使用哪个版本，类似于工厂方法根据输入创建不同产品。
+ *   - 模板方法模式（Template Method）：handle 定义了"解析版本 → 查找处理器 → 执行"
+ *     的固定骨架，具体版本解析和处理逻辑由子步骤决定。
+ *
+ * 【架构思想】
+ *   API 版本管理让新老客户端可以并行使用不同版本的接口，实现平滑演进。
+ *   URL 路径版本直观显式，Header 版本保持 URL 清洁，两者各有适用场景。
+ *
+ * 【开源对比】
+ *   - Spring MVC：@RequestMapping + 自定义版本注解 / URL 路径参数
+ *   - ASP.NET Core：Microsoft.AspNetCore.Mvc.Versioning（URL/Header/Query 多策略）
+ *   - Kong / APISIX：通过路由规则和插件实现网关层版本路由
+ *   本示例省略了版本协商、废弃通知、向后兼容等工程细节，聚焦于版本解析和路由分发。
+ */
 public class VersionedRouter {
 
     public static class Request {

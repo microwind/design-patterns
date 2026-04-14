@@ -67,6 +67,81 @@ API 版本控制（API Versioning）是微服务架构中管理 API 演进的核
 
 > **整体思路一致**：版本解析 + 路由分发 + 默认兜底是所有 API 版本控制的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 策略模式 —— 不同版本的处理器可互换
+public class VersionedRouter {
+    private final String defaultVersion;
+    private final Map<String, Supplier<String>> handlers = new HashMap<>();
+
+    public void register(String version, Supplier<String> handler) { ... }
+
+    // 模板方法：解析版本 → 查找处理器 → 执行
+    public Response handle(Request request) { ... }
+
+    // 版本解析优先级：URL 路径 → Header → 默认值
+    public String resolveVersion(Request request) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+// VersionedRouter 版本路由器 —— 策略模式 + 模板方法
+type VersionedRouter struct {
+    defaultVersion string
+    handlers       map[string]func() string
+}
+func (r *VersionedRouter) Register(version string, handler func() string) { ... }
+func (r *VersionedRouter) Handle(req Request) Response { ... }
+func (r *VersionedRouter) ResolveVersion(req Request) string { ... }
+```
+
+## Python 核心实现
+
+```python
+class VersionedRouter:
+    """版本路由器 —— 策略模式 + 模板方法"""
+    def register(self, version: str, handler: Callable) -> None: ...
+    def handle(self, request: Request) -> Response: ...
+    def resolve_version(self, request: Request) -> str: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class VersionedRouter {
+  register(version, handler) { ... }
+  handle(request) { ... }       // 解析版本 → 查找处理器 → 执行
+  resolveVersion(request) { ... } // URL → Header → 默认值
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class VersionedRouter {
+  register(version: string, handler: () => string): void { ... }
+  handle(request: Request): Response { ... }
+  resolveVersion(request: Request): string { ... }
+}
+```
+
+## C 核心实现
+
+```c
+typedef struct {
+    char path[128];
+    char api_version[16]; // Header: X-API-Version
+} VersionRequest;
+
+// 版本解析 + 路由分发
+void version_router_handle(const VersionRequest *request, VersionResponse *response);
+```
+
 # 测试验证
 
 ```bash

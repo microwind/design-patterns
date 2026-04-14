@@ -53,6 +53,71 @@
 
 > **整体思路一致**：计数 + 阈值判断 + 窗口重置是所有固定窗口实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 策略模式 —— 固定窗口是一种限流策略
+public class FixedWindowLimiter {
+    private final int limit;  // 窗口内最大请求数
+    private int count;        // 当前窗口已消耗次数
+
+    public boolean allow() { ... }      // 判断是否放行
+    public void advanceWindow() { ... } // 推进到下一窗口
+}
+```
+
+## Go 核心实现
+
+```go
+type FixedWindowLimiter struct {
+    Limit int
+    Count int
+}
+func (l *FixedWindowLimiter) Allow() bool { ... }
+func (l *FixedWindowLimiter) AdvanceWindow() { ... }
+```
+
+## Python 核心实现
+
+```python
+class FixedWindowLimiter:
+    """固定窗口限流器 —— 策略模式"""
+    def allow(self) -> bool: ...
+    def advance_window(self) -> None: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class FixedWindowLimiter {
+  allow() { ... }
+  advanceWindow() { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class FixedWindowLimiter {
+  allow(): boolean { ... }
+  advanceWindow(): void { ... }
+}
+```
+
+## C 核心实现
+
+```c
+typedef struct {
+    int limit;
+    int count;
+} FixedWindowLimiter;
+
+int limiter_allow(FixedWindowLimiter *limiter);
+void limiter_advance_window(FixedWindowLimiter *limiter);
+```
+
 # 测试验证
 
 ```bash

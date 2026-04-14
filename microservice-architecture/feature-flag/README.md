@@ -52,6 +52,65 @@
 
 > **整体思路一致**：开关注册 + 评估规则 + 默认兜底是所有实现的核心骨架。
 
+# 代码
+
+## Java 核心实现
+
+```java
+// 策略模式 —— 不同开关配置代表不同发布策略
+public static class FeatureFlagService {
+    private final Map<String, FeatureFlag> flags = new HashMap<>();
+
+    public void set(String flag, FeatureFlag config) { ... }
+    // 白名单优先 → 默认值兜底 → 未注册返回 false
+    public boolean enabled(String flag, String userId) { ... }
+}
+```
+
+## Go 核心实现
+
+```go
+type FeatureFlagService struct {
+    flags map[string]FeatureFlag
+}
+func (s *FeatureFlagService) Set(flag string, config FeatureFlag) { ... }
+func (s *FeatureFlagService) Enabled(flag, userID string) bool { ... }
+```
+
+## Python 核心实现
+
+```python
+class FeatureFlagService:
+    """特性开关服务 —— 策略模式"""
+    def set(self, flag: str, config: FeatureFlag) -> None: ...
+    def enabled(self, flag: str, user_id: str) -> bool: ...
+```
+
+## JavaScript 核心实现
+
+```javascript
+export class FeatureFlagService {
+  set(flag, config) { ... }
+  enabled(flag, userId) { ... }
+}
+```
+
+## TypeScript 核心实现
+
+```typescript
+export class FeatureFlagService {
+  set(flag: string, config: FeatureFlag): void { ... }
+  enabled(flag: string, userId: string): boolean { ... }
+}
+```
+
+## C 核心实现
+
+```c
+void flag_service_set(FlagService *svc, const char *flag, FeatureFlag config);
+int flag_service_enabled(FlagService *svc, const char *flag, const char *user_id);
+```
+
 # 测试验证
 
 ```bash
