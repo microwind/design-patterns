@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设计模式与编程思想 | MicroWind · AI 技能</title>
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/67299763?s=200&v=4" type="image/png">
+    <style>
+        :root {
+            --primary-green: #1f883d;
+            --light-green: #4ade80;
+            --accent-orange: #FF6600;
+            --bg-light: #f0fdf4;
+            --bg-dark: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #1f883d 0%, #4ade80 100%);
+            --gradient-bg: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #f8fafc 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(31, 136, 61, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(74, 222, 128, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 102, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            margin-top: 5px;
+            margin-right: 1rem;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--primary-green);
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--primary-green);
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 0;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(31, 136, 61, 0.08) 0%, rgba(74, 222, 128, 0.08) 100%);
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(31, 136, 61, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.1; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(31, 136, 61, 0.1);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .hero-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        .hero-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #21883e;
+            border-radius: 50px;
+            color: #21883e;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .hero-links a:hover {
+            color: var(--primary-green);
+            border-color: var(--primary-green);
+            background: rgba(33, 136, 62, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 1.5rem 0;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2rem 0;
+        }
+
+        .content-section h2 {
+            font-size: 1.8rem;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .content-section h3 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin: 2rem 0 1rem;
+        }
+
+        .content-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .content-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: rgba(31, 136, 61, 0.05);
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+
+        tr:hover {
+            background: rgba(31, 136, 61, 0.03);
+        }
+
+        table a {
+            color: var(--primary-green);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -5px rgba(31, 136, 61, 0.15);
+            border-color: var(--primary-green);
+        }
+
+        .card h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -5px rgba(31, 136, 61, 0.15);
+            border-color: var(--primary-green);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-green);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Link Styles */
+        a {
+            color: var(--primary-green);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Blockquote */
+        blockquote {
+            border-left: 4px solid var(--primary-green);
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            background: rgba(31, 136, 61, 0.05);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Code */
+        code {
+            background: rgba(31, 136, 61, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--primary-green);
+        }
+
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: white;
+            border-top: 1px solid var(--border-color);
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-green);
+        }
+
+        /* Inline Icons */
+        .icon-github {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+        
+        .icon-github::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: currentColor;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: contain;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E") no-repeat center;
+            -webkit-mask-size: contain;
+        }
+        
+        .github-link {
+            color: var(--primary-green);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .github-link:hover {
+            color: #21883e;
+            background: rgba(31, 136, 61, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .hero {
+                padding: 2rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .hero-badge {
+                font-size: 0.8rem;
+                padding: 0.4rem 1rem;
+            }
+
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 2rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transform: translateY(-100%);
+                transition: transform 0.3s ease;
+                z-index: 99;
+            }
+            
+            .nav-links.active {
+                display: flex;
+                transform: translateY(0);
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo-section">
+                <a href="https://microwind.github.io"><img class="logo" src="https://avatars.githubusercontent.com/u/67299763?s=200&v=4" alt="MicroWind Logo" /></a>
+                <div class="brand-name"><a href="https://microwind.github.io">MicroWind</a> · <a href="https://microwind.github.io/design-patterns">Design Patterns</a></div>
+            </div>
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <span>☰</span>
+            </button>
+            <div class="nav-links">
+                <a href="https://microwind.github.io">首页</a>
+                <a href="#why-learn">为什么学习</a>
+                <a href="#quick-start">快速开始</a>
+                <a href="#content-map">内容地图</a>
+                <a href="https://github.com/microwind/design-patterns" rel="noopener noreferrer" class="github-link" title="GitHub">
+                    <span class="icon-github"></span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-badge">AI时代架构设计指南</div>
+                    <h1>设计模式与编程思想</h1>
+                    <div class="hero-subtitle">
+                        在AI时代，掌握设计模式与分层架构，生成的代码才有灵魂
+                    </div>
+                    <div class="hero-links">
+                        <a href="#why-learn">为什么学习</a>
+                        <a href="#quick-start">快速开始</a>
+                        <a href="#content-map">内容地图</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why-learn" class="section" style="padding-top: 3rem;">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">为什么学习这个库？</h2>
+                    <p class="section-subtitle">设计模式与分层架构是前人经验的结晶，是解决常见软件设计问题的最佳实践。<br>掌握设计模式，让你的代码更具可读性、可维护性和可扩展性。</p>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>23种经典设计模式</h4>
+                        <p>涵盖创建型、结构型、行为型三大类设计模式，从单例到观察者，全面掌握</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>面向对象设计原则</h4>
+                        <p>SOLID原则、DRY原则等，让你的代码设计更加合理</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>多种编程范式</h4>
+                        <p>面向对象、函数式编程、面向过程等多种编程范式对比学习</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>分层架构模式</h4>
+                        <p>MVC、MVP、MVVM等经典架构模式，理解前后端分离的设计思想</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>实战代码示例</h4>
+                        <p>每个模式都有详细的代码实现和使用场景说明</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>多语言实现</h4>
+                        <p>Java、JavaScript、Python等多种语言实现，理解语言特性</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quick-start" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">快速开始（3分钟上手）</h2>
+                    <p class="section-subtitle">5个循序渐进的学习步骤，帮助你系统地掌握设计模式</p>
+                </div>
+
+                <div class="card">
+                    <h3>5步学习路线</h3>
+                    <div style="display: flex; flex-direction: row; gap: 1rem; overflow-x: auto; padding-bottom: 1rem;">
+                        <div class="step-card" style="text-align: center; padding: 1.5rem; background: rgba(31, 136, 61, 0.05); border-radius: 12px; border: 1px solid rgba(31, 136, 61, 0.1); min-width: 200px; flex: 1; transition: all 0.3s ease;">
+                            <strong>第1步：面向对象原则</strong><br>
+                            <a href="https://github.com/microwind/design-patterns/tree/main/design-principles/" style="display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary-green); color: white; border-radius: 50px; text-decoration: none; margin: 0.5rem 0; font-size: 0.9rem; transition: all 0.3s ease;">SOLID原则</a>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">掌握面向对象设计的七大原则，理解好的设计标准。</p>
+                        </div>
+                        
+                        <div class="step-card" style="text-align: center; padding: 1.5rem; background: rgba(31, 136, 61, 0.05); border-radius: 12px; border: 1px solid rgba(31, 136, 61, 0.1); min-width: 200px; flex: 1; transition: all 0.3s ease;">
+                            <strong>第2步：编程范式</strong><br>
+                            <a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/" style="display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary-green); color: white; border-radius: 50px; text-decoration: none; margin: 0.5rem 0; font-size: 0.9rem; transition: all 0.3s ease;">编程范式</a>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">学习面向对象、函数式、面向过程等多种编程范式。</p>
+                        </div>
+                        
+                        <div class="step-card" style="text-align: center; padding: 1.5rem; background: rgba(31, 136, 61, 0.05); border-radius: 12px; border: 1px solid rgba(31, 136, 61, 0.1); min-width: 200px; flex: 1; transition: all 0.3s ease;">
+                            <strong>第3步：设计模式</strong><br>
+                            <a href="#content-map" style="display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary-green); color: white; border-radius: 50px; text-decoration: none; margin: 0.5rem 0; font-size: 0.9rem; transition: all 0.3s ease;">设计模式</a>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">系统学习创建型、结构型、行为型三大类23种设计模式。</p>
+                        </div>
+                        
+                        <div class="step-card" style="text-align: center; padding: 1.5rem; background: rgba(31, 136, 61, 0.05); border-radius: 12px; border: 1px solid rgba(31, 136, 61, 0.1); min-width: 200px; flex: 1; transition: all 0.3s ease;">
+                            <strong>第4步：分层架构</strong><br>
+                            <a href="#mvx-patterns" style="display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary-green); color: white; border-radius: 50px; text-decoration: none; margin: 0.5rem 0; font-size: 0.9rem; transition: all 0.3s ease;">分层架构</a>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">掌握MVC、MVP、MVVM、DDD等经典分层架构设计模式。</p>
+                        </div>
+                        
+                        <div class="step-card" style="text-align: center; padding: 1.5rem; background: rgba(31, 136, 61, 0.05); border-radius: 12px; border: 1px solid rgba(31, 136, 61, 0.1); min-width: 200px; flex: 1; transition: all 0.3s ease;">
+                            <strong>第5步：微服务体系</strong><br>
+                            <a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/" style="display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary-green); color: white; border-radius: 50px; text-decoration: none; margin: 0.5rem 0; font-size: 0.9rem; transition: all 0.3s ease;">微服务架构</a>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">学习微服务架构设计，理解分布式系统的设计思想。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="content-map" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">学习内容地图</h2>
+                    <p class="section-subtitle">从基础到进阶，系统化学习设计模式与编程思想</p>
+                </div>
+
+                <div class="card">
+                    <h3>面向对象设计7大原则（SOLID + 2）</h3>
+                    <p>掌握这些原则，让你的代码设计更加合理：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>原则</th>
+                                <th>核心思想</th>
+                                <th>作用</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>单一职责原则 SRP</strong></td><td>一个类只负责一项职责</td><td>降低复杂度，提高可维护性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/single-responsibility/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>开闭原则 OCP</strong></td><td>对扩展开放，对修改关闭</td><td>提高代码稳定性，降低维护成本</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/open-closed/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>里氏替换原则 LSP</strong></td><td>子类可以替换父类</td><td>保证继承的正确性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/liskov-substitution/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>接口隔离原则 ISP</strong></td><td>使用多个小接口而非大接口</td><td>降低耦合，提高灵活性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/interface-segregation/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>依赖倒置原则 DIP</strong></td><td>依赖抽象而非具体</td><td>降低耦合，提高可测试性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/dependency-inversion/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>组合复用原则 CRP</strong></td><td>优先使用组合而非继承</td><td>提高灵活性，避免继承陷阱</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/composite-reuse/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>迪米特法则 LoD</strong></td><td>最少知识原则</td><td>降低耦合，提高模块独立性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/design-principles/law-of-demeter/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="programming-paradigms">
+                    <h3>编程范式</h3>
+                    <p>不同的编程思维方式：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>范式</th>
+                                <th>核心思想</th>
+                                <th>特点</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>面向对象编程 OOP</strong></td><td>通过对象和类组织代码</td><td>封装、继承、多态</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/object-oriented-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>函数式编程 FP</strong></td><td>通过函数组合解决问题</td><td>纯函数、不可变性、高阶函数</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/functional-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>面向过程编程</strong></td><td>通过过程和函数组织代码</td><td>简单直接、适合底层开发</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/procedural-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>面向切面编程 AOP</strong></td><td>将横切关注点分离</td><td>日志、事务、权限</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/aspect-oriented-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>事件驱动编程</strong></td><td>通过事件触发响应</td><td>异步处理、解耦合</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/event-driven-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>响应式编程</strong></td><td>基于数据流和变化传播</td><td>异步数据流、实时更新</td><td><a href="https://github.com/microwind/design-patterns/tree/main/programming-paradigm/reactive-programming/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="creational-patterns">
+                    <h3>创建型设计模式（5种）</h3>
+                    <p>解决对象创建过程中的问题：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>模式</th>
+                                <th>核心思想</th>
+                                <th>适用场景</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>单例模式 Singleton</strong></td><td>保证一个类只有一个实例</td><td>配置管理、数据库连接池</td><td><a href="https://github.com/microwind/design-patterns/tree/main/singleton-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>工厂方法 Factory Method</strong></td><td>定义创建对象的接口，由子类决定</td><td>日志记录器、数据库驱动</td><td><a href="https://github.com/microwind/design-patterns/tree/main/factory-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>抽象工厂 Abstract Factory</strong></td><td>创建相关对象的家族</td><td>跨平台UI组件、主题切换</td><td><a href="https://github.com/microwind/design-patterns/tree/main/abstract-factory/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>建造者模式 Builder</strong></td><td>分步骤创建复杂对象</td><td>复杂对象构造、配置对象</td><td><a href="https://github.com/microwind/design-patterns/tree/main/builder-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>原型模式 Prototype</strong></td><td>通过克隆创建对象</td><td>创建成本高的对象、避免初始化</td><td><a href="https://github.com/microwind/design-patterns/tree/main/prototype-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="structural-patterns">
+                    <h3>结构型设计模式（7种）</h3>
+                    <p>解决类或对象组合的问题：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>模式</th>
+                                <th>核心思想</th>
+                                <th>适用场景</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>适配器模式 Adapter</strong></td><td>将一个类接口转换成客户希望的接口</td><td>新旧系统兼容、接口不匹配</td><td><a href="https://github.com/microwind/design-patterns/tree/main/adapter-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>桥接模式 Bridge</strong></td><td>将抽象与实现分离</td><td>多维变化、平台独立</td><td><a href="https://github.com/microwind/design-patterns/tree/main/bridge-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>组合模式 Composite</strong></td><td>将对象组合成树形结构</td><td>树形结构处理、文件系统</td><td><a href="https://github.com/microwind/design-patterns/tree/main/composite-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>装饰器模式 Decorator</strong></td><td>动态地给对象添加职责</td><td>功能扩展、避免继承爆炸</td><td><a href="https://github.com/microwind/design-patterns/tree/main/decorator-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>外观模式 Facade</strong></td><td>为子系统中的一组接口提供统一接口</td><td>简化复杂系统、API封装</td><td><a href="https://github.com/microwind/design-patterns/tree/main/facade-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>享元模式 Flyweight</strong></td><td>运用共享技术有效支持大量细粒度对象</td><td>大量相似对象、内存优化</td><td><a href="https://github.com/microwind/design-patterns/tree/main/flyweight-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>代理模式 Proxy</strong></td><td>为其他对象提供一种代理以控制对这个对象的访问</td><td>远程代理、虚拟代理、保护代理</td><td><a href="https://github.com/microwind/design-patterns/tree/main/proxy-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="behavioral-patterns">
+                    <h3>行为型设计模式（11种）</h3>
+                    <p>解决对象之间通信和职责分配的问题：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>模式</th>
+                                <th>核心思想</th>
+                                <th>适用场景</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>策略模式 Strategy</strong></td><td>定义算法族，分别封装起来</td><td>算法可替换、避免条件语句</td><td><a href="https://github.com/microwind/design-patterns/tree/main/strategy-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>模板方法 Template Method</strong></td><td>定义算法骨架，子类实现细节</td><td>算法框架、代码复用</td><td><a href="https://github.com/microwind/design-patterns/tree/main/template-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>观察者模式 Observer</strong></td><td>对象间的一对多依赖关系</td><td>事件处理、消息通知</td><td><a href="https://github.com/microwind/design-patterns/tree/main/observer-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>迭代器模式 Iterator</strong></td><td>提供一种方法顺序访问聚合对象</td><td>遍历集合、统一接口</td><td><a href="https://github.com/microwind/design-patterns/tree/main/iterator-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>责任链模式 Chain of Responsibility</strong></td><td>将请求沿着处理链传递</td><td>审批流程、日志处理</td><td><a href="https://github.com/microwind/design-patterns/tree/main/chain-responsibility/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>命令模式 Command</strong></td><td>将请求封装成对象</td><td>撤销重做、队列请求</td><td><a href="https://github.com/microwind/design-patterns/tree/main/command-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>备忘录模式 Memento</strong></td><td>在不破坏封装的前提下保存状态</td><td>撤销重做、状态保存</td><td><a href="https://github.com/microwind/design-patterns/tree/main/memento-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>状态模式 State</strong></td><td>允许对象在内部状态改变时改变行为</td><td>状态机、游戏角色状态</td><td><a href="https://github.com/microwind/design-patterns/tree/main/state-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>访问者模式 Visitor</strong></td><td>在不改变类结构的前提下定义新操作</td><td>编译器、文档对象模型</td><td><a href="https://github.com/microwind/design-patterns/tree/main/visitor-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>中介者模式 Mediator</strong></td><td>用一个中介对象封装一系列对象交互</td><td>聊天室、GUI组件交互</td><td><a href="https://github.com/microwind/design-patterns/tree/main/mediator-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>解释器模式 Interpreter</strong></td><td>定义语言的文法表示</td><td>表达式求值、SQL解析</td><td><a href="https://github.com/microwind/design-patterns/tree/main/interpreter-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="mvx-patterns">
+                    <h3>分层架构模式（MVC/MVP/MVVM/DDD）</h3>
+                    <p>经典的分层架构设计模式：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>模式</th>
+                                <th>核心思想</th>
+                                <th>特点</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>MVC</strong></td><td>Model-View-Controller</td><td>View与Model分离，Controller负责转发</td><td><a href="https://github.com/microwind/design-patterns/tree/main/mvx/mvc/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>MVP</strong></td><td>Model-View-Presenter</td><td>View与Model完全分离，Presenter作为中介</td><td><a href="https://github.com/microwind/design-patterns/tree/main/mvx/mvp/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>MVVM</strong></td><td>Model-View-ViewModel</td><td>数据双向绑定，ViewModel处理业务逻辑</td><td><a href="https://github.com/microwind/design-patterns/tree/main/mvx/mvvm/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>DDD</strong></td><td>Domain-Driven Design</td><td>以领域为中心，通过领域模型驱动设计</td><td><a href="https://github.com/microwind/design-patterns/tree/main/domain-driven-design" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" id="microservice-patterns">
+                    <h3>微服务架构模式</h3>
+                    <p>分布式系统的设计模式：</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>模式</th>
+                                <th>核心思想</th>
+                                <th>适用场景</th>
+                                <th>代码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>API网关</strong></td><td>统一入口，路由转发</td><td>统一管理、认证授权、限流熔断</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/api-gateway/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>服务发现</strong></td><td>动态服务注册与发现</td><td>动态扩缩容、负载均衡</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/service-discovery/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>断路器</strong></td><td>防止级联故障</td><td>防止雪崩、保护系统稳定性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/circuit-breaker/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>分布式事务</strong></td><td>保证跨服务数据一致性</td><td>跨服务操作、强一致性要求</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/distributed-transactions/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>CDC模式</strong></td><td>数据变更捕获</td><td>数据同步、事件驱动架构</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/cdc-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                            <tr><td><strong>幂等性模式</strong></td><td>重复请求只执行一次</td><td>防止重复消费、保证数据一致性</td><td><a href="https://github.com/microwind/design-patterns/tree/main/microservice-architecture/idempotency-pattern/" style="color: var(--primary-green); font-weight: 600;">查看</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="related" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">相关资源</h2>
+                    <p class="section-subtitle">这个项目是《AI时代程序员成长体系》的一部分</p>
+                </div>
+
+                <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="feature-card">
+                        <h4><a href="https://github.com/microwind/algorithms">algorithms</a></h4>
+                        <p>算法思想与数据结构</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><a href="https://github.com/microwind/design-patterns">design-patterns</a></h4>
+                        <p>设计模式与编程思想（本项目）</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><a href="https://github.com/microwind/ai-prompt">ai-prompt</a></h4>
+                        <p>AI编程提示词库</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><a href="https://github.com/microwind/ai-skills">ai-skills</a></h4>
+                        <p>AI编程Skill库</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>用设计模式驾驭编程，在AI时代闪闪发光</p>
+            <p><em>Design Patterns for everyone, in the Age of AI</em></p>
+            <div class="footer-links">
+                <a href="https://github.com/microwind/design-patterns">GitHub</a>
+                <a href="https://github.com/microwind/design-patterns/blob/main/README.md">学习路线</a>
+                <a href="https://github.com/microwind/design-patterns/issues">反馈问题</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
