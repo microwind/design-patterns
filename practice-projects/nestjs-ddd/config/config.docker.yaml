@@ -1,0 +1,33 @@
+# docker-compose 环境下使用的配置：host 指向 service name
+server:
+  host: "0.0.0.0"
+  port: 8080
+  mode: "release"
+  api_prefix: "api"
+
+database:
+  user:
+    type: "mysql"
+    host: "mysql"
+    port: 3306
+    username: "frog_admin"
+    password: "frog798"
+    database: "frog"
+    synchronize: false
+    logging: false
+  order:
+    type: "postgres"
+    host: "postgres"
+    port: 5432
+    username: "postgres"
+    password: "lego798"
+    database: "seed"
+    synchronize: false
+    logging: false
+
+logger:
+  level: "info"
+  format: "text"
+
+event:
+  enabled: true

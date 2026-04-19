@@ -1,0 +1,37 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  mode: "debug" # debug, release, test
+  api_prefix: "api"
+
+database:
+  user:
+    type: "mysql" # mysql, postgres
+    host: "localhost"
+    port: 3306
+    username: "frog_admin"
+    password: "frog798"
+    database: "frog"
+    # 建议保持 false，表结构请使用 docs/init.mysql.sql 建好
+    # 仅在空库、纯开发阶段可以临时改为 true
+    synchronize: false
+    logging: false
+  order:
+    type: "postgres" # mysql, postgres
+    host: "localhost"
+    port: 5432
+    username: "postgres"
+    password: "lego798"
+    database: "seed"
+    # 建议保持 false，表结构请使用 docs/init.postgres.sql 建好
+    synchronize: false
+    logging: false
+
+logger:
+  level: "debug" # debug, info, warn, error
+  format: "text" # json, text
+
+# 事件发布：目前内置内存事件总线（基于 @nestjs/event-emitter）
+# 可扩展为 RocketMQ / Kafka / RabbitMQ，实现 EventPublisher 接口即可
+event:
+  enabled: true
