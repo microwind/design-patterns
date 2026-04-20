@@ -7,6 +7,16 @@ target/
 *.pyc
 *.rdb
 
+# Python
+.venv/
+.venv-check/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node.js
 **/node_modules/
 
 # IDE files

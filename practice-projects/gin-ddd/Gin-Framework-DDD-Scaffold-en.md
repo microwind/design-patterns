@@ -43,26 +43,27 @@ Project Directory: `gin-ddd/`
 
 ```mermaid
 flowchart TB
-    subgraph InterfaceLayer["Interface Layer"]
-        Handler[HTTP Handler / Routes]
+    subgraph IF["Interface Layer"]
+        Handler["HTTP Handler / Gin Router"]
     end
 
-    subgraph ApplicationLayer["Application Layer"]
-        AppService[Application Service]
+    subgraph APP["Application Layer"]
+        AppService["Application Service"]
     end
 
-    subgraph DomainLayer["Domain Layer"]
-        DomainService[Domain Service]
-        Model[Aggregate Root / Entity]
-        RepoInterface[Repository Interface]
-        NotificationInterface[Notification Interface]
+    subgraph DOMAIN["Domain Layer"]
+        DomainService["Domain Service"]
+        Model["Aggregate Root / Entity"]
+        RepoInterface["Repository Interface"]
+        NotificationInterface["Notification Interface"]
     end
 
-    subgraph InfrastructureLayer["Infrastructure Layer"]
-        RepoImpl[Repository Implementation]
-        Mail[Mail Service]
-        MQ[Message Queue]
-        DB[(Database)]
+    subgraph INFRA["Infrastructure Layer"]
+        RepoImpl["Repository Impl"]
+        Mail["Mail Service"]
+        MQ["Message Queue<br/>RocketMQ"]
+        MySQL[("MySQL<br/>gin_ddd")]
+        PG[("PostgreSQL<br/>seed")]
     end
 
     Handler --> AppService
@@ -70,10 +71,30 @@ flowchart TB
     AppService --> RepoInterface
     DomainService --> Model
     DomainService --> NotificationInterface
-    RepoInterface -.Implementation.-> RepoImpl
-    NotificationInterface -.Implementation.-> Mail
-    RepoImpl --> DB
-    AppService -.Publish Event.-> MQ
+    RepoInterface -. implements .-> RepoImpl
+    NotificationInterface -. implements .-> Mail
+    RepoImpl --> MySQL
+    RepoImpl --> PG
+    AppService -. publish event .-> MQ
+
+    classDef if fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef app fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef domain fill:#D85A30,stroke:#993C1D,color:#ffffff,stroke-width:2px
+    classDef infra fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+    classDef db fill:#185FA5,stroke:#0C447C,color:#ffffff,stroke-width:2px
+    classDef event fill:#993556,stroke:#72243E,color:#ffffff,stroke-width:2px
+
+    class Handler if
+    class AppService app
+    class DomainService,Model,RepoInterface,NotificationInterface domain
+    class RepoImpl,Mail infra
+    class MQ event
+    class MySQL,PG db
+
+    style IF fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style APP fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style DOMAIN fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style INFRA fill:#F5F5F5,stroke:#CCCCCC,color:#333333
 ```
 
 ### Project Directory Structure

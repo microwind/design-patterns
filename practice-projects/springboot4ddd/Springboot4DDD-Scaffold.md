@@ -76,6 +76,43 @@
 
 ## 📁 工程结构详解
 
+### 架构总览
+
+```mermaid
+flowchart LR
+    subgraph Layers["DDD 四层架构"]
+        UI["接口层 Interfaces<br/>Controller · 过滤器 · 统一响应"]
+        APP["应用层 Application<br/>用例编排 · 事务 · DTO"]
+        DOMAIN["领域层 Domain<br/>聚合根 · 仓储接口 · 领域事件"]
+        INFRA["基础设施层 Infrastructure<br/>JdbcTemplate · RocketMQ · MySQL · PostgreSQL"]
+    end
+
+    UI --> APP
+    APP --> DOMAIN
+    APP -. 依赖接口 .-> INFRA
+    INFRA -. 实现接口 .-> DOMAIN
+
+    classDef ui fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef app fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef domain fill:#D85A30,stroke:#993C1D,color:#ffffff,stroke-width:2px
+    classDef infra fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+
+    class UI ui
+    class APP app
+    class DOMAIN domain
+    class INFRA infra
+    style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+```
+
+| 层 | 关注点 | 约束 |
+|----|--------|------|
+| **接口层** | HTTP 适配（Controller / 过滤器 / 统一响应） | 不写业务逻辑 |
+| **应用层** | 用例编排、事务边界、DTO 转换 | 只依赖领域层 |
+| **领域层** | 业务规则、聚合根、领域事件、仓储接口 | **零框架依赖** |
+| **基础设施层** | JdbcTemplate / Spring Data JDBC / RocketMQ 等实现 | 向上实现领域接口 |
+
+### 目录结构
+
 ```
 springboot4ddd/
 ├── src/main/java/com/github/microwind/springboot4ddd/
