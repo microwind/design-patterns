@@ -1,0 +1,18 @@
+# =========================================
+# Python 运行时依赖
+# =========================================
+Django>=4.2,<6.0
+djangorestframework>=3.15,<4.0
+drf-spectacular>=0.27,<1.0
+
+# 数据库驱动
+# MySQL：mysqlclient 依赖本地 libmysqlclient；若本地装不上，可换成 PyMySQL
+mysqlclient>=2.2,<3.0
+# PostgreSQL：psycopg v3（推荐）
+psycopg[binary]>=3.2,<4.0
+
+# 配置
+PyYAML>=6.0
+
+# 日志/工具（可选）
+python-dotenv>=1.0

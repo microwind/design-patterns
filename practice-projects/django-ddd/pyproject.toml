@@ -1,0 +1,51 @@
+[project]
+name = "django-ddd"
+version = "0.1.0"
+description = "一个基于 Django 5 + DRF 的 DDD 实践脚手架，和 gin-ddd / nestjs-ddd 对齐"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Jarry Li", email = "author@example.com" }
+]
+license = { text = "MIT" }
+dependencies = [
+    "Django>=4.2,<6.0",
+    "djangorestframework>=3.15,<4.0",
+    "drf-spectacular>=0.27,<1.0",
+    "PyYAML>=6.0",
+    "mysqlclient>=2.2,<3.0",
+    "psycopg[binary]>=3.2,<4.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+    "black>=24.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "UP", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict_optional = true
+ignore_missing_imports = true
+plugins = []
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "project.settings"
+python_files = ["test_*.py", "*_test.py"]
+pythonpath = ["src"]

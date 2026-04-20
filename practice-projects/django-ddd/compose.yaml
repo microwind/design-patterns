@@ -1,0 +1,67 @@
+# django-ddd 一键起停：MySQL（用户库）+ PostgreSQL（订单库）+ Django 应用
+# 端口、账户、库名都和 gin-ddd / nestjs-ddd 对齐
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: django-ddd-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root798
+      MYSQL_DATABASE: frog
+      MYSQL_USER: frog_admin
+      MYSQL_PASSWORD: frog798
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docs/init.mysql.sql:/docker-entrypoint-initdb.d/init.mysql.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot798"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: django-ddd-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: lego798
+      POSTGRES_DB: seed
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docs/init.postgres.sql:/docker-entrypoint-initdb.d/init.postgres.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d seed"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-ddd-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      DJANGO_SECRET_KEY: docker-dev-secret-change-me
+      DJANGO_DEBUG: "False"
+      CONFIG_FILE: /app/config/config.docker.yaml
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/config.docker.yaml:/app/config/config.docker.yaml:ro
+
+volumes:
+  mysql-data:
+  postgres-data:

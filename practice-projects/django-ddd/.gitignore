@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+.venv-check/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+migrations_applied.txt
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Docker 本地数据
+data/
+
+# 本地配置
+.env
+config/config.local.yaml

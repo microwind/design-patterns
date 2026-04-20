@@ -1,0 +1,31 @@
+# django-ddd 本地开发配置
+# 字段和 gin-ddd/nestjs-ddd 对齐
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  debug: true
+
+database:
+  user:
+    engine: "mysql"          # mysql | postgres
+    host: "localhost"
+    port: 3306
+    name: "frog"
+    username: "frog_admin"
+    password: "frog798"
+    conn_max_age: 60         # 秒
+  order:
+    engine: "postgres"
+    host: "localhost"
+    port: 5432
+    name: "seed"
+    username: "postgres"
+    password: "lego798"
+    conn_max_age: 60
+
+logger:
+  level: "INFO"              # DEBUG | INFO | WARNING | ERROR
+
+event:
+  publisher: "memory"        # memory | (未来可扩展为 kafka / rocketmq)
