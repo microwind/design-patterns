@@ -16,8 +16,6 @@
 
 ## DDD概念速览
 
-> 更系统的讲解见 [`domain-driven-design/README.md`](https://github.com/microwind/design-patterns/blob/main/domain-driven-design/README.md)。
-
 **DDD（领域驱动设计）** 把软件按业务概念分层建模，让代码结构和业务知识保持一致。相比 MVC，DDD 把核心业务规则集中放在 **领域层** 里，而不是散落在 Controller / Service 的流程代码中。
 
 ### 四层结构
@@ -105,6 +103,7 @@ flowchart LR
 ## 工程结构
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 10, 'rankSpacing': 50}}}%%
 flowchart TB
     subgraph IF["接口层 Interfaces"]
         Controller["UserController<br/>OrderController"]
@@ -312,6 +311,7 @@ curl -X PUT http://localhost:8080/api/orders/1/pay
 领域层定义事件接口，基础设施层提供实现，**业务代码只和接口打交道**，这样就可以在不改业务的前提下，把事件总线从内存切到 Kafka / RocketMQ / RabbitMQ。
 
 ```mermaid
+
 flowchart LR
     subgraph Source["事件产生"]
         App["OrderApplicationService"]
@@ -408,11 +408,12 @@ flowchart LR
 | API 文档 | 无 | springdoc-openapi | @nestjs/swagger |
 | 启动 | `go run` | `mvn spring-boot:run` | `npm run start:dev` |
 
-**数据库 schema / API 契约 / 业务规则三端完全对齐**，可以直接用同一份 Postman 集合跨语言调用，非常适合对比学习。
+**数据库 schema / API 契约 / 业务规则三端完全对齐**，可以直接用同一份 Postman 集合跨语言调用，非常适合对比学习。希望通过这几款DDD脚手架对比，能助你加深对于DDD的理解和运营。谢谢！
 
 ## 相关链接
 
 - 本项目源码：[practice-projects/nestjs-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/nestjs-ddd)
 - Go 版：[practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
 - Java 版：[practice-projects/springboot4ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/springboot4ddd)
+- Python 版：[practice-projects/django-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd)
 - DDD 多语言对比：[`domain-driven-design/`](https://github.com/microwind/design-patterns/tree/main/domain-driven-design)

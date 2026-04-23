@@ -10,12 +10,16 @@
 from __future__ import annotations
 
 from django.urls import include, path
+from drf_spectacular.utils import extend_schema
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework.decorators import api_view
 
 from order.interfaces.views import UserOrdersView
-from shared.infrastructure.response import api_response
+from shared.infrastructure.response import ApiResponseSerializer, api_response
 
 
+@extend_schema(operation_id="welcome", responses=ApiResponseSerializer)
+@api_view(["GET"])
 def welcome(_request):
     return api_response(
         {
@@ -26,6 +30,8 @@ def welcome(_request):
     )
 
 
+@extend_schema(operation_id="health", responses=ApiResponseSerializer)
+@api_view(["GET"])
 def health(_request):
     return api_response({"status": "ok", "service": "django-ddd"})
 

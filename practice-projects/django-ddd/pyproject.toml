@@ -13,12 +13,14 @@ dependencies = [
     "djangorestframework>=3.15,<4.0",
     "drf-spectacular>=0.27,<1.0",
     "PyYAML>=6.0",
-    "mysqlclient>=2.2,<3.0",
+    "PyMySQL>=1.1,<2.0",
     "psycopg[binary]>=3.2,<4.0",
     "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
+# 切换到原生 C 扩展以获得最佳 MySQL 性能（需要 libmysqlclient-dev + pkg-config）
+mysqlclient = ["mysqlclient>=2.2,<3.0"]
 dev = [
     "pytest>=8.0",
     "pytest-django>=4.8",

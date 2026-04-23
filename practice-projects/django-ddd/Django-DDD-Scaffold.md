@@ -49,6 +49,36 @@ Django 项目做大以后，常见三个问题：
 
 ## 工程结构
 
+### DDD 四层架构
+
+```mermaid
+flowchart LR
+    subgraph Layers["DDD 四层架构"]
+        UI["接口层 Interfaces<br/>DRF APIView · URLConf · Serializer"]
+        APP["应用层 Application<br/>用例编排 · 事务边界 · Command/DTO"]
+        DOMAIN["领域层 Domain<br/>聚合根 · 业务规则 · 领域事件"]
+        INFRA["基础设施层 Infrastructure<br/>Django ORM · 事件发布器 · 数据库"]
+    end
+
+    UI --> APP
+    APP --> DOMAIN
+    APP -. 依赖接口 .-> INFRA
+    INFRA -. 实现接口 .-> DOMAIN
+
+    classDef ui fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef app fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef domain fill:#D85A30,stroke:#993C1D,color:#ffffff,stroke-width:2px
+    classDef infra fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+
+    class UI ui
+    class APP app
+    class DOMAIN domain
+    class INFRA infra
+    style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+```
+
+一句话：**外层只依赖内层**；基础设施通过实现领域层定义的接口（Repository、EventPublisher）完成对内供给，保证领域层零框架依赖。
+
 ### 工程结构图
 
 ```mermaid
@@ -161,6 +191,52 @@ django-ddd/
 | 应用层 | `*/application/` | 用例编排，Command/DTO，事务边界 | 薄而清晰，不实现业务规则 |
 | 基础设施层 | `*/infrastructure/` | ORM 模型、仓储实现、事件发布器 | 实现领域接口，技术细节下沉 |
 | 接口层 | `*/interfaces/` | DRF Serializer、APIView、URL | 只处理 HTTP 交互，不含业务规则 |
+
+## 请求生命周期
+
+以"创建订单"为例，展示一条 HTTP 请求在四层之间的流转：
+
+```mermaid
+flowchart TB
+    subgraph Flow["POST /api/orders 完整链路"]
+        direction TB
+        C["客户端<br/>发送 JSON"] --> V["接口层<br/>CreateOrderRequest 校验"]
+        V --> Ctrl["OrderListView.post<br/>转换为 Command"]
+        Ctrl --> App["应用层<br/>OrderApplicationService.create"]
+        App --> Check["应用层<br/>检查用户是否存在"]
+        Check --> Agg["领域层<br/>Order.create() 校验 + 业务规则"]
+        Agg --> Repo["基础设施层<br/>DjangoOrderRepository.save"]
+        Repo --> DB[("PostgreSQL<br/>INSERT orders")]
+        DB --> Pub["基础设施层<br/>InMemoryEventPublisher.publish"]
+        Pub --> Event["OrderCreatedEvent<br/>触发监听器"]
+        Event --> Resp["接口层<br/>api_response 包装<br/>{code, message, data}"]
+        Resp --> C
+    end
+
+    classDef client fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef if fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef app fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef domain fill:#D85A30,stroke:#993C1D,color:#ffffff,stroke-width:2px
+    classDef infra fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+    classDef db fill:#185FA5,stroke:#0C447C,color:#ffffff,stroke-width:2px
+    classDef event fill:#993556,stroke:#72243E,color:#ffffff,stroke-width:2px
+
+    class C client
+    class V,Ctrl,Resp if
+    class App,Check app
+    class Agg domain
+    class Repo,Pub infra
+    class DB db
+    class Event event
+
+    style Flow fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+```
+
+关键点：
+
+- **跨越层次由内层接口控制**：应用层调用 `OrderRepository`、`EventPublisher` 接口，具体实现由基础设施在运行时注入。
+- **业务规则集中在聚合根**：`Order.create()` 内部完成金额合法性、订单号生成等校验，应用层不再写 if/else。
+- **事件与主流程解耦**：`publish` 失败只写日志，不阻塞请求响应。
 
 ## 快速开始
 
@@ -456,11 +532,89 @@ CREATE TABLE IF NOT EXISTS products (
 
 ### 消息流转
 
+领域层只定义事件接口，业务代码只和 `EventPublisher` 打交道，**实现可以在内存总线 / Kafka / RocketMQ / RabbitMQ 之间随意切换**，上层零改动。
+
+```mermaid
+flowchart LR
+    subgraph Source["事件产生"]
+        App["OrderApplicationService<br/>UserApplicationService"]
+    end
+
+    subgraph Abstract["事件抽象"]
+        Bus["EventPublisher 接口"]
+    end
+
+    subgraph Impl["发布器实现（可替换）"]
+        Mem["InMemoryEventPublisher<br/>（默认 · 进程内）"]
+        MQ["KafkaEventPublisher<br/>RocketMQ / RabbitMQ"]
+    end
+
+    subgraph Handler["事件处理"]
+        L1["user.infrastructure.listeners<br/>日志 · 审计 · 通知"]
+        L2["order.infrastructure.listeners<br/>发货 · 下游同步"]
+        Consumer["外部消费者服务"]
+    end
+
+    App -- publish --> Bus
+    Bus --> Mem
+    Bus -. 可切换 .-> MQ
+    Mem --> L1
+    Mem --> L2
+    MQ --> Consumer
+
+    classDef app fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef bus fill:#993556,stroke:#72243E,color:#ffffff,stroke-width:2px
+    classDef impl fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+    classDef listener fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef mq fill:#185FA5,stroke:#0C447C,color:#ffffff,stroke-width:2px
+
+    class App app
+    class Bus bus
+    class Mem impl
+    class MQ mq
+    class L1,L2 listener
+    class Consumer mq
+
+    style Source fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Abstract fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Impl fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Handler fill:#F5F5F5,stroke:#CCCCCC,color:#333333
 ```
-HTTP 请求 -> Application Service -> Domain 聚合根
-            -> 发布 DomainEvent -> EventPublisher（进程内 / MQ）
-            -> 监听器异步/同步处理
-            -> 日志 / 通知 / 下游同步
+
+### 订单状态机
+
+订单的所有合法转移封装在 `Order` 聚合根内部，外部只能通过 `pay()` / `ship()` / `deliver()` / `cancel()` / `refund()` 等方法触发，任何非法转移都会抛 `DomainError`：
+
+```mermaid
+flowchart LR
+    subgraph StateMachine["订单状态机"]
+        direction LR
+        PENDING(["PENDING<br/>待支付"])
+        PAID(["PAID<br/>已支付"])
+        SHIPPED(["SHIPPED<br/>已发货"])
+        DELIVERED(["DELIVERED<br/>已送达"])
+        CANCELLED(["CANCELLED<br/>已取消"])
+        REFUNDED(["REFUNDED<br/>已退款"])
+    end
+
+    PENDING -- pay --> PAID
+    PENDING -- cancel --> CANCELLED
+    PAID -- ship --> SHIPPED
+    PAID -- refund --> REFUNDED
+    SHIPPED -- deliver --> DELIVERED
+    SHIPPED -- refund --> REFUNDED
+
+    classDef pending fill:#BA7517,stroke:#854F0B,color:#ffffff,stroke-width:2px
+    classDef active fill:#534AB7,stroke:#3C3489,color:#ffffff,stroke-width:2px
+    classDef success fill:#1D9E75,stroke:#0F6E56,color:#ffffff,stroke-width:2px
+    classDef terminal fill:#993556,stroke:#72243E,color:#ffffff,stroke-width:2px
+
+    class PENDING pending
+    class PAID,SHIPPED active
+    class DELIVERED success
+    class CANCELLED,REFUNDED terminal
+
+    style StateMachine fill:#F5F5F5,stroke:#CCCCCC,color:#333333
 ```
 
 ### 事件发布与消费关键点

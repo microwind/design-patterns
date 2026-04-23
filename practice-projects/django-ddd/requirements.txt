@@ -6,8 +6,10 @@ djangorestframework>=3.15,<4.0
 drf-spectacular>=0.27,<1.0
 
 # 数据库驱动
-# MySQL：mysqlclient 依赖本地 libmysqlclient；若本地装不上，可换成 PyMySQL
-mysqlclient>=2.2,<3.0
+# MySQL：默认用 PyMySQL（纯 Python，零系统依赖，项目已通过 src/project/__init__.py 注册为 MySQLdb）
+# 生产环境若追求更高性能，可改用 mysqlclient（需要 libmysqlclient-dev + pkg-config）
+PyMySQL>=1.1,<2.0
+# mysqlclient>=2.2,<3.0      # 可选：高性能 C 扩展，依赖 libmysqlclient
 # PostgreSQL：psycopg v3（推荐）
 psycopg[binary]>=3.2,<4.0
 

@@ -74,6 +74,20 @@ django-ddd/
 - MySQL ≥ 8
 - PostgreSQL ≥ 13
 
+> MySQL 驱动默认走 **PyMySQL**（纯 Python，零系统依赖），已在 `src/project/__init__.py` 注册为 MySQLdb。
+> 如需切换到原生 `mysqlclient`（C 扩展，性能更高，但依赖 `libmysqlclient-dev` + `pkg-config`）：
+>
+> ```shell
+> # macOS
+> brew install mysql-client pkg-config
+> export PKG_CONFIG_PATH="$(brew --prefix mysql-client)/lib/pkgconfig"
+>
+> # Debian / Ubuntu
+> sudo apt-get install -y default-libmysqlclient-dev pkg-config build-essential
+>
+> pip install "mysqlclient>=2.2,<3.0"
+> ```
+
 初始化数据库（**首次部署必做**）：
 
 ```shell

@@ -42,6 +42,17 @@ ROOT_URLCONF = "project.urls"
 WSGI_APPLICATION = "project.wsgi.application"
 ASGI_APPLICATION = "project.asgi.application"
 
+# drf-spectacular 的 Swagger UI / Redoc 渲染需要 Django 模板后端，
+# 打开 APP_DIRS 即可从第三方包（如 drf_spectacular/templates/）加载模板。
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {},
+    },
+]
+
 # -----------------------------------------------------------------------------
 # 双数据库：user → MySQL（default），order → PostgreSQL（order_db）
 # -----------------------------------------------------------------------------
