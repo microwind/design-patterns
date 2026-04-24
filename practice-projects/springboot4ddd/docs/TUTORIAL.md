@@ -3266,7 +3266,7 @@ https://github.com/microwind/design-patterns/tree/main/practice-projects/springb
 ```
 
 **文档列表**：
-- `README.md`：项目概述和快速开始
+- `../README.md`：项目概述和快速开始
 - `TUTORIAL.md`：本教程文档
 - `DATABASE.md`：多数据源配置详解
 - `SIGN_GUIDE.md`：API签名验证使用指南

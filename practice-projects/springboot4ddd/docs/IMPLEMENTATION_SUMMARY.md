@@ -45,7 +45,7 @@
       implementation: jdbc  # 可改为 mybatis-plus
   ```
 
-### 7. **REPOSITORY_IMPLEMENTATION_GUIDE.md** - 使用指南
+### 7. **docs/REPOSITORY_IMPLEMENTATION_GUIDE.md** - 使用指南
 - 详细说明如何切换实现方式
 - 包含架构设计、使用方法、优势说明等
 

@@ -1508,9 +1508,9 @@ rocketmq:
 ## 📚 相关文档
 
 - **README.md** - 项目概述和快速开始
-- **TUTORIAL.md** - 完整的实战教程（3万字详解）
-- **DATABASE.md** - 多数据源配置详解
-- **SIGN_GUIDE.md** - API 签名验证使用指南
+- **docs/TUTORIAL.md** - 完整的实战教程（3万字详解）
+- **docs/DATABASE.md** - 多数据源配置详解
+- **docs/SIGN_GUIDE.md** - API 签名验证使用指南
 
 ---
 
