@@ -1,0 +1,39 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  debug: true
+  environment: "development"
+
+database:
+  user:
+    driver: "mysql"
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: "your_password"
+    database: "flask_mvc_user"
+  order:
+    driver: "postgresql"
+    host: "localhost"
+    port: 5432
+    username: "postgres"
+    password: "your_password"
+    database: "flask_mvc_order"
+
+log:
+  level: "INFO"
+  format: "json"
+
+celery:
+  enabled: false
+  broker_url: "redis://localhost:6379/0"
+  result_backend: "redis://localhost:6379/0"
+
+mail:
+  enabled: false
+  host: "smtp.qq.com"
+  port: 465
+  username: "your@qq.com"
+  password: "your_smtp_auth_code"
+  from_email: "your@qq.com"
+  from_name: "订单系统"

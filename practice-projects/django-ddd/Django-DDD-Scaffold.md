@@ -4,25 +4,23 @@
 
 ## 这是什么
 
-Django-DDD 是一个面向 Python 语言的 DDD 工程脚手架，帮你快速搭建符合 DDD 分层规范的 Web 服务。项目内置用户与订单示例、领域事件与内存总线、多数据库路由、统一响应与全局异常处理，适合作为团队工程模板或教学示例。
-
-功能与 [`gin-ddd`](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)、[`nestjs-ddd`](https://github.com/microwind/design-patterns/tree/main/practice-projects/nestjs-ddd) 完全对齐，可以对比不同语言下 DDD 工程目录结构与装配方式的差异。
+Django-DDD 是一个精心打造的 Python 语言 DDD 工程脚手架，帮你快速搭建符合 DDD 精髓的 Web 服务。项目内置用户与订单示例、领域事件与内存总线、多数据库路由、统一响应与全局异常处理，适合作为团队工程模板，给AI提供代码规范参考。
 
 ## 为什么要用DDD？
 
-很多人认为 Python 没必要用 DDD，毕竟它和 Ruby、JS 一样轻巧灵活，Django 自带的 MTV（Model-Template-View）拿来就能写。确实，大多数场景下"数据驱动"的 Django 模式完全够用。工程化无非是把接口处理、业务逻辑、数据处理区分开，让各部分各司其职，方便维护和扩展。DDD 相对更适合中大型项目：如果项目有几十个模块、上百个接口，用 DDD 设计会更合适；模块少、接口不多的话，简单分层就够了。
+很多人认为 Python 没必要用 DDD，毕竟它和 Ruby、JS 一样轻巧灵活，Django 自带的 MTV（Model-Template-View）拿来就能写。确实，大多数场景下"数据驱动"的 Django 模式完全够用。
 
-Django 项目做大以后，常见三个问题：
+工程化无非是把接口处理、业务逻辑、数据处理区分开，让各部分各司其职，方便维护和扩展。DDD 相对更适合中大型项目：如果项目有几十个模块、上百个接口，用 DDD 设计会更合适；模块少、接口不多的话，简单分层就够了。
+
+项目做大以后，会遇到三个常见问题：
 
 - **业务规则散落在各处**：View 里判断状态，Model 里写校验，Service（如果有）里再来一次
 - **Model 太胖**：既承担持久化，又承担业务逻辑，测试必须起 Django 才能跑
 - **强耦合 Django**：业务代码离不开 `django.db.models`，替换存储引擎几乎是重构
 
-本脚手架遵循**务实 DDD**：抓精髓（分层 + 领域模型 + 仓储抽象 + 领域事件），不死守（不做 CQRS、不强制事件溯源、不要求每个业务都建聚合）。总之，是否采用 DDD 和语言无关，只跟业务规模有关。
+本脚手架遵循**务实 DDD**：抓住精髓（分层 + 领域模型 + 仓储抽象 + 领域事件），不死守概念（不做 CQRS、不强制事件溯源、不要求每个业务都建聚合）。总之，是否采用 DDD 和语言无关，只跟业务规模有关。
 
-源码地址：[https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd)
-
-项目目录：`django-ddd/`
+**源码地址：**[https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd)
 
 ## 核心特点
 
@@ -52,6 +50,7 @@ Django 项目做大以后，常见三个问题：
 ### DDD 四层架构
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 10, 'rankSpacing': 30}}}%%
 flowchart LR
     subgraph Layers["DDD 四层架构"]
         UI["接口层 Interfaces<br/>DRF APIView · URLConf · Serializer"]
@@ -77,7 +76,7 @@ flowchart LR
     style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
 ```
 
-一句话：**外层只依赖内层**；基础设施通过实现领域层定义的接口（Repository、EventPublisher）完成对内供给，保证领域层零框架依赖。
+重点：**外层只依赖内层**；基础设施通过实现领域层定义的接口（Repository、EventPublisher）完成对内供给，保证领域层零框架依赖。
 
 ### 工程结构图
 
@@ -197,6 +196,7 @@ django-ddd/
 以"创建订单"为例，展示一条 HTTP 请求在四层之间的流转：
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30}}}%%
 flowchart TB
     subgraph Flow["POST /api/orders 完整链路"]
         direction TB
@@ -683,14 +683,6 @@ class AppLabelRouter:
 通过 `app_label` 自动路由，业务代码感知不到多数据库的存在。
 新增第三个库时，只需在 `APP_DB_MAPPING` 里加一行，不用改业务。
 
-## 常见问题排查
-
-- **`ImproperlyConfigured: MySQLdb`**：`mysqlclient` 安装失败，换 `PyMySQL` 或安装 `default-libmysqlclient-dev`
-- **`python manage.py migrate` 报 `table already exists`**：因为 `managed = False`，表由 init SQL 负责；跳过 migrate 即可
-- **`drf-spectacular` 报 "unable to guess serializer"**：APIView 没加 `@extend_schema(responses=...)`；参考现有 view 的写法
-- **事件没被订阅**：确认 `INSTALLED_APPS` 顺序是 `shared → user → order`，且 BC 的 `AppConfig.ready()` 注册了监听器
-- **Docker 启动时应用连不上数据库**：`compose.yaml` 里 `depends_on` 要加 `condition: service_healthy` 等待 DB 就绪
-
 ## 开发规范
 
 命名建议：
@@ -732,11 +724,11 @@ docker compose down -v
 pytest
 ```
 
-## 源码地址
+## 设计模式与架构思想源码地址
 
-[https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/django-ddd)
+[https://github.com/microwind/design-patterns](https://github.com/microwind/design-patterns)
 
-兄弟脚手架：
+其他语言脚手架：
 
 - [gin-ddd (Go)](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
 - [nestjs-ddd (TypeScript)](https://github.com/microwind/design-patterns/tree/main/practice-projects/nestjs-ddd)
