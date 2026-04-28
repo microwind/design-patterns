@@ -2,7 +2,7 @@ from flask_cors import CORS
 
 
 def cors_middleware(app):
-    """Enable CORS for the application"""
+    """为应用启用跨域支持"""
     CORS(app, resources={
         r"/api/*": {
             "origins": "*",

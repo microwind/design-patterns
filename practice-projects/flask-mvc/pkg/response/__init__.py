@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 
 def success_response(data: Any = None, message: str = "success", code: int = 200):
-    """Create a standardized success response"""
+    """创建标准化的成功响应"""
     return jsonify({
         'code': code,
         'message': message,
@@ -12,7 +12,7 @@ def success_response(data: Any = None, message: str = "success", code: int = 200
 
 
 def error_response(message: str, code: int = 400, data: Any = None):
-    """Create a standardized error response"""
+    """创建标准化的错误响应"""
     return jsonify({
         'code': code,
         'message': message,
@@ -21,15 +21,15 @@ def error_response(message: str, code: int = 400, data: Any = None):
 
 
 def not_found_response(message: str = "Resource not found"):
-    """Create a standardized not found response"""
+    """创建标准化的未找到响应"""
     return error_response(message, 404)
 
 
 def bad_request_response(message: str = "Bad request"):
-    """Create a standardized bad request response"""
+    """创建标准化的错误请求响应"""
     return error_response(message, 400)
 
 
 def internal_error_response(message: str = "Internal server error"):
-    """Create a standardized internal error response"""
+    """创建标准化的内部错误响应"""
     return error_response(message, 500)

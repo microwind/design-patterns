@@ -6,7 +6,7 @@ import uuid
 
 @dataclass
 class DomainEvent:
-    """Base class for domain events"""
+    """领域事件基类"""
     event_id: str
     aggregate_id: int
     aggregate_type: str
@@ -23,7 +23,7 @@ class DomainEvent:
         self.data = data
 
     def to_dict(self):
-        """Convert event to dictionary"""
+        """将事件转换为字典"""
         return {
             'event_id': self.event_id,
             'aggregate_id': self.aggregate_id,
@@ -36,7 +36,7 @@ class DomainEvent:
 
 @dataclass
 class OrderCreatedEvent(DomainEvent):
-    """Order created event"""
+    """订单创建事件"""
     def __init__(self, order_id: int, order_no: str, user_id: int, total_amount: float):
         data = {
             'order_no': order_no,
@@ -48,7 +48,7 @@ class OrderCreatedEvent(DomainEvent):
 
 @dataclass
 class OrderPaidEvent(DomainEvent):
-    """Order paid event"""
+    """订单支付事件"""
     def __init__(self, order_id: int, order_no: str, user_id: int):
         data = {
             'order_no': order_no,
@@ -59,7 +59,7 @@ class OrderPaidEvent(DomainEvent):
 
 @dataclass
 class OrderCancelledEvent(DomainEvent):
-    """Order cancelled event"""
+    """订单取消事件"""
     def __init__(self, order_id: int, order_no: str, user_id: int):
         data = {
             'order_no': order_no,
@@ -70,7 +70,7 @@ class OrderCancelledEvent(DomainEvent):
 
 @dataclass
 class UserCreatedEvent(DomainEvent):
-    """User created event"""
+    """用户创建事件"""
     def __init__(self, user_id: int, name: str, email: str):
         data = {
             'name': name,

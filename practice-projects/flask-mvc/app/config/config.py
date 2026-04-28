@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class Config:
-    """Application configuration loaded from YAML file"""
+    """从 YAML 文件加载的应用配置"""
 
     def __init__(self, config_path: str = None):
         if config_path is None:
@@ -36,7 +36,7 @@ class Config:
         return self.config_data.get('mail', {})
 
     def get_database_uri(self, db_name: str) -> str:
-        """Get database URI for given database name (user or order)"""
+        """获取指定数据库名称（user 或 order）的数据库 URI"""
         db_config = self.database.get(db_name, {})
         driver = db_config.get('driver', 'mysql')
         
@@ -45,7 +45,7 @@ class Config:
                 f"mysql+pymysql://{db_config.get('username')}:"
                 f"{db_config.get('password')}@{db_config.get('host')}:"
                 f"{db_config.get('port')}/{db_config.get('database')}"
-                f"?charset=utf8mb4"
+                f"?charset=utf8mb4&ssl_disabled=true"
             )
         elif driver == 'postgresql':
             return (

@@ -9,16 +9,16 @@ database:
     driver: "mysql"
     host: "localhost"
     port: 3306
-    username: "root"
-    password: "your_password"
-    database: "flask_mvc_user"
+    username: "frog_admin"
+    password: "frog798"
+    database: "frog"
   order:
     driver: "postgresql"
     host: "localhost"
     port: 5432
     username: "postgres"
-    password: "your_password"
-    database: "flask_mvc_order"
+    password: "lego798"
+    database: "seed"
 
 log:
   level: "INFO"

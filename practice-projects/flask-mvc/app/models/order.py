@@ -5,7 +5,7 @@ from app.models import db
 
 
 class Order(db.Model):
-    """Order model for the order database"""
+    """订单模型，用于订单数据库"""
     __tablename__ = 'orders'
     __bind_key__ = 'order'
 
@@ -14,11 +14,11 @@ class Order(db.Model):
     order_no = Column(String(50), nullable=False, unique=True)
     total_amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String(20), default='PENDING')  # PENDING, PAID, SHIPPED, DELIVERED, CANCELLED, REFUNDED
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column('created_at', DateTime, default=datetime.utcnow)
+    updated_at = Column('updated_at', DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
-        """Convert model to dictionary"""
+        """将模型转换为字典"""
         return {
             'id': self.id,
             'user_id': self.user_id,

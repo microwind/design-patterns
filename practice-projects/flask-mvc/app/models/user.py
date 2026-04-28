@@ -4,7 +4,7 @@ from app.models import db
 
 
 class User(db.Model):
-    """User model for the user database"""
+    """用户模型，用于用户数据库"""
     __tablename__ = 'users'
     __bind_key__ = 'user'
 
@@ -12,18 +12,18 @@ class User(db.Model):
     name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     phone = Column(String(20))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_time = Column('created_time', DateTime, default=datetime.utcnow)
+    updated_time = Column('updated_time', DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
-        """Convert model to dictionary"""
+        """将模型转换为字典"""
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
             'phone': self.phone,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_at': self.created_time.isoformat() if self.created_time else None,
+            'updated_at': self.updated_time.isoformat() if self.updated_time else None,
         }
 
     def __repr__(self):

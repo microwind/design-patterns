@@ -5,11 +5,11 @@ user_bp = Blueprint('users', __name__, url_prefix='/api/users')
 
 
 def init_user_controller(user_service: UserService):
-    """Initialize user controller routes"""
+    """初始化用户控制器路由"""
     
     @user_bp.route('', methods=['POST'])
     def create_user():
-        """Create a new user"""
+        """创建新用户"""
         data = request.get_json()
         try:
             result = user_service.create_user(
@@ -37,14 +37,26 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('', methods=['GET'])
     def get_all_users():
-        """Get all users"""
+        """获取所有用户"""
         try:
-            users = user_service.get_all_users()
-            return jsonify({
-                'code': 200,
-                'message': 'success',
-                'data': users
-            }), 200
+            page = request.args.get('page', 1, type=int)
+            per_page = request.args.get('per_page', 10, type=int)
+            
+            # 如果有分页参数，使用分页查询
+            if page or per_page:
+                result = user_service.get_users_paginated(page, per_page)
+                return jsonify({
+                    'code': 200,
+                    'message': 'success',
+                    'data': result
+                }), 200
+            else:
+                users = user_service.get_all_users()
+                return jsonify({
+                    'code': 200,
+                    'message': 'success',
+                    'data': users
+                }), 200
         except Exception as e:
             return jsonify({
                 'code': 500,
@@ -54,7 +66,7 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('/<int:user_id>', methods=['GET'])
     def get_user(user_id):
-        """Get user by ID"""
+        """根据 ID 获取用户"""
         try:
             user = user_service.get_user(user_id)
             if user:
@@ -78,7 +90,7 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('/<int:user_id>/email', methods=['PUT'])
     def update_user_email(user_id):
-        """Update user email"""
+        """更新用户邮箱"""
         data = request.get_json()
         try:
             user = user_service.update_user_email(user_id, data.get('email'))
@@ -109,7 +121,7 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('/<int:user_id>/phone', methods=['PUT'])
     def update_user_phone(user_id):
-        """Update user phone"""
+        """更新用户手机号"""
         data = request.get_json()
         try:
             user = user_service.update_user_phone(user_id, data.get('phone'))
@@ -134,7 +146,7 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('/<int:user_id>', methods=['DELETE'])
     def delete_user(user_id):
-        """Delete user by ID"""
+        """根据 ID 删除用户"""
         try:
             success = user_service.delete_user(user_id)
             if success:
@@ -158,7 +170,7 @@ def init_user_controller(user_service: UserService):
 
     @user_bp.route('/<int:user_id>/orders', methods=['GET'])
     def get_user_orders(user_id):
-        """Get orders by user ID (placeholder, will be connected to order service)"""
+        """根据用户 ID 获取订单（占位符，后续将连接订单服务）"""
         return jsonify({
             'code': 200,
             'message': 'success',

@@ -1,78 +1,78 @@
-# Flask-MVC Scaffold
+# Flask-MVC 工程脚手架
 
-> A production-ready MVC (Model-View-Controller) Flask scaffold with dual database support, unified response, middleware, and event-driven architecture examples.
+> 一个生产级别的 MVC（模型-视图-控制器）Flask 工程脚手架，支持双数据库、统一响应格式、中间件和事件驱动架构示例。
 
-## What is this?
+## 这是什么？
 
-Flask-MVC is a Flask-based MVC engineering scaffold that helps you quickly build web services with clear layering. It includes user and order examples, event-driven architecture, dual database support, unified response format, and middleware, suitable as a team engineering template or for code initialization in most scenarios.
+Flask-MVC 是一个基于 Flask 的 MVC 工程脚手架，帮助你快速构建分层清晰的 Web 服务。它包含用户和订单示例、事件驱动架构、双数据库支持、统一响应格式和中间件，适合作为团队工程模板或在大多数场景下进行代码初始化。
 
-This project is aligned with the `practice-projects/gin-mvc` functionality. Unlike the DDD architecture, the MVC architecture is more concise and clear, allowing you to compare the differences between DDD and MVC project structures and choose the appropriate architecture based on business needs.
+本项目与 `practice-projects/gin-mvc` 功能对齐。与 DDD 架构不同，MVC 架构更加简洁清晰，让你可以对比 DDD 和 MVC 项目结构的差异，根据业务需求选择合适的架构。
 
-## Why use MVC?
+## 为什么要用 MVC？
 
-Many developers mix routing, business logic, and data access directly in Flask projects. While small projects can run fast, they become difficult to control as modules increase. The value of MVC lies in separating responsibilities: Controller handles HTTP interactions, Service carries business rules, Repository focuses on data access, and Model maintains core state and behavior.
+很多开发者在 Flask 项目中直接把路由、业务逻辑和数据访问混在一起。小项目可能跑得快，但随着模块增加就难以控制。MVC 的价值在于职责分离：Controller 处理 HTTP 交互，Service 承载业务规则，Repository 专注数据访问，Model 维护核心状态和行为。
 
-In summary, whether to adopt MVC is independent of language, but depends on business complexity and team collaboration costs. For small to medium and large business systems, MVC achieves a good balance between "sufficient clarity" and "implementation cost".
+总之，是否采用 MVC 与语言无关，而取决于业务复杂度和团队协作成本。对于中小型及大型业务系统，MVC 在"足够清晰"和"实现成本"之间取得了很好的平衡。
 
-**Source Code:** [https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc)
+**源码地址：** [https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc)
 
-**Project Directory:** `flask-mvc/`
+**项目目录：** `flask-mvc/`
 
-## Core Features
+## 核心特性
 
-- **Clear MVC Layering:** Controller, Service, Repository, Model
-- **Flask 3.x:** Latest Flask framework with modern Python patterns
-- **Event-Driven:** Business events + Celery async task support
-- **Dual Database Support:** User database + Order database (MySQL + PostgreSQL by default)
-- **Unified Response Format:** Response encapsulation with business domain error codes
-- **Global Middleware:** Request ID, logging, error recovery, CORS
-- **Optional Email Notification:** Order creation event-driven SMTP email sending
+- **清晰的 MVC 分层**：Controller、Service、Repository、Model
+- **Flask 3.x**：最新的 Flask 框架，采用现代 Python 模式
+- **事件驱动**：业务事件 + Celery 异步任务支持
+- **双数据库支持**：用户数据库 + 订单数据库（默认 MySQL + PostgreSQL）
+- **统一响应格式**：响应封装，支持业务领域错误码
+- **全局中间件**：请求 ID、日志记录、错误恢复、跨域支持
+- **可选邮件通知**：订单创建事件驱动的 SMTP 邮件发送
 
-## Tech Stack
+## 技术栈
 
-| Technology | Version | Description |
+| 技术 | 版本 | 说明 |
 |------------|---------|-------------|
-| Python | 3.9+ | Language version |
-| Flask | 3.0+ | HTTP framework |
-| SQLAlchemy | 2.0+ | ORM framework |
-| MySQL | 8.0+ | User database default |
-| PostgreSQL | 14+ | Order database default |
-| Celery | 5.3+ | Async task queue |
-| Redis | 7.0+ | Celery broker |
-| PyYAML | - | Configuration file format |
+| Python | 3.9+ | 语言版本 |
+| Flask | 3.0+ | HTTP 框架 |
+| SQLAlchemy | 2.0+ | ORM 框架 |
+| MySQL | 8.0+ | 用户数据库默认 |
+| PostgreSQL | 14+ | 订单数据库默认 |
+| Celery | 5.3+ | 异步任务队列 |
+| Redis | 7.0+ | Celery 消息代理 |
+| PyYAML | - | 配置文件格式 |
 
-## Project Structure
+## 项目结构
 
-### Structure Diagram
+### 结构图
 
 ```mermaid
 flowchart LR
-    Client[Client]
+    Client[客户端]
 
-    subgraph Web["Web Entry"]
-        Router[Flask Router]
-        Middleware[Middleware]
+    subgraph Web["Web 入口"]
+        Router[Flask 路由]
+        Middleware[中间件]
     end
 
-    subgraph MVC["MVC Core"]
-        Controller[Controller]
-        Service[Service]
-        Model[Model]
-        View[View JSON]
+    subgraph MVC["MVC 核心"]
+        Controller[控制器]
+        Service[服务层]
+        Model[模型层]
+        View[视图 JSON]
     end
 
-    subgraph Repo["Data Access"]
-        Repository[Repository]
-        UserDB[(MySQL User DB)]
-        OrderDB[(PostgreSQL Order DB)]
+    subgraph Repo["数据访问"]
+        Repository[仓储层]
+        UserDB[(MySQL 用户库)]
+        OrderDB[(PostgreSQL 订单库)]
     end
 
-    subgraph Event["Events & Notifications"]
-        Producer[Celery Producer]
-        Broker[(Redis Broker)]
-        Worker[Celery Worker]
-        Handler[Event Handler]
-        Mail[SMTP Mail]
+    subgraph Event["事件与通知"]
+        Producer[Celery 生产者]
+        Broker[(Redis 代理)]
+        Worker[Celery 工作进程]
+        Handler[事件处理器]
+        Mail[SMTP 邮件]
     end
 
     Client --> Router
@@ -86,96 +86,98 @@ flowchart LR
     Controller --> View
     View --> Client
 
-    Service -.Publish Event.-> Producer
+    Service -.发布事件.-> Producer
     Producer --> Broker
     Broker --> Worker
     Worker --> Handler
     Handler --> Mail
 ```
 
-### Directory Structure
+### 目录结构
 
 ```
 flask-mvc/
 ├── app/
-│   ├── __init__.py                          # Application factory
+│   ├── __init__.py                          # 应用工厂
 │   ├── config/
-│   │   └── config.py                        # Configuration loader
-│   ├── controllers/                         # Controller layer (HTTP handling)
+│   │   └── config.py                        # 配置加载器
+│   ├── controllers/                         # 控制器层（HTTP 处理）
 │   │   ├── user_controller.py
 │   │   └── order_controller.py
-│   ├── services/                            # Service layer (business orchestration)
+│   ├── services/                            # 服务层（业务编排）
 │   │   ├── user_service.py
 │   │   └── order_service.py
-│   ├── repository/                          # Repository layer (data access)
+│   ├── repository/                          # 仓储层（数据访问）
 │   │   ├── user_repository.py
 │   │   └── order_repository.py
-│   ├── models/                              # Model layer (core models & events)
+│   ├── models/                              # 模型层（核心模型和事件）
 │   │   ├── __init__.py
 │   │   ├── user.py
 │   │   ├── order.py
 │   │   └── event.py
-│   └── middleware/                          # Flask middleware
+│   └── middleware/                          # Flask 中间件
 │       ├── __init__.py
 │       ├── request_id.py
 │       ├── logging.py
 │       ├── cors.py
 │       └── error_handler.py
 ├── pkg/
-│   ├── logger/                              # Logging utility
+│   ├── logger/                              # 日志工具
 │   │   └── __init__.py
-│   └── response/                            # Unified response
+│   └── response/                            # 统一响应
 │       └── __init__.py
 ├── config/
-│   └── config.yaml                          # Application configuration
+│   └── config.yaml                          # 应用配置
 ├── docs/
-│   ├── init_user_mysql.sql                  # MySQL user database initialization
-│   └── init_order_postgres.sql              # PostgreSQL order database initialization
-├── run.py                                   # Application entry point
-├── requirements.txt                         # Python dependencies
-└── README.md                                # This file
+│   ├── init_user_mysql.sql                  # MySQL 用户数据库初始化
+│   └── init_order_postgres.sql              # PostgreSQL 订单数据库初始化
+├── run.py                                   # 应用入口
+├── requirements.txt                         # Python 依赖
+└── README.md                                # 本文件
 ```
 
-## Layer Responsibilities
+## 各层职责
 
-| Layer | Location | Responsibility | Key Principles |
+| 层级 | 位置 | 职责 | 关键原则 |
 |-------|----------|----------------|----------------|
-| Model Layer | `app/models/` | Core business objects, state machines, event models | Focus on business semantics, no dependency on HTTP/DB details |
-| Service Layer | `app/services/` | Orchestrate business processes, state transitions, event publishing | Business rules centralized, avoid scattering to Controller |
-| Repository Layer | `app/repository/` | DB access, MQ/SMTP external system integration | Only IO and persistence, no business rules |
-| Controller Layer | `app/controllers/` | HTTP request parsing, parameter validation, response output | Lightweight layer, no direct database operations |
+| 模型层 | `app/models/` | 核心业务对象、状态机、事件模型 | 专注业务语义，不依赖 HTTP/DB 细节 |
+| 服务层 | `app/services/` | 编排业务流程、状态转换、事件发布 | 业务规则集中，避免分散到 Controller |
+| 仓储层 | `app/repository/` | 数据库访问、MQ/SMTP 外部系统集成 | 只负责 IO 和持久化，不包含业务规则 |
+| 控制器层 | `app/controllers/` | HTTP 请求解析、参数校验、响应输出 | 轻量层，不直接操作数据库 |
 
-## Quick Start
+## 快速开始
 
-### 1. Environment Preparation
+### 1. 环境准备
 
 - Python 3.9+
-- MySQL 8.0+ and PostgreSQL 14+ (or choose one)
-- Redis 7.0+ (optional, for Celery)
-- SMTP email (optional, recommended QQ email)
+- MySQL 8.0+ 和 PostgreSQL 14+（或选择其中一个）
+- Redis 7.0+（可选，用于 Celery）
+- SMTP 邮箱（可选，推荐使用 QQ 邮箱）
 
-### 2. Initialize Database
+### 2. 初始化数据库
 
-Default configuration uses dual databases:
-- User database: MySQL (default database name `flask_mvc_user`)
-- Order database: PostgreSQL (default database name `flask_mvc_order`)
+默认配置使用双数据库：
+- 用户数据库：MySQL（默认数据库名 `flask_mvc_user`）
+- 订单数据库：PostgreSQL（默认数据库名 `flask_mvc_order`）
 
-Execute initialization scripts:
+执行初始化脚本：
 
 ```bash
 mysql -u root -p < docs/init_user_mysql.sql
 psql -U postgres -f docs/init_order_postgres.sql
 ```
 
-### 3. Install Dependencies
+### 3. 安装依赖
 
 ```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Application
+### 4. 配置应用
 
-Edit `config/config.yaml`, at minimum configure database:
+编辑 `config/config.yaml`，至少配置数据库：
 
 ```yaml
 server:
@@ -200,13 +202,13 @@ database:
     database: "flask_mvc_order"
 ```
 
-### 5. Start Application
+### 5. 启动应用
 
 ```bash
-python run.py
+python3 run.py
 ```
 
-### 6. Verify APIs
+### 6. 验证 API
 
 ```bash
 curl http://localhost:8080/health
@@ -214,19 +216,20 @@ curl http://localhost:8080/api/users
 curl http://localhost:8080/api/orders
 ```
 
-## API Overview
+## API 概览
 
-### User APIs
+### 用户 API
 
-- `POST /api/users` - Create user
-- `GET /api/users` - Get all users
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id/email` - Update user email
-- `PUT /api/users/:id/phone` - Update user phone
-- `DELETE /api/users/:id` - Delete user
-- `GET /api/users/:id/orders` - Get user orders
+- `POST /api/users` - 创建用户
+- `GET /api/users` - 获取所有用户
+- `GET /api/users?page=1&per_page=10` - 分页获取用户
+- `GET /api/users/:id` - 根据 ID 获取用户
+- `PUT /api/users/:id/email` - 更新用户邮箱
+- `PUT /api/users/:id/phone` - 更新用户手机号
+- `DELETE /api/users/:id` - 删除用户
+- `GET /api/users/:id/orders` - 获取用户订单
 
-Example:
+示例：
 
 ```bash
 curl -X POST http://localhost:8080/api/users \
@@ -234,18 +237,19 @@ curl -X POST http://localhost:8080/api/users \
   -d '{"name":"张三","email":"zhangsan@example.com","phone":"13800138000"}'
 ```
 
-### Order APIs
+### 订单 API
 
-- `POST /api/orders` - Create order
-- `GET /api/orders` - Get all orders
-- `GET /api/orders/:id` - Get order by ID
-- `PUT /api/orders/:id/pay` - Pay order
-- `PUT /api/orders/:id/ship` - Ship order
-- `PUT /api/orders/:id/deliver` - Deliver order
-- `PUT /api/orders/:id/cancel` - Cancel order
-- `PUT /api/orders/:id/refund` - Refund order
+- `POST /api/orders` - 创建订单
+- `GET /api/orders` - 获取所有订单
+- `GET /api/orders?page=1&per_page=10` - 分页获取订单
+- `GET /api/orders/:id` - 根据 ID 获取订单
+- `PUT /api/orders/:id/pay` - 支付订单
+- `PUT /api/orders/:id/ship` - 发货
+- `PUT /api/orders/:id/deliver` - 送达
+- `PUT /api/orders/:id/cancel` - 取消订单
+- `PUT /api/orders/:id/refund` - 退款
 
-Example:
+示例：
 
 ```bash
 curl -X POST http://localhost:8080/api/orders \
@@ -253,22 +257,22 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"user_id":1,"total_amount":99.99}'
 ```
 
-## Configuration
+## 配置说明
 
-`config/config.yaml` main sections:
+`config/config.yaml` 主要配置项：
 
-- `server`: Host, port, debug mode
-- `database.user`: User database connection
-- `database.order`: Order database connection
-- `log`: Log level and output format
-- `celery`: Celery configuration for async tasks
-- `mail`: SMTP configuration for email notifications
+- `server`：主机、端口、调试模式
+- `database.user`：用户数据库连接
+- `database.order`：订单数据库连接
+- `log`：日志级别和输出格式
+- `celery`：Celery 异步任务配置
+- `mail`：SMTP 邮件通知配置
 
-## How to Develop New Features Based on Scaffold
+## 基于脚手架开发新功能
 
-Example: Add "Product Management" module
+示例：添加"商品管理"模块
 
-**Step 1:** Add model `app/models/product.py`
+**步骤 1：** 添加模型 `app/models/product.py`
 
 ```python
 from datetime import datetime
@@ -277,7 +281,7 @@ from app.models import db
 
 class Product(db.Model):
     __tablename__ = 'products'
-    __bind_key__ = 'user'  # or 'order'
+    __bind_key__ = 'user'  # 或 'order'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
@@ -287,7 +291,7 @@ class Product(db.Model):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 ```
 
-**Step 2:** Add repository `app/repository/product_repository.py`
+**步骤 2：** 添加仓储 `app/repository/product_repository.py`
 
 ```python
 from app.models.product import Product
@@ -302,7 +306,7 @@ class ProductRepository:
         return product
 ```
 
-**Step 3:** Add service `app/services/product_service.py`
+**步骤 3：** 添加服务 `app/services/product_service.py`
 
 ```python
 from app.repository.product_repository import ProductRepository
@@ -315,7 +319,7 @@ class ProductService:
         return self.product_repository.create(name, price, stock)
 ```
 
-**Step 4:** Add controller and register blueprint in `app/controllers/product_controller.py`
+**步骤 4：** 添加控制器并在 `app/controllers/product_controller.py` 中注册蓝图
 
 ```python
 from flask import Blueprint, request, jsonify
@@ -335,78 +339,74 @@ def init_product_controller(product_service):
     return product_bp
 ```
 
-**Step 5:** Register in `app/__init__.py`
+**步骤 5：** 在 `app/__init__.py` 中注册
 
 ```python
 from app.controllers.product_controller import init_product_controller
-# Initialize and register
+# 初始化并注册
 init_product_controller(product_service)
 app.register_blueprint(product_bp)
 ```
 
-## Event-Driven Architecture
+## 事件驱动架构
 
-### Event Types
+### 事件类型
 
-Order events:
-- order.created
-- order.paid
-- order.shipped
-- order.delivered
-- order.cancelled
-- order.refunded
+订单事件：
+- order.created - 订单创建
+- order.paid - 订单支付
+- order.shipped - 订单发货
+- order.delivered - 订单送达
+- order.cancelled - 订单取消
+- order.refunded - 订单退款
 
-User events:
-- user.created
-- user.deleted
+用户事件：
+- user.created - 用户创建
+- user.deleted - 用户删除
 
-### Message Flow
+### 消息流转
 
 ```
-HTTP Request -> Controller -> Service -> Model/Repository
-            -> Publish DomainEvent -> Celery Task
-            -> Redis Broker -> Celery Worker
-            -> Event Handler -> Send Email/Trigger Follow-up
+HTTP 请求 -> 控制器 -> 服务层 -> 模型/仓储
+            -> 发布领域事件 -> Celery 任务
+            -> Redis 代理 -> Celery 工作进程
+            -> 事件处理器 -> 发送邮件/触发后续操作
 ```
 
-## Development Standards
+## 开发规范
 
-**Naming Conventions:**
-- Models: Nouns, like `Order`, `User`
-- Services: `Service` or `XxxService`
-- Repositories: `Repository` or `XxxRepository`
-- Controllers: `Controller` or `XxxController`
+**命名规范：**
+- 模型：名词，如 `Order`、`User`
+- 服务：`Service` 或 `XxxService`
+- 仓储：`Repository` 或 `XxxRepository`
+- 控制器：`Controller` 或 `XxxController`
 
-**Layering Principles:**
-- Controller only handles HTTP parameters and responses
-- Service responsible for business rules, process orchestration, and event publishing
-- Repository responsible for data access and external dependency calls
-- Model responsible for domain state and object behavior
+**分层原则：**
+- 控制器只处理 HTTP 参数和响应
+- 服务层负责业务规则、流程编排和事件发布
+- 仓储层负责数据访问和外部依赖调用
+- 模型层负责领域状态和对象行为
 
-## Common Commands
+## 常用命令
 
 ```bash
-# Install dependencies
+# 安装依赖
 pip install -r requirements.txt
 
-# Run application
+# 运行应用
 python run.py
 
-# Run with development server
+# 使用开发服务器运行
 FLASK_ENV=development python run.py
 ```
 
-## Source Code
+## 源码地址
 
-**MVC Architecture:**
+**MVC 架构：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/flask-mvc)
 
-**Go MVC Architecture:**
+**Go MVC 架构：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-mvc)
 
-**Go DDD Architecture:**
+**Go DDD 架构：**
 [https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd](https://github.com/microwind/design-patterns/tree/main/practice-projects/gin-ddd)
-
-## License
-
-MIT License

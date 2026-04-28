@@ -20,24 +20,24 @@ from app.middleware import (
 
 
 def create_app(config_path: str = None):
-    """Application factory pattern"""
+    """应用工厂模式"""
     app = Flask(__name__)
     
-    # Load configuration
+    # 加载配置
     config = Config(config_path)
     app.config['CONFIG'] = config
     
-    # Configure databases
+    # 配置数据库（暂时都使用 MySQL）
     app.config['SQLALCHEMY_BINDS'] = {
         'user': config.get_database_uri('user'),
-        'order': config.get_database_uri('order')
+        'order': config.get_database_uri('order')  # 暂时使用 MySQL
     }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Initialize database
+    # 初始化数据库
     db.init_app(app)
     
-    # Register middleware
+    # 注册中间件
     @app.before_request
     def before_request():
         request_id_middleware()
@@ -46,30 +46,30 @@ def create_app(config_path: str = None):
     cors_middleware(app)
     register_error_handlers(app)
     
-    # Initialize repositories
+    # 初始化仓储
     user_repository = UserRepository()
     order_repository = OrderRepository()
     
-    # Initialize services
+    # 初始化服务
     user_service = UserService(user_repository)
     order_service = OrderService(order_repository)
     
-    # Register controllers
+    # 注册控制器
     init_user_controller(user_service)
     init_order_controller(order_service)
     
-    # Register blueprints
+    # 注册蓝图
     from app.controllers.user_controller import user_bp
     from app.controllers.order_controller import order_bp
     app.register_blueprint(user_bp)
     app.register_blueprint(order_bp)
     
-    # Health check endpoint
+    # 健康检查端点
     @app.route('/health')
     def health_check():
         return {'status': 'healthy'}
     
-    # Home endpoint
+    # 首页端点
     @app.route('/')
     def home():
         return {

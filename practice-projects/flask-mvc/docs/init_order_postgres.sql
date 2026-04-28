@@ -1,4 +1,4 @@
--- Initialize order database (PostgreSQL)
+-- 初始化订单数据库（PostgreSQL）
 
 CREATE DATABASE IF NOT EXISTS flask_mvc_order;
 

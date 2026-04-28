@@ -5,14 +5,14 @@ logger = get_logger(__name__)
 
 
 def register_error_handlers(app):
-    """Register global error handlers"""
+    """注册全局错误处理器"""
     
     @app.errorhandler(400)
     def bad_request(error):
         logger.error(f"Bad request: {str(error)}")
         return jsonify({
             'code': 400,
-            'message': 'Bad request',
+            'message': '请求参数错误',
             'data': None
         }), 400
 
@@ -21,7 +21,7 @@ def register_error_handlers(app):
         logger.error(f"Not found: {str(error)}")
         return jsonify({
             'code': 404,
-            'message': 'Resource not found',
+            'message': '资源未找到',
             'data': None
         }), 404
 
@@ -30,7 +30,7 @@ def register_error_handlers(app):
         logger.error(f"Method not allowed: {str(error)}")
         return jsonify({
             'code': 405,
-            'message': 'Method not allowed',
+            'message': '请求方法不允许',
             'data': None
         }), 405
 
@@ -39,7 +39,7 @@ def register_error_handlers(app):
         logger.error(f"Internal error: {str(error)}")
         return jsonify({
             'code': 500,
-            'message': 'Internal server error',
+            'message': '服务器内部错误',
             'data': None
         }), 500
 
@@ -48,6 +48,6 @@ def register_error_handlers(app):
         logger.error(f"Unhandled exception: {str(error)}")
         return jsonify({
             'code': 500,
-            'message': 'Internal server error',
+            'message': '服务器内部错误',
             'data': None
         }), 500

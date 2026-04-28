@@ -5,39 +5,43 @@ from app.repository.order_repository import OrderRepository
 
 
 class OrderService:
-    """Order service for business logic"""
+    """订单服务，处理业务逻辑"""
 
     def __init__(self, order_repository: OrderRepository):
         self.order_repository = order_repository
         self.events = []
 
     def create_order(self, user_id: int, total_amount: float) -> Dict:
-        """Create a new order"""
+        """创建新订单"""
         order = self.order_repository.create(user_id, total_amount)
         
-        # Record domain event
+        # 记录领域事件
         event = OrderCreatedEvent(order.id, order.order_no, user_id, float(total_amount))
         self.events.append(event)
         
         return order.to_dict()
 
     def get_order(self, order_id: int) -> Optional[Dict]:
-        """Get order by ID"""
+        """根据 ID 获取订单"""
         order = self.order_repository.find_by_id(order_id)
         return order.to_dict() if order else None
 
     def get_all_orders(self) -> List[Dict]:
-        """Get all orders"""
+        """获取所有订单"""
         orders = self.order_repository.find_all()
         return [order.to_dict() for order in orders]
 
+    def get_orders_paginated(self, page: int = 1, per_page: int = 10) -> Dict:
+        """分页获取订单"""
+        return self.order_repository.find_paginated(page, per_page)
+
     def get_user_orders(self, user_id: int) -> List[Dict]:
-        """Get orders by user ID"""
+        """根据用户 ID 获取订单"""
         orders = self.order_repository.find_by_user_id(user_id)
         return [order.to_dict() for order in orders]
 
     def pay_order(self, order_id: int) -> Optional[Dict]:
-        """Pay order"""
+        """支付订单"""
         order = self.order_repository.find_by_id(order_id)
         if not order:
             raise ValueError(f"Order {order_id} not found")
@@ -47,14 +51,14 @@ class OrderService:
         
         order = self.order_repository.update_status(order_id, 'PAID')
         
-        # Record domain event
+        # 记录领域事件
         event = OrderPaidEvent(order.id, order.order_no, order.user_id)
         self.events.append(event)
         
         return order.to_dict() if order else None
 
     def ship_order(self, order_id: int) -> Optional[Dict]:
-        """Ship order"""
+        """发货"""
         order = self.order_repository.find_by_id(order_id)
         if not order:
             raise ValueError(f"Order {order_id} not found")
@@ -66,7 +70,7 @@ class OrderService:
         return order.to_dict() if order else None
 
     def deliver_order(self, order_id: int) -> Optional[Dict]:
-        """Deliver order"""
+        """送达"""
         order = self.order_repository.find_by_id(order_id)
         if not order:
             raise ValueError(f"Order {order_id} not found")
@@ -78,7 +82,7 @@ class OrderService:
         return order.to_dict() if order else None
 
     def cancel_order(self, order_id: int) -> Optional[Dict]:
-        """Cancel order"""
+        """取消订单"""
         order = self.order_repository.find_by_id(order_id)
         if not order:
             raise ValueError(f"Order {order_id} not found")
@@ -88,14 +92,14 @@ class OrderService:
         
         order = self.order_repository.update_status(order_id, 'CANCELLED')
         
-        # Record domain event
+        # 记录领域事件
         event = OrderCancelledEvent(order.id, order.order_no, order.user_id)
         self.events.append(event)
         
         return order.to_dict() if order else None
 
     def refund_order(self, order_id: int) -> Optional[Dict]:
-        """Refund order"""
+        """退款"""
         order = self.order_repository.find_by_id(order_id)
         if not order:
             raise ValueError(f"Order {order_id} not found")
@@ -107,9 +111,9 @@ class OrderService:
         return order.to_dict() if order else None
 
     def get_events(self):
-        """Get recorded events"""
+        """获取已记录的事件"""
         return self.events
 
     def clear_events(self):
-        """Clear recorded events"""
+        """清除已记录的事件"""
         self.events.clear()

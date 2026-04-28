@@ -5,19 +5,19 @@ import os
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Get configured logger instance"""
+    """获取已配置的日志记录器实例"""
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     
-    # Prevent duplicate handlers
+    # 防止重复添加处理器
     if logger.handlers:
         return logger
     
-    # Console handler
+    # 控制台处理器
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     
-    # JSON formatter for structured logging
+    # JSON 格式化器，用于结构化日志
     class JsonFormatter(logging.Formatter):
         def format(self, record):
             log_data = {
