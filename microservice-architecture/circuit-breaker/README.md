@@ -22,17 +22,31 @@
 
 # 状态机
 
-```text
-    ┌───────────────────────────────────┐
-    │                                   │
-    ▼                                   │
- CLOSED ──── 连续失败≥阈值 ────► OPEN ────┘
-    ▲                                   │
-    │                                   │
-    └── 探测成功 ── HALF-OPEN ◄──────────┘
-                       │        冷却后试探
-                       │
-                    探测失败 ───► OPEN
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED: 初始化
+    CLOSED --> OPEN: 连续失败≥阈值<br/>Failures ≥ Threshold
+    OPEN --> HALF_OPEN: 冷却后试探<br/>Cooling Timeout
+    HALF_OPEN --> CLOSED: 探测成功<br/>Probe Success
+    HALF_OPEN --> OPEN: 探测失败<br/>Probe Failure
+
+    note right of CLOSED
+        正常状态
+        记录失败次数
+        允许请求通过
+    end note
+
+    note right of OPEN
+        熔断状态
+        快速失败
+        不调用下游
+    end note
+
+    note right of HALF_OPEN
+        探测状态
+        尝试一次调用
+        决定恢复或保持熔断
+    end note
 ```
 
 # 涉及的设计模式

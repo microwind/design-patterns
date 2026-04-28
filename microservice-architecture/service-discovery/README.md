@@ -19,17 +19,20 @@
 
 # 架构图
 
-```text
-  服务实例A ──register──►┐
-  服务实例B ──register──►├── ServiceRegistry（注册中心）
-  服务实例C ──register──►┘         │
-                                   │ instances()
-                                   ▼
-                          RoundRobinDiscoverer
-                                   │
-                              next() 轮询
-                                   ▼
-                         调用方获取实例地址
+```mermaid
+graph TD
+    A[服务实例A<br/>Service Instance A] -->|register<br/>注册| R[ServiceRegistry<br/>注册中心]
+    B[服务实例B<br/>Service Instance B] -->|register<br/>注册| R
+    C[服务实例C<br/>Service Instance C] -->|register<br/>注册| R
+    R -->|instances<br/>获取实例列表| D[RoundRobinDiscoverer<br/>轮询发现器]
+    D -->|next<br/>轮询选择| E[调用方获取实例地址<br/>Caller Gets Instance Address]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style C fill:#ffd43b,stroke:#f08c00,stroke-width:3px,color:#000
+    style R fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style D fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:3px,color:#fff
 ```
 
 # 涉及的设计模式

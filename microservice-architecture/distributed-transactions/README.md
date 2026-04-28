@@ -20,21 +20,26 @@
 
 # 流程图
 
-```text
-  SagaCoordinator.execute()
-      │
-      ▼
-  ① 库存预占（reserve）
-      │
-      ├── 失败 ──► 订单 CANCELLED（无需补偿）
-      │
-      ▼
-  ② 支付扣款（charge）
-      │
-      ├── 失败 ──► 补偿：释放库存（release）──► 订单 CANCELLED
-      │
-      ▼
-  全部成功 ──► 订单 COMPLETED
+```mermaid
+graph TD
+    A[SagaCoordinator.execute<br/>执行 Saga] --> B[① 库存预占<br/>Reserve Inventory]
+    B --> C{预占成功?}
+    C -->|失败<br/>Failed| D[订单 CANCELLED<br/>无需补偿]
+    C -->|成功<br/>Success| E[② 支付扣款<br/>Charge Payment]
+    E --> F{扣款成功?}
+    F -->|失败<br/>Failed| G[补偿：释放库存<br/>Compensate: Release Inventory]
+    G --> H[订单 CANCELLED<br/>Order Cancelled]
+    F -->|成功<br/>Success| I[订单 COMPLETED<br/>Order Completed]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style C fill:#ffd43b,stroke:#f08c00,stroke-width:3px,color:#000
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style E fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style F fill:#40c057,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style G fill:#ff8787,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style H fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style I fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
 ```
 
 # 涉及的设计模式

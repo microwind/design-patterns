@@ -54,6 +54,46 @@
   -> 限流/超时/重试/熔断/降级
 ```
 
+```mermaid
+graph TD
+    A[单体应用<br/>Monolith] --> B[服务拆分<br/>Service Split]
+    B --> C[服务发现<br/>Service Discovery]
+    C --> D[配置中心<br/>Config Center]
+    D --> E[幂等控制<br/>Idempotency]
+    E --> F[Outbox模式<br/>Outbox Pattern]
+    F --> G[分布式事务<br/>Distributed Transaction]
+    G --> H[链路追踪<br/>Distributed Tracing]
+    H --> I[限流保护<br/>Rate Limiting]
+    I --> J[重试模式<br/>Retry Pattern]
+    J --> K[断路器<br/>Circuit Breaker]
+    K --> L[特性开关<br/>Feature Flag]
+    L --> M[CDC模式<br/>CDC Pattern]
+    M --> N[负载均衡<br/>Load Balancing]
+    N --> O[API网关<br/>API Gateway]
+    O --> P[服务通信<br/>Service Communication]
+    P --> Q[API版本管理<br/>API Versioning]
+    Q --> R[弹性模式<br/>Resilience Patterns]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style C fill:#ffd43b,stroke:#f08c00,stroke-width:3px,color:#000
+    style D fill:#69db7c,stroke:#2f9e44,stroke-width:3px,color:#000
+    style E fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style F fill:#40c057,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style G fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style H fill:#15aabf,stroke:#0b7285,stroke-width:3px,color:#fff
+    style I fill:#0ca678,stroke:#087f5b,stroke-width:3px,color:#fff
+    style J fill:#1098ad,stroke:#0c8599,stroke-width:3px,color:#fff
+    style K fill:#0c8599,stroke:#0b7285,stroke-width:3px,color:#fff
+    style L fill:#1971c2,stroke:#1864ab,stroke-width:3px,color:#fff
+    style M fill:#1c7ed6,stroke:#1864ab,stroke-width:3px,color:#fff
+    style N fill:#228be6,stroke:#1971c2,stroke-width:3px,color:#fff
+    style O fill:#3b5bdb,stroke:#2f5cb6,stroke-width:3px,color:#fff
+    style P fill:#4c6ef5,stroke:#3b5bdb,stroke-width:3px,color:#fff
+    style Q fill:#5c7cfa,stroke:#4c6ef5,stroke-width:3px,color:#fff
+    style R fill:#748ffc,stroke:#5c7cfa,stroke-width:3px,color:#fff
+```
+
 ---
 
 ## 二、目录结构

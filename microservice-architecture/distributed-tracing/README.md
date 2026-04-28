@@ -21,15 +21,18 @@
 
 # 架构图
 
-```text
-  Client
-    │
-    ▼
-  Gateway (traceId=TRACE-1001, spanId=SPAN-GATEWAY, parent="")
-    │
-    ├──► OrderService (traceId=TRACE-1001, spanId=SPAN-ORDER, parent=SPAN-GATEWAY)
-    │
-    └──► InventoryService (traceId=TRACE-1001, spanId=SPAN-INVENTORY, parent=SPAN-GATEWAY)
+```mermaid
+graph TD
+    A[Client<br/>客户端] --> B[Gateway<br/>网关<br/>traceId=TRACE-1001<br/>spanId=SPAN-GATEWAY<br/>parentSpanId=""]
+    B --> C[OrderService<br/>订单服务<br/>traceId=TRACE-1001<br/>spanId=SPAN-ORDER<br/>parentSpanId=SPAN-GATEWAY]
+    B --> D[InventoryService<br/>库存服务<br/>traceId=TRACE-1001<br/>spanId=SPAN-INVENTORY<br/>parentSpanId=SPAN-GATEWAY]
+    C --> E[Database<br/>数据库<br/>traceId=TRACE-1001<br/>spanId=SPAN-DB<br/>parentSpanId=SPAN-ORDER]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style C fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style D fill:#40c057,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style E fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
 ```
 
 # 涉及的设计模式
