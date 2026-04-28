@@ -3,19 +3,15 @@
 函数式编程（Functional Programming，简称 FP）是一种编程范式，它将计算视为函数的求值，避免使用共享状态和可变数据。函数式编程强调函数的纯粹性，即函数的输出仅取决于输入，不产生任何副作用，并且通过函数的组合和高阶函数来构建复杂的程序。
 
 ## 结构图形示例
-```text
-函数式编程通过函数的组合和高阶函数来构建复杂的程序，数据在一系列函数之间流动。
-+-------------------+
-|      Function     |
-|  (Input -> Output) |
-+-------------------+
-          |
-          |  (Function Composition)
-          v
-+-------------------+
-|  Composed Function |
-|  (Combined Input -> Output) |
-+-------------------+
+
+```mermaid
+graph TD
+    A[Function<br/>输入 → 输出] --> B[Function Composition<br/>函数组合]
+    B --> C[Composed Function<br/>组合函数<br/>组合输入 → 输出]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
 ```
 
 ## 作用与优缺点

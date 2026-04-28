@@ -3,19 +3,19 @@
   面向切面编程(Aspect-Oriented Programming, AOP)，动态地将代码切入到类的指定方法或指定位置上的编程思想，通过分离横切关注点（cross-cutting concerns）来提高代码的模块化。横切关注点是指那些跨越多个模块的功能，例如日志记录、安全性、事务管理等。AOP 通过将这些关注点从核心业务逻辑中分离出来，使得代码更加清晰、易于维护。
 
 ## 结构图形示例
-```text
-AOP 通过“切面”（Aspect）将这些关注点模块化，并在运行时将它们织入（weave）到核心逻辑中。
-+-------------------+
-|    Core Business   |
-|      Logic         |
-+-------------------+
-          |
-          |  (横切关注点)
-          v
-+-------------------+
-|    Aspect         |
-|  (Logging, Security, etc.) |
-+-------------------+
+
+```mermaid
+graph TD
+    A[Core Business Logic<br/>核心业务逻辑] --> B[Aspect<br/>切面<br/>横切关注点]
+    B --> C[Logging<br/>日志记录]
+    B --> D[Security<br/>安全检查]
+    B --> E[Transaction<br/>事务管理]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
 ```
 
 ## 作用与优缺点

@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-里氏替换原则
 里氏代换原则（Liskov Substitution Principle，LSP），由芭芭拉·利斯科夫（Barbara Liskov）提出。它强调子类对象（派生类）必须能够替换掉其父类对象（基类）而不影响程序的正确性。换句话说，所有引用基类的地方必须能透明地使用其子类的对象，简单说即一个地方使用了父类，那么也可以使用子类。这需要子类能够表现出与其父类一致的行为，而不去改变父类的预期行为。
 
 子类为什么可以代换基类？
@@ -11,6 +11,40 @@
 
 # UML
 <img src="../../docs/uml/oop-liskov-substitution.png">
+
+### 正例 - 子类可替换父类
+
+```mermaid
+graph TD
+    A[Shape<br/>抽象图形类] --> B[Square<br/>正方形]
+    A --> C[Rectangle<br/>矩形]
+    A --> D[Circle<br/>圆形]
+    E[Client<br/>客户端] --> A
+    E --> F[使用 Shape<br/>可替换为任意子类]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style D fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style F fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+```
+
+### 反例 - 子类改变父类行为
+
+```mermaid
+graph TD
+    A[Shape<br/>抽象图形类] --> B[Square<br/>正方形<br/>重写draw方法<br/>改变父类行为]
+    A --> C[Rectangle<br/>矩形<br/>保持父类行为]
+    D[Client<br/>客户端] --> A
+    D --> E[替换为Square<br/>可能导致错误<br/>违反里氏替换]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#51cf66,stroke:#2b8a3e,stroke-width:2px,color:#fff
+    style D fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style E fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java

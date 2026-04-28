@@ -3,19 +3,23 @@
 面向对象编程（Object-Oriented Programming，简称 OOP）是一种基于"对象"概念的编程范式。在面向对象编程中，程序由各种对象组成，每个对象都包含各种数据和方法，用来模拟现实世界中的事物和交互。
 
 ## 结构图形示例
-```text
-面向对象编程以对象为中心，将数据和操作数据的方法封装在一起，强调数据的封装、继承和多态。
-+-------------------+
-|       Class       |
-|  (Attributes, Methods) |
-+-------------------+
-          |
-          |  (Inheritance, Polymorphism)
-          v
-+-------------------+
-|    Sub - Class     |
-|  (Extended Attributes, Methods) |
-+-------------------+
+
+```mermaid
+graph TD
+    A[Class<br/>类<br/>Attributes, Methods] --> B[Sub-Class<br/>子类<br/>Extended Attributes, Methods]
+    A --> C[Encapsulation<br/>封装]
+    A --> D[Inheritance<br/>继承]
+    A --> E[Polymorphism<br/>多态]
+    A --> F[Composition<br/>组合]
+    A --> G[Aggregation<br/>聚合]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style G fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
 ```
 
 ## 面向对象作用

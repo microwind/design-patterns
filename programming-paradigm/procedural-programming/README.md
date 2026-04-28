@@ -2,30 +2,17 @@
 面向过程的编程（Procedural Programming）是一种以过程（函数或子程序）为中心的编程范式。它通过一系列的过程或函数调用来组织代码。每个过程都是一段完成特定任务的代码，可以接受输入参数并返回结果。这种方法侧重于定义可重用的函数和数据结构，并通过控制流来解决具体问题。
 
 ## 结构图形示例
-```text
-面向过程编程通过函数调用来实现逻辑处理，其中核心业务逻辑由多个过程组成。
-+-------------------+
-|    核心业务逻辑    |
-|  (由多个过程组成)  |
-+-------------------+
-          |
-          |  (过程调用)
-          v
-+-------------------+
-|    Procedure 1    |
-+-------------------+
-          |
-          |  (过程调用)
-          v
-+-------------------+
-|    Procedure 2    |
-+-------------------+
-          |
-          |  (过程调用)
-          v
-+-------------------+
-|    Procedure 3    |
-+-------------------+
+
+```mermaid
+graph TD
+    A[核心业务逻辑<br/>由多个过程组成] --> B[Procedure 1<br/>过程1]
+    B --> C[Procedure 2<br/>过程2]
+    C --> D[Procedure 3<br/>过程3]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
 ```
 
 ## 作用与优缺点

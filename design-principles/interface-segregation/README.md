@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-接口隔离原则
 接口隔离原则（Interface Segregation Principle, 简称ISP）原意是客户端不应该被强迫依赖它不需要的接口。有时客户端为了调用服务，被强迫实现一些使用不到的接口，这会导致代码的臃肿和对业务的污染。可以把复杂的接口中进行分组，将一个接口分解为多个接口，每个接口服务于一个子模块。简单地说，就是将单个庞大的接口改为多个小接口，接口之间相互隔离。
 
 具体来讲，有以下两点：
@@ -12,6 +12,40 @@
 
 # UML
 <img src="../../docs/uml/oop-interface-segregation.png">
+
+### 正例 - 接口隔离
+
+```mermaid
+graph TD
+    A[DeviceController<br/>基础设备接口<br/>turnOn/turnOff] --> B[LightController<br/>灯光控制接口<br/>changeLightColor]
+    A --> C[TVController<br/>电视控制接口<br/>adjustVolume/changeChannel]
+    B --> D[Light<br/>灯光实现]
+    C --> E[TV<br/>电视实现]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+```
+
+### 反例 - 接口臃肿
+
+```mermaid
+graph TD
+    A[DeviceController<br/>臃肿接口<br/>包含所有方法] --> B[turnOnTV/turnOffTV]
+    A --> C[adjustTVVolume/changeTVChannel]
+    A --> D[turnOnLight/turnOffLight]
+    A --> E[changeLightColor]
+    F[AllDeviceController<br/>实现类<br/>被迫实现所有方法] --> A
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style F fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+```
 
 # 代码
 ```java

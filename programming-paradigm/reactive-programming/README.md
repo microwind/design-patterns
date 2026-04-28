@@ -3,18 +3,21 @@
 响应式编程(Reactive Programming, RP)，是一种面向数据流和变化传播的编程范式，它强调通过异步和非阻塞的方式处理数据流。它使程序能够以声明性的方式描述动态行为和交互，并自动处理变化带来的复杂性。响应式编程通过使用异步数据流、观察者模式和操作符等概念，使得代码能够更简洁、更易于理解和维护，尤其适用于处理实时数据、用户交互和并发任务。
 
 ## 结构图形示例
-```text
-响应式编程强调数据的变化和传播，允许程序对数据的变化做出自动响应。
-+-----------------+          +-----------------+          +-----------------+
-|   Data Source   |  ----->  |   Operator 1    |  ----->  |   Operator 2    |
-+-----------------+          +-----------------+          +-----------------+
-                             |    Map          |          |    Filter       |
-                             +-----------------+          +-----------------+
-                                 |                        |
-                                 v                        v
-+-----------------+          +-----------------+          +-----------------+
-|   Observer 1    |          |   Observer 2    |          |   Observer 3    |
-+-----------------+          +-----------------+          +-----------------+
+
+```mermaid
+graph TD
+    A[Data Source<br/>数据源<br/>Events, Streams] --> B[Operator 1<br/>操作符1<br/>Map]
+    B --> C[Operator 2<br/>操作符2<br/>Filter]
+    C --> D[Observer 1<br/>观察者1]
+    C --> E[Observer 2<br/>观察者2]
+    C --> F[Observer 3<br/>观察者3]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:3px,color:#fff
+    style D fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
 ```
 
 ## 作用与优缺点

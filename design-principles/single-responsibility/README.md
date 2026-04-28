@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-单一职责原则
 单一职责原则(Single Responsibility Principle，缩写为SRP)。即一个类或者模块只负责完成一个职责或功能，而不是糅杂不同功能在一起。
 当然单一职责原则并不是把类拆得越细越好，不是说每个类或者模块就只能完成最细粒度的事情，而是根据业务划分来讲，可以完成某一个具体单元或模块的事情。
 
@@ -15,6 +15,44 @@
 
 # UML
 <img src="../../docs/uml/oop-single-responsibility.png">
+
+### 正例 - 职责分离
+
+```mermaid
+graph TD
+    A[OrderProcessor<br/>订单处理器] --> B[OrderValidator<br/>订单校验器]
+    A --> C[OrderDao<br/>订单数据访问]
+    B --> D[validateId<br/>校验ID]
+    B --> E[validateTime<br/>校验时间]
+    C --> F[saveOrder<br/>保存订单]
+    C --> G[deleteOrder<br/>删除订单]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:3px,color:#fff
+    style D fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style F fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    style G fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+```
+
+### 反例 - 职责混乱
+
+```mermaid
+graph TD
+    A[OrderProcessor<br/>订单处理器<br/>违反单一职责] --> B[processOrder<br/>处理订单]
+    A --> C[validateId<br/>校验ID]
+    A --> D[validateTime<br/>校验时间]
+    A --> E[saveOrder<br/>保存订单]
+    A --> F[deleteOrder<br/>删除订单]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style F fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java

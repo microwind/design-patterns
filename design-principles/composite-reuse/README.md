@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-组合复用原则
 组合/聚合复用原则（Composite/Aggregate Reuse Principle，CARP）也叫组合复用原则(Composite Reuse Principle, CRP)。其含义是：尽量使用组合或聚合，而不是通过继承达来达到复用的目的。组合/聚合相比继承来讲更具扩展性，松耦合性更好。也有将组合翻译为合成的。
 
 
@@ -12,6 +12,40 @@
 
 # UML
 <img src="../../docs/uml/oop-composite-reuse.png">
+
+### 正例 - 组合复用
+
+```mermaid
+graph TD
+    A[Person<br/>人物类] --> B[Employee<br/>雇员抽象类<br/>聚合Person]
+    B --> C[Engineer<br/>工程师<br/>继承Employee]
+    B --> D[Manager<br/>管理者<br/>继承Employee]
+    C --> E[组合Person<br/>松耦合]
+    D --> F[组合Person<br/>松耦合]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+```
+
+### 反例 - 继承复用
+
+```mermaid
+graph TD
+    A[Person<br/>人物类] --> B[Employee<br/>雇员类<br/>继承Person<br/>紧耦合]
+    B --> C[Engineer<br/>工程师<br/>继承Employee]
+    B --> D[Manager<br/>管理者<br/>继承Employee]
+    E[继承层次深<br/>难以扩展] --> B
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java

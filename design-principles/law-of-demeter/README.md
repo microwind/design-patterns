@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-迪米特法则
 迪米特法则（Law of Demeter，LoD），也叫最少知识原则（Principle of Least Knowledge）。即一个对象应当对其他对象尽可能少的了解，对象之间的耦合度应该尽可能低。这要求一个对象应该只与密切相关的朋友（直接的成员变量、方法参数、方法内部创建的对象以及静态方法等）交互，而不应该了解其朋友的关联对象。迪米特法则有助于降低系统的耦合度，提高代码的灵活性和可维护性。
 
 迪米特法则的目的在于降低类之间的耦合，使得系统的功能模块功能独立，相互之间不存在（或很少有）依赖关系。
@@ -19,6 +19,38 @@
 
 # UML
 <img src="../../docs/uml/oop-law-of-demeter.png">
+
+### 正例 - 最少知识原则
+
+```mermaid
+graph TD
+    A[Customer<br/>顾客] --> B[ShoppingCart<br/>购物车<br/>中介类]
+    B --> C[Product<br/>商品]
+    A --> D[只与ShoppingCart交互<br/>不直接访问Product]
+    B --> E[封装商品逻辑<br/>价格计算/校验]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+```
+
+### 反例 - 违反迪米特法则
+
+```mermaid
+graph TD
+    A[Customer<br/>顾客<br/>违反迪米特法则] --> B[Product<br/>商品<br/>直接访问]
+    A --> C[List&lt;Product&gt;<br/>直接管理商品列表]
+    A --> D[calculateTotalPrice<br/>价格计算逻辑<br/>职责混乱]
+    E[高耦合<br/>依赖朋友的朋友] --> A
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java

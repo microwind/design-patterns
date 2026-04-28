@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-开闭原则
 开闭原则(Open Closed Principle，缩写为OCP)。是所有面向对象原则里最基础的原则，面向对象程序设计的精髓就在于将复杂问题进行抽象，提供可扩展的解决方案。软件设计本身所追求的目标就是封装变化、降低耦合，而开放封闭原则正是对这一目标的最直接体现。对扩展开放，即当有新的需求或变化时，可以对现有代码进行扩展，以适应新的情况。对修改封闭，则表示类一旦设计完成，就可以独立完成工作，而不要对已有代码进行反复修改。
 
 要理解好开闭原则，注意以下3点：
@@ -15,6 +15,56 @@
 
 # UML
 <img src="../../docs/uml/oop-open-closed.png">
+
+### 正例 - 对扩展开放，对修改关闭
+
+```mermaid
+graph TD
+    A[AbstractVehicle<br/>抽象车辆类] --> B[Car<br/>汽车]
+    A --> C[Bus<br/>巴士]
+    A --> D[Truck<br/>卡车<br/>可扩展]
+    E[VehicleFactory<br/>车辆工厂] --> A
+    E --> F[createVehicle<br/>创建车辆<br/>无需修改]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:3px,color:#fff
+    style F fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+```
+
+### 反例 - 需要修改现有代码
+
+```mermaid
+graph TD
+    A[VehicleFactory<br/>车辆工厂<br/>违反开闭原则] --> B[switch-case<br/>类型判断]
+    B --> C[case 1: Car<br/>创建汽车]
+    B --> D[case 2: Bus<br/>创建巴士]
+    B --> E[case 3: Truck<br/>需要修改代码<br/>添加新case]
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
+
+### 折扣策略示例 - 正例
+
+```mermaid
+graph TD
+    A[DiscountStrategy<br/>折扣策略接口] --> B[BookDiscountStrategy<br/>书籍折扣]
+    A --> C[ClothingDiscountStrategy<br/>衣物折扣]
+    A --> D[ElectronicsDiscountStrategy<br/>电子产品折扣]
+    A --> E[NewDiscountStrategy<br/>新品类折扣<br/>可扩展]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style C fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style D fill:#20c997,stroke:#0ca678,stroke-width:2px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java

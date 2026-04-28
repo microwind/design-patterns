@@ -3,15 +3,27 @@
 事件驱动编程(Event-Driven Programming, EDP)，主要指程序的执行不是线性地按照预设的顺序进行，而是由外部的事件驱动程序的执行。在事件驱动编程中，程序会等待事件的发生，当事件发生时，会执行相应的事件处理程序来响应事件。
 
 ## 结构图形示例
-```text
-事件驱动编程通常由事件源（Event Source）、事件队列（Event Queue）和事件处理程序（Event Handler）组成。
-+----------------+           +----------------+           +----------------+
-|    Event Source |  ----->  |   Event Queue  |  ----->  |  Event Handler |
-+----------------+           +----------------+           +----------------+
-| User Actions    |           |                |           |  Function 1    |
-| System Events   |           |                |           |  Function 2    |
-| Timer Expirations |         |                |           |  Function 3    |
-+----------------+           +----------------+           +----------------+
+
+```mermaid
+graph TD
+    A[Event Source<br/>事件源] --> B[Event Queue<br/>事件队列]
+    B --> C[Event Handler<br/>事件处理程序]
+    A --> D[User Actions<br/>用户操作]
+    A --> E[System Events<br/>系统事件]
+    A --> F[Timer Expirations<br/>定时器]
+    C --> G[Function 1<br/>功能1]
+    C --> H[Function 2<br/>功能2]
+    C --> I[Function 3<br/>功能3]
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:3px,color:#fff
+    style D fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style E fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    style G fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    style H fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
+    style I fill:#ffd43b,stroke:#f08c00,stroke-width:2px,color:#000
 ```
 
 ## 作用与优缺点

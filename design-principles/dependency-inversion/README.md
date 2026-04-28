@@ -1,4 +1,4 @@
-# 说明
+# 面向对象-依赖倒置原则
 依赖倒置（也叫依赖反转）原则（Dependency inversion principle，DIP）是指一种专门的分层解耦模式。传统的依赖关系中，高层依赖低层，外层依赖里层，这使得高层次的模块与低层次模块过度耦合，不便于模块的复用和扩展。依赖倒置就是将这种依赖关系颠倒（反转）过来，使得低层次模块依赖并实现高层次的抽象，而高层次的模块仅依赖于低层次的抽象（接口）。
 
 具体来讲，有两点：
@@ -16,6 +16,40 @@
 
 # UML
 <img src="../../docs/uml/oop-dependency-inversion.png">
+
+### 正例 - 依赖倒置
+
+```mermaid
+graph TD
+    A[Notification<br/>高层业务模块] --> B[Sender<br/>抽象接口]
+    B --> C[MessageSender<br/>消息发送器]
+    B --> D[MailSender<br/>邮件发送器]
+    B --> E[PushSender<br/>推送发送器]
+    F[依赖注入<br/>DI] --> A
+
+    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
+    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
+    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
+    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+```
+
+### 反例 - 高层依赖低层实现
+
+```mermaid
+graph TD
+    A[Notification<br/>高层业务模块<br/>违反依赖倒置] --> B[MessageSender<br/>具体实现]
+    A --> C[MailSender<br/>具体实现]
+    A --> D[PushSender<br/>具体实现]
+    E[紧耦合<br/>难以扩展] --> A
+
+    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style E fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+```
 
 # 代码
 ```java
