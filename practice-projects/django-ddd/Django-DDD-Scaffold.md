@@ -73,7 +73,7 @@ flowchart LR
     class APP app
     class DOMAIN domain
     class INFRA infra
-    style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Layers fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 重点：**外层只依赖内层**；基础设施通过实现领域层定义的接口（Repository、EventPublisher）完成对内供给，保证领域层零框架依赖。
@@ -133,10 +133,10 @@ flowchart TB
     class OrmModel,RepoImpl,Publisher infra
     class MySQL,PG db
 
-    style IF fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style APP fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style DOMAIN fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style INFRA fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style IF fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style APP fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style DOMAIN fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style INFRA fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ### 工程结构列表
@@ -229,7 +229,7 @@ flowchart TB
     class DB db
     class Event event
 
-    style Flow fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Flow fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 关键点：
@@ -575,10 +575,10 @@ flowchart LR
     class L1,L2 listener
     class Consumer mq
 
-    style Source fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Abstract fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Impl fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Handler fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Source fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Abstract fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Impl fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Handler fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ### 订单状态机
@@ -614,7 +614,7 @@ flowchart LR
     class DELIVERED success
     class CANCELLED,REFUNDED terminal
 
-    style StateMachine fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style StateMachine fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ### 事件发布与消费关键点

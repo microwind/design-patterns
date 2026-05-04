@@ -257,6 +257,136 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"user_id":1,"total_amount":99.99}'
 ```
 
+## 目录结构说明
+
+### controllers/ - 控制器层
+负责处理HTTP请求和响应，协调业务逻辑。
+
+**文件说明：**
+- `user_controller.py` - 用户相关API控制器
+- `order_controller.py` - 订单相关API控制器
+
+**用法：**
+```python
+# 创建控制器蓝图
+user_bp = Blueprint('user', __name__, url_prefix='/api/users')
+
+@user_bp.route('/', methods=['GET'])
+def get_users():
+    users = user_service.get_all_users()
+    return success_response(data=schema.dump(users))
+```
+
+### models/ - 数据模型层
+定义数据库表结构和数据实体。
+
+**文件说明：**
+- `user.py` - 用户数据模型（绑定用户数据库）
+- `order.py` - 订单数据模型（绑定订单数据库）
+
+**用法：**
+```python
+class User(db.Model):
+    __tablename__ = 'users'
+    __bind_key__ = 'user'  # 指定数据库绑定
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+```
+
+### repositories/ - 数据访问层
+负责数据库操作，提供数据访问接口。
+
+**文件说明：**
+- `user_repository.py` - 用户数据仓储
+- `order_repository.py` - 订单数据仓储
+
+**用法：**
+```python
+class UserRepository:
+    def create(self, user: User) -> User:
+        db.session.add(user)
+        db.session.commit()
+        return user
+```
+
+### services/ - 业务逻辑层
+包含核心业务逻辑，协调多个仓储和事件。
+
+**文件说明：**
+- `user_service.py` - 用户业务逻辑
+- `order_service.py` - 订单业务逻辑（包含事件发布）
+
+**用法：**
+```python
+class OrderService:
+    def create_order(self, order_data: dict) -> Order:
+        order = Order(**order_data)
+        saved_order = self.order_repository.create(order)
+        
+        # 发布领域事件
+        event = OrderCreatedEvent(order_id=saved_order.id)
+        self.event_bus.publish(event)
+        
+        return saved_order
+```
+
+### schemas/ - 数据验证层
+负责API数据验证和序列化。
+
+**文件说明：**
+- `user_schema.py` - 用户数据验证模式
+- `order_schema.py` - 订单数据验证模式
+
+**用法：**
+```python
+class CreateUserSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    email = fields.Email(required=True)
+
+# 使用验证
+schema = CreateUserSchema()
+data = schema.load(request.get_json())
+```
+
+### routes/ - 路由层
+负责URL路由注册和蓝图管理。
+
+**文件说明：**
+- `routes.py` - 路由注册入口
+
+**用法：**
+```python
+def init_app(app):
+    app.register_blueprint(user_bp)
+    app.register_blueprint(order_bp)
+```
+
+### utils/ - 工具类
+包含通用工具和配置。
+
+**文件说明：**
+- `extensions.py` - Flask扩展初始化
+- `config.py` - 配置管理类
+- `events.py` - 事件总线实现
+- `domain_events.py` - 领域事件定义
+- `middleware.py` - 中间件（日志、异常、CORS）
+- `response.py` - 统一响应格式
+
+**用法：**
+```python
+# 配置管理
+config = Config()
+db_uri = config.get_database_uri('user')
+
+# 事件发布
+event_bus = get_event_bus()
+event_bus.publish(OrderCreatedEvent(...))
+
+# 统一响应
+return success_response(data=result, message="操作成功")
+```
+
 ## 配置说明
 
 `config/config.yaml` 主要配置项：
@@ -394,10 +524,10 @@ HTTP 请求 -> 控制器 -> 服务层 -> 模型/仓储
 pip install -r requirements.txt
 
 # 运行应用
-python run.py
+python3 run.py
 
 # 使用开发服务器运行
-FLASK_ENV=development python run.py
+FLASK_ENV=development python3 run.py
 ```
 
 ## 源码地址

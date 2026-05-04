@@ -94,10 +94,10 @@ flowchart TB
     class MQ event
     class MySQL,PG db
 
-    style IF fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style APP fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style DOMAIN fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style INFRA fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style IF fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style APP fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style DOMAIN fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style INFRA fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ### 工程结构列表

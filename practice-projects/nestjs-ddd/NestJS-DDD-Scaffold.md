@@ -43,7 +43,7 @@ flowchart LR
     class APP app
     class DOMAIN domain
     class INFRA infra
-    style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Layers fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 | 层 | 关注点 | 约束 |
@@ -156,10 +156,10 @@ flowchart TB
     class RepoImpl,OrmEntity,PubImpl,Listener infra
     class MySQL,PG db
 
-    style IF fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style APP fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style DOMAIN fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style INFRA fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style IF fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style APP fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style DOMAIN fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style INFRA fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ### 目录结构
@@ -233,7 +233,7 @@ flowchart TB
     class DB db
     class Event event
 
-    style Flow fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Flow fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ## 快速开始
@@ -352,10 +352,10 @@ flowchart LR
     class L1,L2 listener
     class Consumer mq
 
-    style Source fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Abstract fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Impl fill:#F5F5F5,stroke:#CCCCCC,color:#333333
-    style Handler fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Source fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Abstract fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Impl fill:#f8f9fa,stroke:#CCCCCC,color:#333333
+    style Handler fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 订单事件：`order.created` / `order.paid` / `order.shipped` / `order.delivered` / `order.cancelled` / `order.refunded`。
@@ -393,7 +393,7 @@ flowchart LR
     class DELIVERED success
     class CANCELLED,REFUNDED terminal
 
-    style StateMachine fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style StateMachine fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 ## 和 gin-ddd / springboot4ddd 对比

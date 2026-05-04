@@ -101,7 +101,7 @@ flowchart LR
     class APP app
     class DOMAIN domain
     class INFRA infra
-    style Layers fill:#F5F5F5,stroke:#CCCCCC,color:#333333
+    style Layers fill:#f8f9fa,stroke:#CCCCCC,color:#333333
 ```
 
 | 层 | 关注点 | 约束 |

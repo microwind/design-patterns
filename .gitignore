@@ -1,5 +1,7 @@
 # Compiled class file
 a.out
+.agents
+skills-lock.json
 *.out
 *.o
 *.class
