@@ -2579,66 +2579,85 @@ public class OrderConverter {
 // application/services/OrderApplicationService.java
 package com.microwind.application.services;
 
-import com.microwind.application.dto.CreateOrderRequest;
-import com.microwind.application.dto.OrderDTO;
-import com.microwind.domain.event.DomainEvent;
-import com.microwind.domain.model.Order;
-import com.microwind.domain.model.OrderItem;
-import com.microwind.domain.repository.OrderRepository;
-import com.microwind.domain.service.OrderDomainService;
-import com.microwind.infrastructure.messaging.OrderEventPublisher;
-import com.microwind.infrastructure.converter.OrderConverter;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class OrderApplicationService {
-    private final OrderRepository orderRepository;
-    private final OrderDomainService orderDomainService;
-    private final OrderEventPublisher eventPublisher;
-    private final OrderConverter orderConverter;
-    
-    public OrderApplicationService(OrderRepository orderRepository, 
-                                   OrderDomainService orderDomainService,
-                                   OrderEventPublisher eventPublisher,
-                                   OrderConverter orderConverter) {
-        this.orderRepository = orderRepository;
-        this.orderDomainService = orderDomainService;
-        this.eventPublisher = eventPublisher;
-        this.orderConverter = orderConverter;
-    }
-    
+
+    // ..... 此处代码省略
+
+    /**
+     * 创建订单
+     * @param request 创建订单请求
+     * @return 订单DTO
+     */
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
-        // 1. 验证订单
+        // === 第一步：参数转换与基础验证 ===
+        // 将DTO中的订单项转换为领域对象，同时进行基础的数据验证
         List<OrderItem> items = request.getItems().stream()
             .map(item -> new OrderItem(item.getProductId(), item.getQuantity(), item.getUnitPrice()))
             .collect(Collectors.toList());
         
+        // === 第二步：跨聚合业务规则验证 ===
+        // 调用领域服务进行跨聚合的业务验证
+        // 典型验证：用户信用额度检查、商品库存状态验证、用户权限验证等
+        // 注意：单个聚合内的业务逻辑应该在实体内部，而不是在领域服务中
         orderDomainService.validateOrderCreation(request.getCustomerId(), items);
         
-        // 2. 创建订单
+        // === 第三步：创建聚合根 ===
+        // 通过工厂方法创建订单聚合根，确保业务不变量
+        // 订单创建时会自动：
+        // 1. 生成唯一标识符（OrderId）
+        // 2. 计算订单总金额
+        // 3. 设置初始状态为PENDING
+        // 4. 生成OrderCreatedEvent领域事件
         Order order = new Order(
-            java.util.UUID.randomUUID().toString(),
-            request.getCustomerId(),
-            items
+            java.util.UUID.randomUUID().toString(), // 生成聚合根唯一标识符
+            request.getCustomerId(),                // 客户ID，通过ID引用用户聚合
+            items                                   // 订单项列表，属于订单聚合的一部分
         );
         
-        // 3. 保存订单
+        // === 第四步：持久化聚合根 ===
+        // 保存整个聚合根到数据库，确保数据一致性
+        // 重要：保存的是完整的聚合，而不是部分数据
+        // 这保证了聚合的原子性和一致性边界
         orderRepository.save(order);
         
-        // 4. 发布领域事件
+        // === 第五步：发布领域事件 ===
+        // 获取订单创建过程中产生的领域事件
+        // 典型事件：OrderCreatedEvent（订单创建事件）
+        // 事件包含的信息：订单ID、客户ID、订单总金额、订单项等
         List<DomainEvent> events = order.getDomainEvents();
+        
+        // 异步发布事件到消息队列，实现系统解耦
+        // 事件消费者可能包括：
+        // - 库存服务：扣减商品库存
+        // - 通知服务：发送订单创建通知
+        // - 积分服务：记录用户积分
+        // - 数据服务：更新统计报表
         events.forEach(eventPublisher::publish);
+        
+        // === 第六步：清空事件列表 ===
+        // 清空聚合根中的事件列表，避免重复发布
+        // 这是DDD中的标准实践，确保每个事件只发布一次
+        // 同时也符合"事件已处理"的业务语义
         order.clearDomainEvents();
         
+        // === 第七步：返回结果 ===
+        // 将领域对象转换为DTO，避免领域对象泄露到接口层
+        // 这里使用转换器模式，保持领域模型的纯净性
         return orderConverter.toDTO(order);
     }
     
+    /**
+     * 支付订单
+     * @param orderId 订单ID
+     * @param paymentMethod 支付方式
+     * @return 订单DTO
+     */
     @Transactional
     public OrderDTO payOrder(String orderId, String paymentMethod) {
+        // === 第一步：查询订单 ===
+        // 根据订单ID查询订单聚合根
         // 1. 查询订单
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new OrderNotFoundException(orderId));
@@ -3594,6 +3613,404 @@ public class OrderApplicationService {
 - **业务理解**：开发人员对业务的理解深度显著提升
 - **协作效率**：跨团队协作效率提升50%
 - **知识传承**：业务知识在代码中得到有效传承
+
+## DDD 常见反模式与避免方法
+
+### 反模式1：贫血领域模型（Anemic Domain Model）
+
+**表现特征**：
+```java
+// ❌ 反模式：贫血模型 - 实体只有数据，没有行为
+public class Order {
+    private String id;
+    private String status;
+    private BigDecimal amount;
+    // 只有getter/setter，没有业务方法
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+
+// 业务逻辑全部在Service层
+public class OrderService {
+    public void payOrder(String orderId) {
+        Order order = orderRepository.findById(orderId);
+        // 业务规则散落在Service中
+        if ("PENDING".equals(order.getStatus())) {
+            order.setStatus("PAID");
+        }
+        orderRepository.save(order);
+    }
+}
+```
+
+**问题分析**：
+- 违反了DDD的核心原则：业务逻辑应该封装在领域对象中
+- 导致业务规则散落各处，难以维护
+- 违反了封装性，对象不能保护自己的不变量
+
+**正确做法**：
+```java
+// ✅ 正确：充血模型 - 实体包含数据和行为
+public class Order {
+    private OrderId id;
+    private OrderStatus status;
+    private Money amount;
+    
+    // 业务方法封装在实体中
+    public void pay() {
+        if (this.status != OrderStatus.PENDING) {
+            throw new OrderStateException("只有待支付订单可以支付");
+        }
+        this.status = OrderStatus.PAID;
+        
+        // 发布领域事件
+        this.addDomainEvent(new OrderPaidEvent(this.id));
+    }
+}
+```
+
+### 反模式2：限界上下文边界模糊
+
+**表现特征**：
+```java
+// ❌ 反模式：一个微服务承担多个职责
+@RestController
+@RequestMapping("/api")
+public class SuperController {
+    
+    // 订单相关
+    @PostMapping("/orders")
+    public OrderDTO createOrder(CreateOrderRequest request) { ... }
+    
+    // 用户相关  
+    @PostMapping("/users")
+    public UserDTO createUser(CreateUserRequest request) { ... }
+    
+    // 商品相关
+    @PostMapping("/products")
+    public ProductDTO createProduct(CreateProductRequest request) { ... }
+    
+    // 支付相关
+    @PostMapping("/payments")
+    public PaymentDTO processPayment(PaymentRequest request) { ... }
+}
+```
+
+**问题分析**：
+- 违反了单一职责原则
+- 导致代码库庞大，维护困难
+- 无法独立部署和扩展
+
+**正确做法**：
+```java
+// ✅ 正确：按限界上下文拆分服务
+
+// 订单上下文
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    // 只处理订单相关业务
+}
+
+// 用户上下文  
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    // 只处理用户相关业务
+}
+
+// 支付上下文
+@RestController
+@RequestMapping("/api/payments") 
+public class PaymentController {
+    // 只处理支付相关业务
+}
+```
+
+### 反模式3：过度使用领域服务
+
+**表现特征**：
+```java
+// ❌ 反模式：将本该在实体中的逻辑放到领域服务
+@DomainService
+public class OrderDomainService {
+    
+    // 这个逻辑应该在Order实体中
+    public boolean canPay(Order order) {
+        return OrderStatus.PENDING.equals(order.getStatus());
+    }
+    
+    // 这个逻辑也应该在Order实体中
+    public Money calculateTotal(Order order) {
+        return order.getItems().stream()
+            .map(item -> item.getPrice().multiply(item.getQuantity()))
+            .reduce(Money.ZERO, Money::add);
+    }
+}
+```
+
+**问题分析**：
+- 违反了信息专家原则：数据应该和操作数据的行为封装在一起
+- 导致领域服务变得臃肿
+- 降低了模型的内聚性
+
+**正确做法**：
+```java
+// ✅ 正确：业务逻辑在实体中
+public class Order {
+    
+    // 状态检查应该在实体内部
+    public boolean canPay() {
+        return this.status == OrderStatus.PENDING;
+    }
+    
+    // 金额计算应该在实体内部
+    public Money calculateTotal() {
+        return this.items.stream()
+            .map(item -> item.getPrice().multiply(item.getQuantity()))
+            .reduce(Money.ZERO, Money::add);
+    }
+    
+    public void pay() {
+        if (!canPay()) {
+            throw new OrderStateException("订单当前状态不允许支付");
+        }
+        this.status = OrderStatus.PAID;
+    }
+}
+
+// 领域服务只处理跨聚合的协调逻辑
+@DomainService
+public class OrderDomainService {
+    
+    // 跨聚合的业务逻辑：订单转移
+    public void transferOrder(OrderId orderId, UserId fromUserId, UserId toUserId) {
+        Order order = orderRepository.findById(orderId);
+        User fromUser = userRepository.findById(fromUserId);
+        User toUser = userRepository.findById(toUserId);
+        
+        // 验证权限和业务规则
+        validateTransferPermission(order, fromUser, toUser);
+        
+        // 执行转移
+        order.transferTo(toUserId);
+        orderRepository.save(order);
+    }
+}
+```
+
+### 反模式4：聚合根设计过大
+
+**表现特征**：
+```java
+// ❌ 反模式：聚合根包含过多内容
+public class Order {
+    // 订单基本信息
+    private OrderId id;
+    private OrderStatus status;
+    
+    // 订单项
+    private List<OrderItem> items;
+    
+    // 收货地址
+    private Address shippingAddress;
+    
+    // 支付信息
+    private Payment payment;
+    
+    // 用户信息 - 这应该属于用户聚合
+    private User user;
+    
+    // 商品信息 - 这应该属于商品聚合
+    private List<Product> products;
+    
+    // 库存信息 - 这应该属于库存聚合
+    private List<Inventory> inventories;
+    
+    // 物流信息 - 这应该属于物流聚合
+    private Shipment shipment;
+    
+    // 评价信息 - 这应该属于评价聚合
+    private List<Review> reviews;
+}
+```
+
+**问题分析**：
+- 违反了聚合设计原则：聚合应该保持合理的大小
+- 导致性能问题：加载一个聚合需要加载大量不相关的数据
+- 违反了聚合边界：一个聚合不应该跨越多个业务概念
+
+**正确做法**：
+```java
+// ✅ 正确：聚合根只包含核心业务数据
+public class Order {
+    // 订单聚合的核心数据
+    private OrderId id;
+    private CustomerId customerId;  // 只保存ID，不保存整个用户对象
+    private OrderStatus status;
+    private List<OrderItem> items;
+    private Address shippingAddress;
+    private Payment payment;
+    
+    // 通过ID引用其他聚合，而不是直接包含
+    public void addProduct(ProductId productId, int quantity, Money price) {
+        // 通过产品ID获取产品信息，而不是直接包含Product对象
+        this.items.add(new OrderItem(productId, quantity, price));
+    }
+}
+
+// 其他聚合独立设计
+public class User {
+    private UserId id;
+    private String name;
+    private String email;
+    // 用户相关业务逻辑
+}
+
+public class Product {
+    private ProductId id;
+    private String name;
+    private Money price;
+    // 商品相关业务逻辑
+}
+```
+
+### 反模式5：忽视领域事件
+
+**表现特征**：
+```java
+// ❌ 反模式：同步调用，紧耦合
+@Service
+public class OrderService {
+    
+    @Transactional
+    public void payOrder(String orderId) {
+        Order order = orderRepository.findById(orderId);
+        order.pay();
+        orderRepository.save(order);
+        
+        // 同步调用其他服务，导致紧耦合
+        inventoryService.releaseStock(order.getItems());
+        notificationService.sendPaymentSuccessNotification(order.getCustomerId());
+        pointsService.addPoints(order.getCustomerId(), order.getAmount());
+        
+        // 如果任何一个服务调用失败，整个事务回滚
+        // 这违反了微服务的自治性原则
+    }
+}
+```
+
+**问题分析**：
+- 导致系统紧耦合
+- 违反了微服务的自治性
+- 性能问题：同步调用增加了响应时间
+- 可靠性问题：一个服务故障会影响整个流程
+
+**正确做法**：
+```java
+// ✅ 正确：使用领域事件解耦
+public class Order {
+    
+    public void pay() {
+        if (!canPay()) {
+            throw new OrderStateException("订单当前状态不允许支付");
+        }
+        
+        this.status = OrderStatus.PAID;
+        
+        // 发布领域事件，而不是直接调用其他服务
+        this.addDomainEvent(new OrderPaidEvent(
+            this.id, 
+            this.customerId, 
+            this.calculateTotal()
+        ));
+    }
+}
+
+// 事件处理器处理跨聚合的逻辑
+@EventHandler
+public class OrderPaidEventHandler {
+    
+    @Async
+    public void handle(OrderPaidEvent event) {
+        // 异步处理，避免阻塞主流程
+        inventoryService.releaseStock(event.getOrderItems());
+        notificationService.sendPaymentSuccessNotification(event.getCustomerId());
+        pointsService.addPoints(event.getCustomerId(), event.getAmount());
+    }
+}
+```
+
+### 反模式6：统一语言缺失
+
+**表现特征**：
+```java
+// ❌ 反模式：技术术语与业务术语不统一
+// 业务人员说"订单"，代码中用"OrderEntity"
+// 业务人员说"支付"，代码中用"PaymentTransaction"
+// 业务人员说"库存"，代码中用"StockReservation"
+
+@Entity
+@Table(name = "order_transaction")
+public class OrderEntity {
+    @Column(name = "payment_status")
+    private String paymentStatusCode;
+    
+    @Column(name = "inventory_flag") 
+    private Boolean inventoryReserved;
+}
+```
+
+**问题分析**：
+- 导致业务人员无法理解代码
+- 增加了沟通成本
+- 容易产生需求理解偏差
+
+**正确做法**：
+```java
+// ✅ 正确：使用业务术语
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Column(name = "status")
+    private OrderStatus status;
+    
+    @Column(name = "inventory_reserved")
+    private Boolean inventoryReserved;
+}
+
+// 枚举使用业务术语
+public enum OrderStatus {
+    PENDING,    // 待支付
+    PAID,       // 已支付  
+    SHIPPED,    // 已发货
+    COMPLETED,  // 已完成
+    CANCELLED   // 已取消
+}
+```
+
+## 如何避免DDD反模式
+
+### 1. 建立DDD思维
+- **业务优先**：始终从业务角度思考问题
+- **模型驱动**：让领域模型指导代码设计
+- **边界意识**：时刻关注限界上下文的边界
+
+### 2. 持续重构
+- **定期Review**：定期检查代码是否符合DDD原则
+- **渐进式改进**：逐步消除反模式，不要追求一步到位
+- **团队培训**：确保团队理解DDD的核心概念
+
+### 3. 工具支持
+- **静态分析**：使用工具检查DDD反模式
+- **代码生成**：基于领域模型生成符合DDD规范的代码
+- **文档维护**：保持统一语言文档的更新
+
+### 4. 度量指标
+- **聚合大小**：监控聚合的复杂度
+- **依赖关系**：检查模块间的依赖是否合理
+- **测试覆盖率**：确保领域逻辑的测试覆盖
 
 ## DDD 实施建议
 
