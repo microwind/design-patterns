@@ -6,7 +6,7 @@
 
 进入AI时代，软件开发面临新的变革。从ChatGPT到Claude Code，再到OpenClaw等Agent框架，AI正在深刻改变软件开发的各个环节。AI时代，程序员的价值从"写代码"转向"指导AI干活"，这要求我们具备更深入的业务理解能力和更清晰的系统设计能力。
 
-DDD 不仅仅是一种架构方法，更是一种思维方式。它通过建立领域模型，将业务知识转化为软件构造的核心，使开发人员能够用业务语言来思考和编写代码。在AI时代，DDD的价值更加凸显——它为AI提供了清晰的业务边界、统一的领域语言和结构化的设计框架，让AI能够更准确地理解意图、生成高质量的代码。
+DDD 不仅是一种架构方法，更是一种思维方式。它通过建立领域模型，将业务知识转化为软件构造的核心，使开发人员能够用业务语言来思考和编写代码。在AI时代，DDD的价值更加凸显——它为AI提供了清晰的业务边界、统一的领域语言和结构化的设计框架，让AI能够更准确地理解意图、生成高质量的代码。
 
 本文将系统性地介绍 DDD 的核心概念、设计方法以及实际应用，并特别探讨AI时代下DDD的重要性和应用，帮助你从零开始理解并掌握 DDD，在AI时代成为优秀的领域驱动设计工程师。
 
@@ -730,6 +730,8 @@ flowchart LR
 **代码示例**（Go 语言，来自 go-web 目录）：
 
 ```go
+// 【DDD】实体承担身份标识与状态迁移：状态变更（如支付）由实体方法表达业务规则。
+// 【非DDD】Controller/Service 里直接改 Status 字符串，或实体只有 getter/setter 而无领域行为（贫血模型）。
 // 订单实体
 type Order struct {
     ID           string
@@ -772,6 +774,8 @@ func (o *Order) Pay() error {
 **代码示例**（Java 语言，来自 java-web 目录）：
 
 ```java
+// 【DDD】值对象：不可变、按属性值相等；修改语义用 withXxx 返回新对象，而不是 setter。
+// 【非DDD】可变的“地址DTO”、或与数据库列一一对应的 DO 当领域值对象混用。
 // 地址值对象
 public class Address {
     private final String province;
@@ -823,6 +827,8 @@ public class Address {
 **代码示例**（Python 语言，来自 python-web 目录）：
 
 ```python
+# 【DDD】聚合根：对外修改订单项、校验规则都经 Order；OrderItem 随订单生命周期，不单独暴露引用。
+# 【非DDD】外部直接改 item 列表、或仓储返回 OrderItem 让应用层绕过聚合根修改。
 # 订单聚合
 class Order:
     def __init__(self, order_id, customer_id):
@@ -892,6 +898,8 @@ flowchart TD
 **代码示例**（Node.js，来自 node-web 目录）：
 
 ```javascript
+// 【DDD】依赖倒置：领域（或应用）只依赖仓储抽象；SQL/驱动只在基础设施实现中出现。
+// 【非DDD】领域层直接 import 数据库客户端，或在实体里写 JDBC/SQL。
 // 领域层：定义仓储接口
 class OrderRepository {
     save(order) {
@@ -940,6 +948,8 @@ class OrderRepositoryImpl extends OrderRepository {
 **代码示例**（Go 语言）：
 
 ```go
+// 【DDD】领域服务：协调多个聚合/实体（订单归属校验 + 用户存在性），不适合塞进单一实体方法时使用。
+// 【非DDD】把“只属于订单的规则”也放在这里，或领域服务里直接写 SQL/调 HTTP（应下沉 Infra 或通过端口）。
 // 订单转移服务（涉及订单和用户两个实体）
 type OrderTransferService struct {
     orderRepo    OrderRepository
@@ -982,6 +992,8 @@ func (s *OrderTransferService) TransferOrder(orderId string, fromUserId string, 
 **代码示例**（Java 语言，来自 java-web 目录）：
 
 ```java
+// 【DDD】领域事件：表达领域内已发生的事实；先记入聚合内再统一发布，便于解耦与最终一致。
+// 【非DDD】用“DTO 广播”代替领域事件、或在应用层手写一堆同步远程调用伪装成业务完成。
 // 领域事件基类
 public abstract class DomainEvent {
     private String eventId;
@@ -1519,6 +1531,8 @@ POJO（Plain Ordinary Java Object）是简单的Java对象，区别于Spring Bea
 **位置**：仓储层（repository）
 **示例**：
 ```java
+// 【DDD】持久化模型（DO）与表对照，放基础设施侧；领域模型另有其语义类型（Money、OrderStatus）。
+// 【非DDD】全项目只用一套 OrderDO/Entity 贯通 Controller→DB，业务规则散落在各层。
 public class OrderDO {
     private String id;
     private String customerId;
@@ -1535,6 +1549,8 @@ public class OrderDO {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】领域模型用语义类型表达不变量；状态迁移走实体方法（pay），而不是随处 setStatus。
+// 【非DDD】领域对象实为数据库模型的别名，业务规则全在 Application Service。
 public class Order {
     private OrderId id;
     private CustomerId customerId;
@@ -1557,6 +1573,8 @@ public class Order {
 **位置**：接口门面层（facade）
 **示例**：
 ```java
+// 【DDD】DTO 仅承载传输字段，与接口契约绑定；领域语义留在 Order/Money 等领域类型。
+// 【非DDD】DTO 一路传到仓储层并直接持久化，领域层被绕过。
 public class OrderDTO {
     private String orderId;
     private String customerId;
@@ -1571,6 +1589,8 @@ public class OrderDTO {
 **位置**：应用层（application）
 **示例**：
 ```java
+// 【DDD】应用层与领域之间仍可有专用形状（Info），避免把 HTTP DTO 直接塞进领域。
+// 【非DDD】领域方法签名直接用 OrderDTO/JSON Map，领域层依赖接口层类型。
 public class OrderInfo {
     private OrderId orderId;
     private CustomerId customerId;
@@ -1585,6 +1605,8 @@ public class OrderInfo {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】命名此处 VO=Value Object：强调不可变与相同语义；勿与 MVC 的 View Object 混淆。
+// 【非DDD】把 UI 表单 Bean 当领域值对象，或与 Address DTO 混名导致边界混乱。
 public class Address {
     private final String province;
     private final String city;
@@ -1603,6 +1625,8 @@ public class Address {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】查询条件对象进入仓储抽象，避免 Repository 方法罗列一长串基本类型参数。
+// 【非DDD】仓储接口暴露 SQL 片段或 Map，查询语义泄漏到应用层。
 public class OrderQuery {
     private CustomerId customerId;
     private OrderStatus status;
@@ -1617,6 +1641,8 @@ public class OrderQuery {
 **位置**：接口门面层（facade）
 **示例**：
 ```java
+// 【DDD】HTTP/API 入参停在门面层，再转换为应用命令或领域所需参数。
+// 【非DDD】Controller 把 Request 直接传给 Repository 或 Mapper。
 public class CreateOrderRequest {
     private String customerId;
     private List<OrderItemRequest> items;
@@ -1630,6 +1656,8 @@ public class CreateOrderRequest {
 **位置**：对应的分层中
 **示例**：
 ```java
+// 【DDD】显式映射 DO/DTO 与领域模型，边界清晰；字段变更时编译期可感知（配合手写或生成策略）。
+// 【非DDD】到处 BeanUtils.copyProperties，隐蔽字段错位，领域被静默污染。
 // Model2DOConverter - 仓储层
 public class OrderModel2DOConverter {
     public static OrderDO toDO(Order model) {
@@ -1664,6 +1692,8 @@ public class OrderModel2DTOConverter {
 **位置**：控制器层（controller）
 **示例**：
 ```java
+// 【DDD】接口层只负责协议与入参出参，编排交给应用服务，不直接操作仓储/Mapper。
+// 【非DDD】Controller 里写业务判断、查库、调支付接口。
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -1682,6 +1712,8 @@ public class OrderController {
 **位置**：接口门面层（facade）
 **示例**：
 ```java
+// 【DDD】Facade 用应用服务能理解的入参/出参稳定对外契约，隔离 UI 与内部用例。
+// 【非DDD】把 Facade 当作万能 Service，堆满业务与 SQL。
 public interface OrderWriteFacade {
     OrderDTO createOrder(CreateOrderRequest request);
     void cancelOrder(String orderId);
@@ -1698,6 +1730,8 @@ public interface OrderReadFacade {
 **位置**：接口门面实现层（facade-impl）
 **示例**：
 ```java
+// 【DDD】门面实现薄：编排调用应用层，避免重复业务逻辑。
+// 【非DDD】FacadeImpl 内复制粘贴大量领域规则。
 @Service
 public class OrderWriteFacadeImpl implements OrderWriteFacade {
     private final OrderApplicationService orderApplicationService;
@@ -1714,6 +1748,8 @@ public class OrderWriteFacadeImpl implements OrderWriteFacade {
 **位置**：应用层（application）
 **示例**：
 ```java
+// 【DDD】应用服务编排用例（事务边界、跨聚合协调），核心规则仍在实体/领域服务。
+// 【非DDD】ApplicationService 变成“上帝类”，所有 if-else 业务都写在这里。
 @Service
 public class OrderApplicationService {
     private final OrderRepository orderRepository;
@@ -1730,6 +1766,8 @@ public class OrderApplicationService {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】领域服务处理跨实体/跨聚合或不适合放在单一实体上的领域行为。
+// 【非DDD】把本该属于 Order.pay() 的规则拆到领域服务，形成贫血模型。
 @DomainService
 public class OrderDomainService {
     private final OrderRepository orderRepository;
@@ -1746,6 +1784,8 @@ public class OrderDomainService {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】仓储接口由领域定义，表达“像集合一样持久化聚合”；由基础设施实现。
+// 【非DDD】领域层依赖 MyBatis Mapper 接口或具体 JDBC。
 public interface OrderRepository {
     Order save(Order order);
     Order findById(OrderId id);
@@ -1758,6 +1798,8 @@ public interface OrderRepository {
 **位置**：仓储层（repository）
 **示例**：
 ```java
+// 【DDD】实现侧负责 DO↔领域模型转换与持久化技术选型。
+// 【非DDD】仓储返回 OrderDO，让上层自己猜领域语义。
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
     private final JdbcTemplate jdbcTemplate;
@@ -1774,6 +1816,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 **位置**：仓储层（repository）
 **示例**：
 ```java
+// 【DDD】Mapper 作为基础设施细节，仅被仓储实现使用，不穿越到应用层。
+// 【非DDD】Controller/AppService 直接 Autowired Mapper。
 @Mapper
 public interface OrderMapper extends BaseMapper<OrderDO> {
     List<OrderDO> selectByCustomerId(String customerId);
@@ -1785,6 +1829,8 @@ public interface OrderMapper extends BaseMapper<OrderDO> {
 **位置**：领域层（domain）
 **示例**：
 ```java
+// 【DDD】防腐层端口：领域声明需要什么能力，不绑定 HTTP/SDK 细节。
+// 【非DDD】领域类里直接 new RestTemplate 或引用第三方 DTO。
 public interface PaymentServiceClient {
     PaymentResult processPayment(PaymentRequest request);
 }
@@ -1795,6 +1841,8 @@ public interface PaymentServiceClient {
 **位置**：基础设施层（infrastructure）
 **示例**：
 ```java
+// 【DDD】适配器实现：把外部系统的协议/DTO 转成领域内认可的类型。
+// 【非DDD】把第三方响应 JSON 一路传到领域层。
 @Service
 public class PaymentServiceClientImpl implements PaymentServiceClient {
     private final RestTemplate restTemplate;
@@ -1812,40 +1860,47 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
 
 - **获取单个对象**：用 `query` 作前缀
   ```java
+  // 【DDD】领域仓储侧重“查领域对象”；命名统一便于团队扫读。【非DDD】get/find/query 混用且无约定。
   Order queryById(OrderId id);
   Order queryByOrderNo(String orderNo);
   ```
 
 - **获取多个对象列表**：用 `list` 作前缀，复数结尾
   ```java
+  // 【DDD】list 表达集合结果，与 query/page 分工清晰。【非DDD】一律 getXxx 掩盖是否集合。
   List<Order> listOrders(OrderQuery query);
   List<Order> listPendingOrders();
   ```
 
 - **获取多个对象分页**：用 `page` 作前缀，复数结尾
   ```java
+  // 【DDD】分页显式命名，避免与全量 list 混淆。【非DDD】同一方法有时返回 List 有时返回 Page。
   PageResult<Order> pageOrders(OrderQuery query, PageRequest pageRequest);
   ```
 
 - **获取统计值**：用 `count` 作前缀
   ```java
+  // 【DDD】统计即领域可读意图，不与“取实体”混名。【非DDD】queryTotal 又返回 int 又返回 Order。
   int countOrders(OrderQuery query);
   long countByStatus(OrderStatus status);
   ```
 
 - **插入**：用 `insert` 作前缀
   ```java
+  // 【DDD】持久化侧动词与数据库一致，仓储实现内使用。【非DDD】领域层出现 insert 语句拼接。
   int insert(OrderDO order);
   ```
 
 - **删除**：用 `delete` 作前缀
   ```java
+  // 【DDD】删除语义集中，配合聚合删除策略（先领域决策再持久化）。【非DDD】物理删散落各处无不变量。
   int deleteById(OrderId id);
   int deleteByStatus(OrderStatus status);
   ```
 
 - **修改**：用 `update` 作前缀
   ```java
+  // 【DDD】更新 DO 与领域状态变更是两件事：先改聚合再映射落库。【非DDD】绕过实体直接 update status 字段。
   int update(OrderDO order);
   int updateStatus(OrderId id, OrderStatus status);
   ```
@@ -1894,6 +1949,8 @@ flowchart TB
 来自 `domain-driven-design/go-web` 目录：
 
 ```go
+// 【DDD】分层示意：Handler→应用服务→领域（实体/仓储接口）→基础设施实现；依赖方向指向领域。
+// 【非DDD】Handler 直接打开 DB、写 SQL，或领域层 import SQL 驱动。
 // 用户界面层（Interfaces Layer）
 // internal/interfaces/handlers/order_handler.go
 type OrderHandler struct {
@@ -2039,6 +2096,8 @@ java-web/
 
 **订单实体（聚合根）**：
 ```java
+// 【DDD】聚合根封装不变量与状态迁移（pay/cancel/addItem），并发事件表达领域内事实。
+// 【非DDD】贫血实体 + Service 改字段；或聚合根直接依赖 Mapper/SQL。
 // domain/model/Order.java
 package com.microwind.domain.model;
 
@@ -2137,6 +2196,8 @@ public class Order {
 
 **订单状态枚举**：
 ```java
+// 【DDD】状态机语义进入类型系统，避免魔法字符串散落。
+// 【非DDD】status 用 String 全程拼写，校验散落在各层。
 // domain/model/OrderStatus.java
 package com.microwind.domain.model;
 
@@ -2151,6 +2212,8 @@ public enum OrderStatus {
 
 **金额值对象**：
 ```java
+// 【DDD】Money 封装金额与币种规则，运算返回新对象，避免 BigDecimal 散落。
+// 【非DDD】BigDecimal 裸奔，加减乘除与舍入规则写在 Service。
 // domain/model/Money.java
 package com.microwind.domain.model;
 
@@ -2207,6 +2270,8 @@ public class Money {
 
 **领域事件实现**：
 ```java
+// 【DDD】事件承载已发生事实，附 id/时间；具体事件类型表达业务含义。
+// 【非DDD】用 Map 或裸字符串广播“消息”，无类型与版本约束。
 // domain/event/DomainEvent.java
 package com.microwind.domain.event;
 
@@ -2318,6 +2383,8 @@ public class OrderCancelledEvent extends DomainEvent {
 
 **仓储接口**：
 ```java
+// 【DDD】领域定义持久化聚合的端口；返回 Optional/List 表达查询语义。
+// 【非DDD】仓储返回 OrderDO 或暴露分页 SQL 条件对象。
 // domain/repository/OrderRepository.java
 package com.microwind.domain.repository;
 
@@ -2336,6 +2403,8 @@ public interface OrderRepository {
 
 **领域服务**：
 ```java
+// 【DDD】协调多聚合/查询仓储做跨实体规则（如待支付单数量）；单聚合内优先放实体。
+// 【非DDD】领域服务里写 SQL、调 HTTP，或替代实体内的状态检查。
 // domain/service/OrderDomainService.java
 package com.microwind.domain.service;
 
@@ -2382,6 +2451,8 @@ public class OrderDomainService {
 
 **仓储实现**：
 ```java
+// 【DDD】基础设施：DO↔领域转换 + Mapper；领域仍不知表结构细节。
+// 【非DDD】RepositoryImpl 返回 DO，调用方自己组装领域对象。
 // infrastructure/repository/OrderRepositoryImpl.java
 package com.microwind.infrastructure.repository;
 
@@ -2450,6 +2521,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 
 **事件发布器**：
 ```java
+// 【DDD】发布属基础设施：领域产生事件，此处对接 MQ/Kafka，领域不依赖 Kafka API。
+// 【非DDD】实体里直接 kafkaTemplate.send。
 // infrastructure/messaging/OrderEventPublisher.java
 package com.microwind.infrastructure.messaging;
 
@@ -2472,6 +2545,8 @@ public class OrderEventPublisher {
 
 **MyBatis Mapper**：
 ```java
+// 【DDD】Mapper 仅基础设施；SQL 与注解留在实现细节层。
+// 【非DDD】领域服务直接调用 Mapper 查表。
 // infrastructure/persistence/OrderMapper.java
 package com.microwind.infrastructure.persistence;
 
@@ -2504,6 +2579,8 @@ public interface OrderMapper {
 
 **数据库模型（DO）**：
 ```java
+// 【DDD】DO 对齐表字段，供仓储实现映射；领域模型不继承 DO。
+// 【非DDD】一套 Entity 贯穿 UI→DB。
 // infrastructure/persistence/OrderDO.java
 package com.microwind.infrastructure.persistence;
 
@@ -2536,6 +2613,8 @@ public class OrderDO {
 
 **对象转换器**：
 ```java
+// 【DDD】集中映射领域↔DO，避免仓储内复制粘贴转换逻辑。
+// 【非DDD】应用层手动从 DO set 到领域对象数十行重复。
 // infrastructure/converter/OrderConverter.java
 package com.microwind.infrastructure.converter;
 
@@ -2576,6 +2655,8 @@ public class OrderConverter {
 
 **应用服务**：
 ```java
+// 【DDD】用例编排：事务边界、DTO↔领域、委托领域服务/聚合，再发布领域事件；不把业务规则堆成“上帝类”。
+// 【非DDD】在 createOrder 里写 SQL/调 Mapper、或绕过实体直接改库。
 // application/services/OrderApplicationService.java
 package com.microwind.application.services;
 
@@ -2688,6 +2769,8 @@ public class OrderApplicationService {
 
 **控制器**：
 ```java
+// 【DDD】HTTP 适配层：只解析入参、调用应用服务、返回 DTO；无领域规则与持久化。
+// 【非DDD】Controller 里扣库存、调支付、写 SQL。
 // interfaces/controller/OrderController.java
 package com.microwind.interfaces.controller;
 
@@ -2731,6 +2814,8 @@ public class OrderController {
 来自 `domain-driven-design/python-web` 目录：
 
 ```python
+# 【DDD】与 Go/Node 示例同构：Controller → 应用服务 → 领域 + 仓储接口 → 基础设施实现。
+# 【非DDD】单文件里路由+SQL+业务全写在一起（典型脚本式 CRUD）。
 # 用户界面层（Interfaces Layer）
 # interfaces/controllers/order_controller.py
 from flask import request, jsonify
@@ -2849,6 +2934,8 @@ class OrderRepositoryImpl(OrderRepository):
 来自 `domain-driven-design/node-web` 目录：
 
 ```javascript
+// 【DDD】分层依赖向内：应用服务依赖领域与仓储抽象；基础设施继承/实现抽象。
+// 【非DDD】Controller 直接 require DB 模块拼 SQL；领域模块引用 axios/mysql。
 // 用户界面层（Interfaces Layer）
 // interfaces/controllers/order-controller.js
 const OrderService = require('../../application/services/order-service');

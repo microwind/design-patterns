@@ -35,6 +35,12 @@ public class StartupDependencyChecker implements ApplicationRunner {
     @Value("${rocketmq.name-server:}")
     private String rocketMqNameServer;
 
+    @Value("${spring.data.redis.host:}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port:6379}")
+    private int redisPort;
+
     @Value("${dependency.check.timeout-ms:1500}")
     private int timeoutMs;
 
@@ -52,6 +58,7 @@ public class StartupDependencyChecker implements ApplicationRunner {
         checkDatabase(userDataSource, "MySQL(User)");
         checkDatabase(orderDataSource, "PostgreSQL(Order)");
         checkRocketMQ();
+        checkRedis();
 
         if (statusRegistry.hasFailures()) {
             log.error("外部依赖服务存在异常，系统将以降级模式启动");
@@ -111,6 +118,26 @@ public class StartupDependencyChecker implements ApplicationRunner {
         }
         statusRegistry.markDown("RocketMQ", message);
         log.error("RocketMQ 连接失败，消息功能不可用: {}", message);
+    }
+
+    private void checkRedis() {
+        if (redisHost == null || redisHost.trim().isEmpty()) {
+            statusRegistry.markDown("Redis", "spring.data.redis.host 未配置");
+            log.error("Redis host 未配置，缓存功能不可用");
+            return;
+        }
+
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(redisHost, redisPort), timeoutMs);
+            String endpoint = redisHost + ":" + redisPort;
+            statusRegistry.markUp("Redis", "可连接: " + endpoint);
+            log.info("Redis 连接正常: {}", endpoint);
+        } catch (Exception e) {
+            String reason = e.getMessage() == null ? "Redis 不可用" : e.getMessage();
+            String message = "无法连接 Redis " + redisHost + ":" + redisPort + "，原因: " + reason;
+            statusRegistry.markDown("Redis", message);
+            log.error("Redis 连接失败，缓存功能不可用: {}", message);
+        }
     }
 
     private List<String> parseNameServers(String nameServer) {

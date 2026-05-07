@@ -1,12 +1,12 @@
 # 基于 Spring Boot 4 的 DDD 工程脚手架
 
-基于 Spring Boot 4.0.1 和领域驱动设计（DDD）的脚手架，开箱即用，让你快速搭建Java Web工程。本项目旨在让Java后端项目变得和Go、NodeJS、Python一样简单，易于上手。
+基于 Spring Boot 4.1（当前 4.1.0-RC1，兼容 4.0.x）和领域驱动设计（DDD）的脚手架，开箱即用，让你快速搭建Java Web工程。本项目旨在让Java后端项目变得和Go、NodeJS、Python一样简单，易于上手。
 
 源码地址：https://github.com/microwind/design-patterns
 
 ## 技术栈
 
-- **Spring Boot**: 4.0.1
+- **Spring Boot**: 4.1.0-RC1（已支持 4.1 最新版本，GA 预计 2026 年 5 月；如需稳定版可回退到 4.0.x）
 - **Java**: 21
 - **数据库**: PostgreSQL（生产环境）、H2（测试环境）
 - **缓存**: Redis
@@ -213,6 +213,7 @@ RocketMQ 配置验证通过
 MySQL(User) 数据库连接正常
 PostgreSQL(Order) 数据库连接正常
 RocketMQ NameServer 可连接: 127.0.0.1:9876
+Redis 可连接: localhost:6379
 外部依赖服务检查通过
 Tomcat started on port 8080 (http) with context path '/'
 Started Application in X.XXX seconds
@@ -324,6 +325,15 @@ spring:
 
 ### 测试访问链接
 
+**Health（健康检查）**
+
+| 方法 | HTTP | 路由 | 功能 |
+| :--- | :--- | :--- | :--- |
+| basicHealth | GET | `/api/basic/health` | 基础健康信息（应用版本、时间戳） |
+| index | GET | `/api/basic/` | 首页欢迎信息 |
+| health | GET | `/api/health` | 完整健康检查（MySQL/PostgreSQL/RocketMQ/Redis） |
+| simpleHealth | GET | `/api/health/simple` | 简单健康检查 |
+
 **User**
 
 | 方法 | HTTP | 路由 | 功能 |
@@ -331,7 +341,7 @@ spring:
 | createUser | POST | `/api/users` | 创建用户 |
 | getAllUsers | GET | `/api/users` | 获取所有用户 |
 | getUsersByPage | GET | `/api/users/page` | 分页查询用户 |
-| getUserById | GET | `/api/users/{id}` | 根据ID获取用户 |
+| getUserById | GET | `/api/users/{id}` | 根据ID获取用户（带缓存穿透） |
 | getUserByName | GET | `/api/users/name/{name}` | 根据用户名获取用户 |
 | updateUser | PUT | `/api/users/{id}` | 更新用户 |
 | deleteUser | DELETE | `/api/users/{id}` | 删除用户 |
@@ -341,15 +351,142 @@ spring:
 | 方法 | HTTP | 路由 | 功能 |
 | :--- | :--- | :--- | :--- |
 | createOrder | POST | `/api/orders/create` | 创建订单 |
-| getOrder | GET | `/api/orders/{id}` | 获取订单详情 |
+| getOrder | GET | `/api/orders/{id}` | 根据ID获取订单（带缓存穿透） |
+| getOrderByNo | GET | `/api/orders/no/{orderNo}` | 根据订单号获取订单 |
 | getUserOrders | GET | `/api/orders/user/{userId}` | 获取用户订单列表 |
 | getUserOrdersByPage | GET | `/api/orders/user/{userId}/page` | 分页查询用户订单 |
-| listAllOrders | GET | `/api/orders/list` | 获取所有订单 |
+| getAllOrders | GET | `/api/orders` | 获取所有订单 |
 | listAllOrdersByPage | GET | `/api/orders/page` | 分页查询所有订单 |
-| cancelOrder | POST | `/api/orders/{id}/cancel` | 取消订单 |
-| payOrder | POST | `/api/orders/{id}/pay` | 支付订单 |
-| completeOrder | POST | `/api/orders/{id}/complete` | 完成订单 |
-| deleteOrder | DELETE | `/api/orders/{id}` | 删除订单 |
+| cancelOrder | POST | `/api/orders/{id}/cancel` | 取消订单（需要签名） |
+| payOrder | POST | `/api/orders/{id}/pay` | 支付订单（需要签名） |
+| completeOrder | POST | `/api/orders/{id}/complete` | 完成订单（需要签名） |
+| deleteOrder | DELETE | `/api/orders/{id}` | 删除订单（需要签名） |
+
+#### 主要 RESTful 接口用法
+
+> 假定服务运行在 `http://localhost:8080`，所有响应统一使用 `ApiResponse<T>` 格式（`code` / `message` / `data` / `timestamp`）。
+
+**1. 健康检查**
+
+```bash
+# 完整依赖检查（含 MySQL/PostgreSQL/RocketMQ/Redis）
+$ curl http://localhost:8080/api/health
+
+# 简单存活检查
+$ curl http://localhost:8080/api/health/simple
+
+# 基础应用信息
+$ curl http://localhost:8080/api/basic/health
+```
+
+**2. 用户：创建**
+
+```bash
+$ curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "jarry_li",
+    "email": "jarry@example.com",
+    "phone": "13800138000",
+    "address": "Beijing"
+  }'
+```
+
+字段约束：`name` 3-20 位字母/数字/下划线；`email` 必填且格式合法；`phone` 中国大陆手机号格式（可选）。
+
+**3. 用户：查询**
+
+```bash
+# 全量列表
+$ curl http://localhost:8080/api/users
+
+# 按 ID（缓存穿透）
+$ curl http://localhost:8080/api/users/1
+
+# 按用户名
+$ curl http://localhost:8080/api/users/name/jarry_li
+
+# 分页（page 从 1 开始）
+$ curl "http://localhost:8080/api/users/page?page=1&size=10&sort=id,desc"
+```
+
+**4. 用户：更新 / 删除**
+
+```bash
+# 更新
+$ curl -X PUT http://localhost:8080/api/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"jarry_li","email":"new@example.com","phone":"13900139000"}'
+
+# 删除
+$ curl -X DELETE http://localhost:8080/api/users/1
+```
+
+**5. 订单：创建**
+
+```bash
+$ curl -X POST http://localhost:8080/api/orders/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 1,
+    "totalAmount": 199.99
+  }'
+```
+
+**6. 订单：查询**
+
+```bash
+# 按 ID
+$ curl http://localhost:8080/api/orders/1
+
+# 按订单号
+$ curl http://localhost:8080/api/orders/no/ORD20260227001
+
+# 用户订单
+$ curl http://localhost:8080/api/orders/user/1
+$ curl "http://localhost:8080/api/orders/user/1/page?page=1&size=5&sort=id,desc"
+
+# 全部订单
+$ curl http://localhost:8080/api/orders
+$ curl "http://localhost:8080/api/orders/page?page=1&size=15&sort=createdTime,desc"
+```
+
+**7. 订单：状态流转（需签名）**
+
+`cancel`/`pay`/`complete`/`delete` 均经过 `@RequireSign` 校验，请求需携带签名头：
+
+| Header | 说明 |
+| :--- | :--- |
+| `Sign-appCode` | 调用方标识，如 `ios1` |
+| `Sign-path` | 接口路径模板，如 `/api/orders/{id}/pay` |
+| `Sign-time` | 13 位毫秒时间戳 |
+| `Sign-sign` | `SHA256(appCode + secret + "&!_caller" + path + time)` |
+
+```bash
+# 支付订单
+$ curl -X POST http://localhost:8080/api/orders/5/pay \
+  -H "Content-Type: application/json" \
+  -H "Sign-appCode: ios1" \
+  -H "Sign-path: /api/orders/{id}/pay" \
+  -H "Sign-time: 1772198389223" \
+  -H "Sign-sign: 18b463ec7d1d92981bc0f183aa099c2c6c2ecf773f679845c09f456338af6f97"
+
+# 取消 / 完成 / 删除 同上，仅 method 与路径不同
+$ curl -X POST   http://localhost:8080/api/orders/5/cancel   -H "Sign-..."
+$ curl -X POST   http://localhost:8080/api/orders/5/complete -H "Sign-..."
+$ curl -X DELETE http://localhost:8080/api/orders/5          -H "Sign-..."
+```
+
+**统一响应格式**
+
+```json
+{
+  "code": 200,
+  "message": "用户创建成功",
+  "data": { "id": 1, "name": "jarry_li", "email": "jarry@example.com" },
+  "timestamp": "2026-02-27T12:00:00"
+}
+```
 
 #### 分页请求示例
 

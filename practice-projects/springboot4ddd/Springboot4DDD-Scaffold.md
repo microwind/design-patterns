@@ -1,6 +1,6 @@
 # 一款开箱即用的Spring Boot 4 DDD工程脚手架
 
-> 一个开箱即用的 DDD（领域驱动设计）工程脚手架，基于 Spring Boot 4.0.1 和 Java 21
+> 一个开箱即用的 DDD（领域驱动设计）工程脚手架，已升级支持 Spring Boot 4.1（当前使用 4.1.0-RC1，向下兼容 4.0.x），运行于 Java 21
 
 ## 🎯 这是什么？
 
@@ -22,7 +22,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Spring Boot | 4.0.1 | 最新稳定版 |
+| Spring Boot | 4.1.0-RC1 | 已支持 Spring Boot 4.1 最新版本（GA 预计 2026 年 5 月发布，发布后将自动跟进；如需稳定版可降级回 4.0.x） |
 | Java | 21 | LTS 版本 |
 | MySQL | 8.0+ | 用户数据存储 |
 | PostgreSQL | 14+ | 订单数据存储 |
@@ -30,6 +30,30 @@
 | RocketMQ | 5.3+ | 消息队列（事件驱动） |
 | Lombok | - | 简化代码 |
 | Maven | 3.8+ | 构建工具 |
+
+> 📌 **关于 Spring Boot 4.1 支持**
+>
+> 本脚手架已同步升级以支持 Spring Boot 4.1。由于 4.1 GA 尚未正式发布（预计 2026 年 5 月），目前 `pom.xml` 默认引用 `4.1.0-RC1`，并在文件末尾追加了 Spring milestone 仓库声明，可直接拉取 RC/Milestone 包：
+>
+> ```xml
+> <parent>
+>     <groupId>org.springframework.boot</groupId>
+>     <artifactId>spring-boot-starter-parent</artifactId>
+>     <version>4.1.0-RC1</version>
+> </parent>
+> ...
+> <repositories>
+>     <repository>
+>         <id>spring-milestones</id>
+>         <url>https://repo.spring.io/milestone</url>
+>         <snapshots><enabled>false</enabled></snapshots>
+>     </repository>
+> </repositories>
+> ```
+>
+> 待 4.1 GA 发布后，只需将版本号改为 `4.1.0` 并删除 `repositories` / `pluginRepositories` 节点即可（Maven Central 上线后无需 milestone 仓库）。若希望继续使用稳定版，可将版本回退为 `4.0.x`，本脚手架同时兼容。
+>
+> ⚠️ **Maven 版本提示**：Spring Boot 4.1.0-RC1 默认引入的 `maven-compiler-plugin:3.15.0` 要求 Maven ≥ 3.9.12。若系统 `mvn` 版本较低（如 3.9.9），会报 `Unresolved plugin: 'org.apache.maven.plugins:maven-compiler-plugin:3.15.0'`。本脚手架已在 `pom.xml` 中将该插件锁定为 `3.14.1`（仅需 Maven ≥ 3.6.3）以提升兼容性；推荐统一使用 `./mvnw`（已绑定 Maven 3.9.12），无需关心系统 Maven 版本。
 
 ---
 

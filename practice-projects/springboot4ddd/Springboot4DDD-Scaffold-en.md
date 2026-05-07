@@ -1,6 +1,6 @@
 # An out-of-the-box Spring Boot 4 DDD project scaffold
 
-> An out-of-the-box DDD (Domain-Driven Design) engineering scaffold based on Spring Boot 4.0.1 and Java 21
+> An out-of-the-box DDD (Domain-Driven Design) engineering scaffold, now upgraded to support Spring Boot 4.1 (currently using 4.1.0-RC1, backward compatible with 4.0.x), running on Java 21
 
 ## 🎯 What is this?
 
@@ -22,7 +22,7 @@ Source Code: https://github.com/microwind/design-patterns/tree/main/practice-pro
 
 | Technology | Version | Description |
 |-----------|---------|-------------|
-| Spring Boot | 4.0.1 | Latest stable version |
+| Spring Boot | 4.1.0-RC1 | Now supports the latest Spring Boot 4.1 (GA expected May 2026; will auto-track once GA is published. Downgrade to 4.0.x for a stable release if preferred) |
 | Java | 21 | LTS version |
 | MySQL | 8.0+ | User data storage |
 | PostgreSQL | 14+ | Order data storage |
@@ -30,6 +30,30 @@ Source Code: https://github.com/microwind/design-patterns/tree/main/practice-pro
 | RocketMQ | 5.3+ | Message Queue (event-driven) |
 | Lombok | - | Simplify code |
 | Maven | 3.8+ | Build tool |
+
+> 📌 **About Spring Boot 4.1 Support**
+>
+> This scaffold has been upgraded to support Spring Boot 4.1. Since the 4.1 GA has not been officially released yet (expected May 2026), `pom.xml` currently references `4.1.0-RC1` and adds the Spring milestone repository so RC/Milestone artifacts can be resolved:
+>
+> ```xml
+> <parent>
+>     <groupId>org.springframework.boot</groupId>
+>     <artifactId>spring-boot-starter-parent</artifactId>
+>     <version>4.1.0-RC1</version>
+> </parent>
+> ...
+> <repositories>
+>     <repository>
+>         <id>spring-milestones</id>
+>         <url>https://repo.spring.io/milestone</url>
+>         <snapshots><enabled>false</enabled></snapshots>
+>     </repository>
+> </repositories>
+> ```
+>
+> Once 4.1 GA ships, simply bump the version to `4.1.0` and remove the `repositories` / `pluginRepositories` blocks (the milestone repo is no longer required once the artifact lands in Maven Central). If you prefer a stable release, you can revert the version to `4.0.x`; the scaffold is compatible with both lines.
+>
+> ⚠️ **Maven version note**: The `maven-compiler-plugin:3.15.0` pulled in by Spring Boot 4.1.0-RC1 requires Maven ≥ 3.9.12. If your system `mvn` is older (e.g. 3.9.9), you will hit `Unresolved plugin: 'org.apache.maven.plugins:maven-compiler-plugin:3.15.0'`. To avoid this, the scaffold pins the plugin to `3.14.1` in `pom.xml` (only requires Maven ≥ 3.6.3). Alternatively, always use `./mvnw` (which bundles Maven 3.9.12) — no need to worry about your system Maven version.
 
 ---
 

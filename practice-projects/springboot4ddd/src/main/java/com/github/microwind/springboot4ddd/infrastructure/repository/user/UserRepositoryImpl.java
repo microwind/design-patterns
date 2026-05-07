@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
@@ -46,17 +48,28 @@ public class UserRepositoryImpl implements UserRepository {
             .name(rs.getString("name"))
             .email(rs.getString("email"))
             .phone(rs.getString("phone"))
-            .wechat(rs.getString("wechat"))
-            .address(rs.getString("address"))
+            // .wechat(getStringOrNull(rs, "wechat")) // wechat 字段未在数据库中,暂时注释掉
+            .address(getStringOrNull(rs, "address"))
             .createdTime(rs.getTimestamp("created_time").toLocalDateTime())
             .updatedTime(rs.getTimestamp("updated_time").toLocalDateTime())
             .build();
 
+    /** 列不存在时返回 null，避免 SQLException: Column 'xxx' not found */
+    private static String getStringOrNull(ResultSet rs, String column) throws SQLException {
+        try {
+            rs.findColumn(column);
+        } catch (SQLException notFound) {
+            return null;
+        }
+        return rs.getString(column);
+    }
+
     @Override
     @Transactional(transactionManager = "userTransactionManager")
     public User save(User user) {
-        String sql = "INSERT INTO users (name, email, phone, wechat, address, created_time, updated_time) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // wechat 字段未在数据库中,暂时注释掉
+        String sql = "INSERT INTO users (name, email, phone, address, created_time, updated_time) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -65,10 +78,10 @@ public class UserRepositoryImpl implements UserRepository {
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPhone());
-            ps.setString(4, user.getWechat());
-            ps.setString(5, user.getAddress());
-            ps.setTimestamp(6, Timestamp.valueOf(user.getCreatedTime() != null ? user.getCreatedTime() : java.time.LocalDateTime.now()));
-            ps.setTimestamp(7, Timestamp.valueOf(user.getUpdatedTime() != null ? user.getUpdatedTime() : java.time.LocalDateTime.now()));
+            // ps.setString(4, user.getWechat()); // wechat 字段未在数据库中,暂时注释掉
+            ps.setString(4, user.getAddress());
+            ps.setTimestamp(5, Timestamp.valueOf(user.getCreatedTime() != null ? user.getCreatedTime() : java.time.LocalDateTime.now()));
+            ps.setTimestamp(6, Timestamp.valueOf(user.getUpdatedTime() != null ? user.getUpdatedTime() : java.time.LocalDateTime.now()));
             return ps;
         }, keyHolder);
 
@@ -157,14 +170,15 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     @Transactional(transactionManager = "userTransactionManager")
     public User update(User user) {
-        String sql = "UPDATE users SET name = ?, email = ?, phone = ?, wechat = ?, address = ?, updated_time = ? " +
+        // wechat 字段未在数据库中,暂时注释掉
+        String sql = "UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_time = ? " +
                 "WHERE id = ?";
 
         int updated = jdbcTemplate.update(sql,
                 user.getName(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getWechat(),
+                // user.getWechat(), // wechat 字段未在数据库中,暂时注释掉
                 user.getAddress(),
                 Timestamp.valueOf(java.time.LocalDateTime.now()),
                 user.getId());

@@ -4,7 +4,7 @@
 
 在现代软件开发中，如何构建一个既符合业务领域特性，又易于维护和扩展的企业级应用，是每个开发者必须面对的挑战。领域驱动设计（Domain-Driven Design，简称DDD）作为一种软件设计方法论，为我们提供了一套系统化的解决方案。
 
-**Springboot4DDD** 是一个完整的、生产就绪的DDD脚手架项目，基于最新的Spring Boot 4.0.1和Java 21构建。它不仅实现了严格的DDD四层架构，还集成了多数据源管理、API安全认证、统一异常处理等企业级特性，可以帮助开发者快速搭建高质量的Java Web应用。
+**Springboot4DDD** 是一个完整的、生产就绪的DDD脚手架项目，基于 Spring Boot 4.1（当前 4.1.0-RC1，向下兼容 4.0.x）和 Java 21 构建。它不仅实现了严格的DDD四层架构，还集成了多数据源管理、API安全认证、统一异常处理等企业级特性，可以帮助开发者快速搭建高质量的Java Web应用。
 
 ### 1.1 核心特性
 
@@ -25,7 +25,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| **Spring Boot** | 4.0.1 | 最新的Spring Boot版本 |
+| **Spring Boot** | 4.1.0-RC1 | 已支持 Spring Boot 4.1（GA 预计 2026 年 5 月发布；可回退到 4.0.x 稳定版） |
 | **Java** | 21 | LTS版本，支持现代Java特性 |
 | **MySQL** | 8.0+ | 用户数据存储 |
 | **PostgreSQL** | 14+ | 订单数据存储 |
@@ -662,7 +662,7 @@ java -jar target/springboot4ddd-0.0.1-SNAPSHOT.jar
  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
   '  |____| .__|_| |_|_| |_\__, | / / / /
  =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::                (v4.0.1)
+ :: Spring Boot ::                (v4.1.0-RC1)
 
 [main] c.g.m.s.Application  : Started Application in 3.245 seconds
 ```
@@ -3221,7 +3221,7 @@ Springboot4DDD是一个完整的、生产就绪的DDD脚手架，它具有以下
    - 完善的日志记录
 
 5. **现代技术栈**
-   - Spring Boot 4.0.1
+   - Spring Boot 4.1.0-RC1（兼容 4.0.x）
    - Java 21
    - 最新的开发实践
 
