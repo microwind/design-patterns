@@ -49,3 +49,28 @@ hs_err_pid*
 
 # ts目录里编译的js不提交
 */**/ts/**/*.js
+
+# Build outputs
+dist/
+build/
+out/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# Coverage
+.coverage
+htmlcov/
+
+# Local env files
+.env
+.env.local
