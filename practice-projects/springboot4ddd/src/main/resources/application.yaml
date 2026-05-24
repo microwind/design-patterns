@@ -138,6 +138,12 @@ sign:
 server:
   port: 8080
 
+# 通知 / 定时任务配置
+notification:
+  admin-email: admin@example.com           # 接收订单超时提醒的管理员邮箱（请按实际部署修改）
+  order-timeout-hours: 2                   # 订单创建后超过该小时数未支付即视为超时
+  order-scan-cron: "0 0 * * * ?"           # 订单扫描定时任务的 cron 表达式
+
 # 日志配置
 logging:
   level:

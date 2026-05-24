@@ -1,31 +1,30 @@
 package com.github.microwind.springboot4ddd.application.service.user;
 
-import com.github.microwind.springboot4ddd.interfaces.vo.user.CreateUserRequest;
-import com.github.microwind.springboot4ddd.interfaces.vo.user.UpdateUserRequest;
-import com.github.microwind.springboot4ddd.interfaces.vo.user.UserResponse;
+import com.github.microwind.springboot4ddd.application.command.user.CreateUserCommand;
+import com.github.microwind.springboot4ddd.application.command.user.UpdateUserCommand;
+import com.github.microwind.springboot4ddd.application.dto.user.UserDTO;
+import com.github.microwind.springboot4ddd.application.port.CachePolicy;
+import com.github.microwind.springboot4ddd.application.port.CacheService;
+import com.github.microwind.springboot4ddd.domain.exception.EntityNotFoundException;
 import com.github.microwind.springboot4ddd.domain.model.user.User;
+import com.github.microwind.springboot4ddd.domain.page.PageRequest;
+import com.github.microwind.springboot4ddd.domain.page.PageResult;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
-import com.github.microwind.springboot4ddd.infrastructure.cache.SimpleCacheService;
-import com.github.microwind.springboot4ddd.infrastructure.config.RedisConfig;
-import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;
-import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
+import com.github.microwind.springboot4ddd.domain.service.user.UserUniquenessChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * 用户应用服务
- * 处理用户相关的业务逻辑
+ *
+ * <p>仅负责用例编排与事务管理，业务规则下沉到聚合根 {@link User} 与领域服务
+ * {@link UserUniquenessChecker}。输入用 application.command 包下的 Command，
+ * 输出统一为 {@link UserDTO}，不引用 interfaces 层。
  *
  * @author jarry
  * @since 1.0.0
@@ -37,152 +36,92 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final SimpleCacheService simpleCacheService;
+    private final UserUniquenessChecker userUniquenessChecker;
+    private final CacheService cacheService;
 
-    /**
-     * 创建用户
-     */
-    public UserResponse createUser(CreateUserRequest request) {
-        // 检查用户名是否已存在
-        if (userRepository.existsByName(request.getName())) {
-            throw new BusinessException(HttpStatus.CONFLICT, "用户名已存在: " + request.getName());
-        }
-
-        // 检查邮箱是否已存在
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(HttpStatus.CONFLICT, "邮箱已存在: " + request.getEmail());
-        }
-
-        // 创建用户领域对象
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .wechat(request.getWechat())
-                .address(request.getAddress())
-                .createdTime(LocalDateTime.now())
-                .updatedTime(LocalDateTime.now())
-                .build();
-
-        // 保存用户
+    public UserDTO createUser(CreateUserCommand command) {
+        User user = User.register(
+                userUniquenessChecker,
+                command.getName(),
+                command.getEmail(),
+                command.getPhone(),
+                command.getWechat(),
+                command.getAddress()
+        );
         User savedUser = userRepository.save(user);
         log.info("User created: id={}, name={}", savedUser.getId(), savedUser.getName());
-
-        return toResponse(savedUser);
+        return toDTO(savedUser);
     }
 
-    /**
-     * 根据ID获取用户
-     */
-    public UserResponse getUserById(Long id) {
-        return simpleCacheService.getOrSet(
-            RedisConfig.USER_CACHE_PREFIX + id,
-            UserResponse.class,
-            Duration.ofSeconds(RedisConfig.USER_CACHE_TTL),
-            () -> {
-                User user = userRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-                return toResponse(user);
-            }
+    public UserDTO getUserById(Long id) {
+        return cacheService.getOrSet(
+                CachePolicy.USER_KEY_PREFIX + id,
+                CachePolicy.USER_TTL,
+                () -> {
+                    User user = userRepository.findById(id)
+                            .orElseThrow(() -> new EntityNotFoundException("User", "id", id));
+                    return toDTO(user);
+                }
         );
     }
 
-    /**
-     * 根据用户名获取用户
-     */
-    public UserResponse getUserByName(String name) {
-        return simpleCacheService.getOrSet(
-            RedisConfig.USER_CACHE_PREFIX + "name:" + name,
-            UserResponse.class,
-            Duration.ofSeconds(RedisConfig.USER_CACHE_TTL),
-            () -> {
-                User user = userRepository.findByName(name)
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "name", name));
-                return toResponse(user);
-            }
+    public UserDTO getUserByName(String name) {
+        return cacheService.getOrSet(
+                CachePolicy.USER_KEY_PREFIX + "name:" + name,
+                CachePolicy.USER_TTL,
+                () -> {
+                    User user = userRepository.findByName(name)
+                            .orElseThrow(() -> new EntityNotFoundException("User", "name", name));
+                    return toDTO(user);
+                }
         );
     }
 
-    /**
-     * 获取所有用户
-     */
-    public List<UserResponse> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 分页查询所有用户
-     */
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
-        Page<User> userPage = userRepository.findAll(pageable);
-        List<UserResponse> responses = userPage.getContent().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        return new PageImpl<>(responses, pageable, userPage.getTotalElements());
+    public PageResult<UserDTO> getAllUsers(PageRequest pageRequest) {
+        return userRepository.findAll(pageRequest).map(this::toDTO);
     }
 
-    /**
-     * 更新用户
-     */
-    public UserResponse updateUser(Long id, UpdateUserRequest request) {
-        // 查找用户
+    public UserDTO updateUser(Long id, UpdateUserCommand command) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("用户", "id", id));
+                .orElseThrow(() -> new EntityNotFoundException("用户", "id", id));
 
-        // 如果更新邮箱，检查是否与其他用户重复
-        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new BusinessException(HttpStatus.CONFLICT, "邮箱已存在: " + request.getEmail());
-            }
-            user.setEmail(request.getEmail());
+        if (command.getEmail() != null) {
+            user.changeEmail(userUniquenessChecker, command.getEmail());
+        }
+        if (command.getPhone() != null) {
+            user.changePhone(command.getPhone());
+        }
+        if (command.getWechat() != null) {
+            user.changeWechat(command.getWechat());
+        }
+        if (command.getAddress() != null) {
+            user.changeAddress(command.getAddress());
         }
 
-        // 更新其他字段
-        if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
-        }
-        if (request.getWechat() != null) {
-            user.setWechat(request.getWechat());
-        }
-        if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
-        }
-
-        user.setUpdatedTime(LocalDateTime.now());
-
-        // 保存更新
         User updatedUser = userRepository.update(user);
         log.info("User updated: id={}, name={}", updatedUser.getId(), updatedUser.getName());
 
-        // 清除缓存
-        simpleCacheService.delete(RedisConfig.USER_CACHE_PREFIX + updatedUser.getId());
-
-        return toResponse(updatedUser);
+        cacheService.delete(CachePolicy.USER_KEY_PREFIX + updatedUser.getId());
+        return toDTO(updatedUser);
     }
 
-    /**
-     * 删除用户
-     */
     public void deleteUser(Long id) {
-        // 检查用户是否存在
         if (!userRepository.findById(id).isPresent()) {
-            throw new ResourceNotFoundException("用户", "id", id);
+            throw new EntityNotFoundException("用户", "id", id);
         }
-
         userRepository.deleteById(id);
         log.info("User deleted: id={}", id);
-
-        // 清除缓存
-        simpleCacheService.delete(RedisConfig.USER_CACHE_PREFIX + id);
+        cacheService.delete(CachePolicy.USER_KEY_PREFIX + id);
     }
 
-    /**
-     * 转换为响应DTO
-     */
-    private UserResponse toResponse(User user) {
-        return UserResponse.builder()
+    private UserDTO toDTO(User user) {
+        return UserDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())

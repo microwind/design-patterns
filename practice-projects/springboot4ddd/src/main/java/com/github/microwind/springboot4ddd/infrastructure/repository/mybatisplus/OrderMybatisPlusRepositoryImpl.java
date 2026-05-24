@@ -2,12 +2,13 @@ package com.github.microwind.springboot4ddd.infrastructure.repository.mybatisplu
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.domain.page.PageRequest;
+import com.github.microwind.springboot4ddd.domain.page.PageResult;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
+import com.github.microwind.springboot4ddd.infrastructure.repository.order.OrderConverter;
+import com.github.microwind.springboot4ddd.infrastructure.repository.order.OrderDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,9 +16,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 订单MyBatis Plus仓储实现
- * 实现 OrderRepository 接口，委托给 OrderMybatisPlusMapper mapper
- * 由 MybatisPlusConfig 显式注册为 bean
+ * 订单 MyBatis Plus 仓储实现
+ *
+ * <p>对外实现领域定义的 {@link OrderRepository}（操作 {@code Order} + domain 分页类型），
+ * 对内通过 {@link OrderMybatisPlusMapper} 直接读写 {@link OrderDO}。
+ *
+ * <p>由 {@code MybatisPlusConfig} 显式注册为 bean。
  *
  * @author jarry
  * @since 1.0.0
@@ -34,67 +38,71 @@ public class OrderMybatisPlusRepositoryImpl implements OrderRepository {
 
     @Override
     public Order save(Order order) {
-        if (order.getId() == null) {
-            orderMybatisPlusMapper.insert(order);
+        OrderDO orderDO = OrderConverter.toDO(order);
+        if (orderDO.getId() == null) {
+            orderMybatisPlusMapper.insert(orderDO);
+            if (orderDO.getId() != null) {
+                order.markCreated(orderDO.getId());
+            }
         } else {
-            orderMybatisPlusMapper.updateById(order);
+            orderMybatisPlusMapper.updateById(orderDO);
         }
         return order;
     }
 
     @Override
     public Optional<Order> findById(Long id) {
-        return Optional.ofNullable(orderMybatisPlusMapper.selectById(id));
+        return Optional.ofNullable(orderMybatisPlusMapper.selectById(id))
+                .map(OrderConverter::toModel);
     }
 
     @Override
     public Optional<Order> findByOrderNo(String orderNo) {
-        return orderMybatisPlusMapper.findByOrderNo(orderNo);
+        return orderMybatisPlusMapper.findByOrderNo(orderNo).map(OrderConverter::toModel);
     }
 
     @Override
     public List<Order> findByUserId(Long userId) {
-        return orderMybatisPlusMapper.findByUserId(userId);
+        return OrderConverter.toModelList(orderMybatisPlusMapper.findByUserId(userId));
     }
 
     @Override
-    public Page<Order> findByUserId(Long userId, Pageable pageable) {
-        // 计算分页参数（page 从 1 开始）
-        long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
-        int limit = pageable.getPageSize();
+    public PageResult<Order> findByUserId(Long userId, PageRequest pageRequest) {
+        long offset = pageRequest.getOffset();
+        int limit = pageRequest.getPageSize();
 
-        // 查询指定用户的所有订单（用于计算总数）
-        List<Order> allOrders = orderMybatisPlusMapper.findByUserId(userId);
+        // FIXME 已知问题：先查全部再内存切片，需要替换为基于 SQL 的分页（参考 selectPageData）
+        List<OrderDO> allOrders = orderMybatisPlusMapper.findByUserId(userId);
         long total = allOrders.size();
 
-        // 在内存中分页（因为 selectPage 无法与自定义 SQL 的 QueryWrapper 配合工作）
-        List<Order> records = new ArrayList<>();
+        List<OrderDO> records = new ArrayList<>();
         if (!allOrders.isEmpty() && offset < total) {
             int endIndex = Math.min((int) (offset + limit), (int) total);
             records = allOrders.subList((int) offset, endIndex);
         }
-
-        return new PageImpl<>(records, pageable, total);
+        return new PageResult<>(
+                OrderConverter.toModelList(records),
+                total,
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize()
+        );
     }
 
     @Override
     public List<Order> findAllOrders() {
-        return orderMybatisPlusMapper.selectList(new QueryWrapper<>());
+        return OrderConverter.toModelList(orderMybatisPlusMapper.selectList(new QueryWrapper<>()));
     }
 
     @Override
-    public Page<Order> findAllOrders(Pageable pageable) {
-        // 计算分页参数（page 从 1 开始）
-        long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
-        int limit = pageable.getPageSize();
-
-        // 使用 Mapper 的分页查询方法
-        List<Order> records = orderMybatisPlusMapper.selectPageData(offset, limit);
-
-        // 获取总数
+    public PageResult<Order> findAllOrders(PageRequest pageRequest) {
+        List<OrderDO> records = orderMybatisPlusMapper.selectPageData(pageRequest.getOffset(), pageRequest.getPageSize());
         long total = orderMybatisPlusMapper.countAll();
-
-        return new PageImpl<>(records, pageable, total);
+        return new PageResult<>(
+                OrderConverter.toModelList(records),
+                total,
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize()
+        );
     }
 
     @Override
@@ -103,7 +111,9 @@ public class OrderMybatisPlusRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore) {
-        return orderMybatisPlusMapper.findByStatusAndCreatedAtBefore(status, createdAtBefore);
+    public List<Order> findExpiredPendingOrders(LocalDateTime createdBefore) {
+        return OrderConverter.toModelList(
+                orderMybatisPlusMapper.findByStatusAndCreatedAtBefore(
+                        Order.OrderStatus.PENDING.name(), createdBefore));
     }
 }

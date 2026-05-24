@@ -1,86 +1,67 @@
 package com.github.microwind.springboot4ddd.infrastructure.repository.mybatisplus;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.github.microwind.springboot4ddd.domain.model.order.Order;
-import org.apache.ibatis.annotations.*;
+import com.github.microwind.springboot4ddd.infrastructure.repository.order.OrderDO;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 订单MyBatis Plus Mapper接口
- * 继承 BaseMapper 使用默认的 CRUD 方法
- * 只定义自定义查询方法
+ * 订单 MyBatis Plus Mapper 接口
+ *
+ * <p>持久化层只与 {@link OrderDO} 打交道，不引用领域模型 {@code Order}。
  *
  * @author jarry
  * @since 1.0.0
  */
 @Mapper
-public interface OrderMybatisPlusMapper extends BaseMapper<Order> {
+public interface OrderMybatisPlusMapper extends BaseMapper<OrderDO> {
 
-    /**
-     * 根据ID查找订单（覆盖BaseMapper的selectById）
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders WHERE id = #{id}")
-    Order selectById(Long id);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at " +
+            "FROM orders WHERE id = #{id}")
+    OrderDO selectById(Long id);
 
-    /**
-     * 插入订单（覆盖BaseMapper的insert）
-     */
-    @Insert("INSERT INTO orders (order_no, user_id, status, created_at, updated_at) " +
-            "VALUES (#{orderNo}, #{userId}, #{status}, #{createdAt}, #{updatedAt})")
+    @Insert("INSERT INTO orders (order_no, user_id, total_amount, status, created_at, updated_at) " +
+            "VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{status}, #{createdAt}, #{updatedAt})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(Order order);
+    int insert(OrderDO orderDO);
 
-    /**
-     * 更新订单（覆盖BaseMapper的updateById）
-     */
     @Update("UPDATE orders SET order_no = #{orderNo}, user_id = #{userId}, " +
-            "status = #{status}, updated_at = #{updatedAt} WHERE id = #{id}")
-    int updateById(Order order);
+            "total_amount = #{totalAmount}, status = #{status}, updated_at = #{updatedAt} " +
+            "WHERE id = #{id}")
+    int updateById(OrderDO orderDO);
 
-    /**
-     * 删除订单（覆盖BaseMapper的deleteById）
-     */
     @Delete("DELETE FROM orders WHERE id = #{id}")
     int deleteById(Long id);
 
-    /**
-     * 查询所有订单（覆盖BaseMapper的selectList）
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders")
-    List<Order> selectList(Object entity);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at FROM orders")
+    List<OrderDO> selectList(Object entity);
 
-    /**
-     * 分页查询所有订单
-     * @param offset 偏移量
-     * @param limit  每页条数
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders LIMIT #{limit} OFFSET #{offset}")
-    List<Order> selectPageData(@Param("offset") long offset, @Param("limit") int limit);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at " +
+            "FROM orders LIMIT #{limit} OFFSET #{offset}")
+    List<OrderDO> selectPageData(@Param("offset") long offset, @Param("limit") int limit);
 
-    /**
-     * 查询订单总数
-     */
     @Select("SELECT COUNT(*) FROM orders")
     long countAll();
 
-    /**
-     * 根据订单号查找
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders WHERE order_no = #{orderNo}")
-    Optional<Order> findByOrderNo(String orderNo);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at " +
+            "FROM orders WHERE order_no = #{orderNo}")
+    Optional<OrderDO> findByOrderNo(String orderNo);
 
-    /**
-     * 根据用户ID查找所有订单
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders WHERE user_id = #{userId} ORDER BY created_at DESC")
-    List<Order> findByUserId(Long userId);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at " +
+            "FROM orders WHERE user_id = #{userId} ORDER BY created_at DESC")
+    List<OrderDO> findByUserId(Long userId);
 
-    /**
-     * 根据订单状态和创建时间查找订单
-     */
-    @Select("SELECT id, order_no, user_id, status, created_at, updated_at FROM orders WHERE status = #{status} AND created_at < #{createdAtBefore} ORDER BY created_at ASC")
-    List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore);
+    @Select("SELECT id, order_no, user_id, total_amount, status, created_at, updated_at " +
+            "FROM orders WHERE status = #{status} AND created_at < #{createdAtBefore} " +
+            "ORDER BY created_at ASC")
+    List<OrderDO> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore);
 }

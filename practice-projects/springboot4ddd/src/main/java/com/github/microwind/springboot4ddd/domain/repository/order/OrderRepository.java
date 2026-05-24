@@ -1,72 +1,41 @@
 package com.github.microwind.springboot4ddd.domain.repository.order;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.github.microwind.springboot4ddd.domain.page.PageRequest;
+import com.github.microwind.springboot4ddd.domain.page.PageResult;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * 订单仓储接口
  *
+ * <p>零框架依赖：分页相关类型使用 domain 自定义的 {@link PageRequest} / {@link PageResult}。
+ *
  * @author jarry
  * @since 1.0.0
  */
 public interface OrderRepository {
 
-    /**
-     * 保存订单
-     */
     Order save(Order order);
 
-    /**
-     * 根据ID查找订单
-     */
     Optional<Order> findById(Long id);
 
-    /**
-     * 根据订单号查找订单
-     */
     Optional<Order> findByOrderNo(String orderNo);
 
-    /**
-     * 查找用户的所有订单
-     */
     List<Order> findByUserId(Long userId);
 
-    /**
-     * 分页查询用户的订单
-     *
-     * @param userId   用户ID
-     * @param pageable 分页参数
-     * @return 订单分页结果
-     */
-    Page<Order> findByUserId(Long userId, Pageable pageable);
+    PageResult<Order> findByUserId(Long userId, PageRequest pageRequest);
 
-    /**
-     * 查找所有订单
-     */
     List<Order> findAllOrders();
 
-    /**
-     * 分页查询所有订单
-     *
-     * @param pageable 分页参数
-     * @return 订单分页结果
-     */
-    Page<Order> findAllOrders(Pageable pageable);
+    PageResult<Order> findAllOrders(PageRequest pageRequest);
 
-    /**
-     * 删除订单
-     */
     void deleteById(Long id);
 
     /**
-     * 根据订单状态和创建时间查找订单
-     * @param status 订单状态
-     * @param createdAtBefore 创建时间在此时间点之前的订单
-     * @return 符合条件的订单列表
+     * 查询超时未支付订单（创建时间早于阈值且状态为 PENDING）。
      */
-    List<Order> findByStatusAndCreatedAtBefore(String status, java.time.LocalDateTime createdAtBefore);
+    List<Order> findExpiredPendingOrders(LocalDateTime createdBefore);
 }

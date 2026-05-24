@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.microwind.springboot4ddd.domain.event.DomainEvent;
+import com.github.microwind.springboot4ddd.domain.event.DomainEventPublisher;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCancelledEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCompletedEvent;
 import com.github.microwind.springboot4ddd.domain.event.order.OrderCreatedEvent;
@@ -33,7 +34,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderEventProducer {
+public class OrderEventProducer implements DomainEventPublisher {
 
     private final RocketMQTemplate rocketMQTemplate;
     private final OrderEventMessageMapper messageMapper;
@@ -52,6 +53,7 @@ public class OrderEventProducer {
      *
      * @param event 领域事件
      */
+    @Override
     public void publishEvent(DomainEvent event) {
         try {
             Object message = convertToMessage(event);
@@ -88,6 +90,7 @@ public class OrderEventProducer {
      *
      * @param events 领域事件列表
      */
+    @Override
     public void publishEvents(List<DomainEvent> events) {
         if (events == null || events.isEmpty()) {
             return;

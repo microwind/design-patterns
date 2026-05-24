@@ -1,5 +1,6 @@
 package com.github.microwind.springboot4ddd.infrastructure.notification;
 
+import com.github.microwind.springboot4ddd.application.port.EmailSender;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
- * 邮件发送服务
- * 提供简单易用的邮件发送功能
+ * 邮件发送服务 —— {@link EmailSender} 的 JavaMailSender 实现
+ *
+ * <p>实现 {@link EmailSender} 端口，application 层通过接口注入，
+ * 不直接依赖此类。
  *
  * @author jarry
  * @since 1.0.0
@@ -19,20 +22,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EmailService {
+public class EmailService implements EmailSender {
 
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    /**
-     * 发送简单文本邮件
-     *
-     * @param to      收件人邮箱
-     * @param subject 邮件主题
-     * @param content 邮件内容
-     */
+    @Override
     public void sendSimpleEmail(String to, String subject, String content) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -51,13 +48,7 @@ public class EmailService {
         }
     }
 
-    /**
-     * 发送HTML格式邮件
-     *
-     * @param to      收件人邮箱
-     * @param subject 邮件主题
-     * @param htmlContent HTML格式的邮件内容
-     */
+    @Override
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -76,3 +67,4 @@ public class EmailService {
         }
     }
 }
+

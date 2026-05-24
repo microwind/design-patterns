@@ -1,7 +1,9 @@
 package com.github.microwind.springboot4ddd.infrastructure.common;
 
+import com.github.microwind.springboot4ddd.domain.exception.DomainException;
+import com.github.microwind.springboot4ddd.domain.exception.EntityNotFoundException;
+import com.github.microwind.springboot4ddd.domain.exception.UniquenessViolationException;
 import com.github.microwind.springboot4ddd.infrastructure.exception.BusinessException;
-import com.github.microwind.springboot4ddd.infrastructure.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -26,13 +28,13 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     /**
-     * 处理资源未找到异常
+     * 处理实体未找到异常（领域语义）
      */
-    @ExceptionHandler(ResourceNotFoundException.class)
+    @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiResponse<Void> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        log.warn("Resource not found: {}", ex.getMessage());
-        return ApiResponse.error(404, ex.getMessage());
+    public ApiResponse<Void> handleEntityNotFoundException(EntityNotFoundException ex) {
+        log.warn("Entity not found: {}", ex.getMessage());
+        return ApiResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage());
     }
 
     /**
@@ -52,6 +54,26 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleBusinessException(BusinessException ex) {
         log.warn("Business exception: code={}, message={}", ex.getCode(), ex.getMessage());
         return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
+
+    /**
+     * 处理唯一性约束违反
+     */
+    @ExceptionHandler(UniquenessViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> handleUniquenessViolationException(UniquenessViolationException ex) {
+        log.warn("Uniqueness violation: {}", ex.getMessage());
+        return ApiResponse.error(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    /**
+     * 处理其他领域异常
+     */
+    @ExceptionHandler(DomainException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleDomainException(DomainException ex) {
+        log.warn("Domain exception: {}", ex.getMessage());
+        return ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
 
     /**

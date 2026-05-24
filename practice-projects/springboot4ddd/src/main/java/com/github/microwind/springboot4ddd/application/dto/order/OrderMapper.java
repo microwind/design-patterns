@@ -1,8 +1,6 @@
 package com.github.microwind.springboot4ddd.application.dto.order;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
-import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderResponse;
-import com.github.microwind.springboot4ddd.interfaces.vo.order.OrderListResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -10,7 +8,9 @@ import java.util.stream.Collectors;
 
 /**
  * 订单映射器
- * 用于在领域模型和DTO之间转换
+ *
+ * <p>application 层内部的领域模型 ↔ DTO/View 转换。
+ * 不依赖 interfaces 层，输出对象 controller 可直接序列化返回。
  *
  * @author jarry
  * @since 1.0.0
@@ -18,104 +18,41 @@ import java.util.stream.Collectors;
 @Component
 public class OrderMapper {
 
-    /**
-     * 将Order实体转换为OrderDTO
-     */
     public OrderDTO toDTO(Order order) {
         if (order == null) {
             return null;
         }
-
+        Order.OrderStatus status = order.getStatus();
         return OrderDTO.builder()
                 .id(order.getId())
                 .orderNo(order.getOrderNo())
                 .userId(order.getUserId())
                 .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .statusDesc(getStatusDescription(order.getStatus()))
+                .status(status != null ? status.name() : null)
+                .statusDesc(status != null ? status.getDescription() : null)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
     }
 
-    /**
-     * 将Order实体列表转换为OrderDTO列表
-     */
     public List<OrderDTO> toDTOList(List<Order> orders) {
         if (orders == null) {
             return null;
         }
-        return orders.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return orders.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     /**
-     * 为OrderDTO填充用户信息（用于跨库查询）
+     * 组合订单基础信息与跨上下文的用户简介，输出列表读模型。
      */
-    public void enrichUserInfo(OrderDTO orderDTO, String userName, String userPhone) {
-        if (orderDTO != null) {
-            orderDTO.setUserName(userName);
-            orderDTO.setUserPhone(userPhone);
-        }
-    }
-
-    /**
-     * 将Order实体转换为OrderResponse（不含用户信息）
-     */
-    public OrderResponse toOrderResponse(Order order) {
+    public OrderListView toListView(Order order, String userName, String userPhone) {
         if (order == null) {
             return null;
         }
-
-        return OrderResponse.builder()
-                .id(order.getId())
-                .orderNo(order.getOrderNo())
-                .userId(order.getUserId())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .statusDesc(getStatusDescription(order.getStatus()))
-                .createdAt(order.getCreatedAt())
-                .updatedAt(order.getUpdatedAt())
-                .build();
-    }
-
-    /**
-     * 将Order实体转换为OrderListResponse（包含用户信息）
-     */
-    public OrderListResponse toListResponse(Order order, String userName, String userPhone) {
-        if (order == null) {
-            return null;
-        }
-
-        return OrderListResponse.builder()
-//                .id(order.getId())
-//                .orderNo(order.getOrderNo())
-//                .userId(order.getUserId())
-//                .totalAmount(order.getTotalAmount())
-//                .status(order.getStatus())
-//                .statusDesc(getStatusDescription(order.getStatus()))
-//                .createdAt(order.getCreatedAt())
-//                .updatedAt(order.getUpdatedAt())
+        return OrderListView.builder()
+                .order(toDTO(order))
                 .userName(userName)
                 .userPhone(userPhone)
-                // 如果是组合方式则仅写入对象
-                .order(toOrderResponse(order))
                 .build();
-    }
-
-    /**
-     * 获取状态描述
-     */
-    private String getStatusDescription(String status) {
-        if (status == null) {
-            return null;
-        }
-        try {
-            Order.OrderStatus orderStatus = Order.OrderStatus.valueOf(status);
-            return orderStatus.getDescription();
-        } catch (IllegalArgumentException e) {
-            return status;
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.github.microwind.springboot4ddd.infrastructure.cache;
 
+import com.github.microwind.springboot4ddd.application.port.CacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -9,52 +10,38 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 /**
- * 简单Redis缓存服务 - 快速开始缓存
- * 
- * 使用示例：
- * 
- * // 从缓存获取或从数据库加载
- * UserResponse user = simpleCacheService.getOrSet(
- *     "user:123", 
- *     UserResponse.class, 
- *     Duration.ofMinutes(30), 
- *     () -> userRepository.findById(123L)
- * );
- * 
- * // 删除缓存
- * simpleCacheService.delete("user:123");
- * 
+ * 简单 Redis 缓存服务 —— {@link CacheService} 的 Redis 实现
+ *
+ * <p>实现 {@link CacheService} 端口，application 层通过接口注入，
+ * 不直接依赖此类。
+ *
  * @author jarry
  * @since 1.0.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SimpleCacheService {
+public class SimpleCacheService implements CacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    /**
-     * 从缓存获取或从数据源设置
-     */
-    public <T> T getOrSet(String key, Class<T> clazz, Duration ttl, Supplier<T> supplier) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getOrSet(String key, Duration ttl, Supplier<T> supplier) {
         try {
-            // 先尝试从缓存获取
             Object cachedObj = redisTemplate.opsForValue().get(key);
             if (cachedObj != null) {
                 log.debug("缓存命中: {}", key);
-                return clazz.cast(cachedObj);
+                return (T) cachedObj;
             }
 
-            // 缓存未命中，从数据源加载
             log.debug("缓存未命中: {}", key);
             T data = supplier.get();
-            
+
             if (data != null) {
                 redisTemplate.opsForValue().set(key, data, ttl);
                 log.debug("数据已缓存: {} TTL {}", key, ttl);
             }
-            
             return data;
         } catch (Exception e) {
             log.error("缓存错误，键: {}，回退到数据源", key, e);
@@ -62,9 +49,7 @@ public class SimpleCacheService {
         }
     }
 
-    /**
-     * 删除缓存
-     */
+    @Override
     public void delete(String key) {
         try {
             redisTemplate.delete(key);
@@ -74,3 +59,4 @@ public class SimpleCacheService {
         }
     }
 }
+

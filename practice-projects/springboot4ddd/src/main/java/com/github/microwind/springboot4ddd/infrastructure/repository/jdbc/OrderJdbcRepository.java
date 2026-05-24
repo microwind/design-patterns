@@ -1,6 +1,6 @@
 package com.github.microwind.springboot4ddd.infrastructure.repository.jdbc;
 
-import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.infrastructure.repository.order.OrderDO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -13,34 +13,24 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 订单Spring Data JDBC Mapper接口
- * 只定义 JDBC 的查询方法
+ * 订单 Spring Data JDBC Mapper 接口
+ *
+ * <p>持久化层只与 {@link OrderDO} 打交道，不引用领域模型 {@code Order}。
  *
  * @author jarry
  * @since 1.0.0
  */
 @Repository("orderJdbcRepository")
-public interface OrderJdbcRepository extends CrudRepository<Order, Long>, PagingAndSortingRepository<Order, Long> {
-    /**
-     * 根据订单号查找
-     */
+public interface OrderJdbcRepository extends CrudRepository<OrderDO, Long>, PagingAndSortingRepository<OrderDO, Long> {
+
     @Query("SELECT * FROM orders WHERE order_no = :orderNo")
-    Optional<Order> findByOrderNo(String orderNo);
+    Optional<OrderDO> findByOrderNo(String orderNo);
 
-    /**
-     * 根据用户ID查找所有订单
-     */
     @Query("SELECT * FROM orders WHERE user_id = :userId ORDER BY created_at DESC")
-    List<Order> findByUserId(Long userId);
+    List<OrderDO> findByUserId(Long userId);
 
-    /**
-     * 根据用户ID分页查找订单
-     */
-    Page<Order> findByUserId(Long userId, Pageable pageable);
+    Page<OrderDO> findByUserId(Long userId, Pageable pageable);
 
-    /**
-     * 根据订单状态和创建时间查找订单
-     */
     @Query("SELECT * FROM orders WHERE status = :status AND created_at < :createdAtBefore ORDER BY created_at ASC")
-    List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore);
+    List<OrderDO> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore);
 }

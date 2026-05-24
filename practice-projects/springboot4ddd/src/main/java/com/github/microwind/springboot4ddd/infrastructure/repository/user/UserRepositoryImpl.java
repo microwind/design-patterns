@@ -1,33 +1,33 @@
 package com.github.microwind.springboot4ddd.infrastructure.repository.user;
 
 import com.github.microwind.springboot4ddd.domain.model.user.User;
+import com.github.microwind.springboot4ddd.domain.page.PageRequest;
+import com.github.microwind.springboot4ddd.domain.page.PageResult;
+import com.github.microwind.springboot4ddd.domain.page.SortOrder;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户仓储实现 - MySQL数据源
- * 直接使用JdbcTemplate实现数据操作示例
- * JdbcTemplate适合简单清晰的数据库操作，性能最高
+ * 用户仓储实现 - MySQL 数据源
+ *
+ * <p>通过 {@link UserDO} + {@link UserConverter} 显式分离持久化与领域模型，
+ * 与 {@code OrderJdbcRepositoryImpl} 的处理方式对称。
  *
  * @author jarry
  * @since 1.0.0
@@ -36,25 +36,24 @@ import java.util.Optional;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    // 直接使用JdbcTemplate实现数据操作
     private final JdbcTemplate jdbcTemplate;
 
     public UserRepositoryImpl(@Qualifier("userJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private static final RowMapper<User> USER_ROW_MAPPER = (rs, rowNum) -> User.builder()
+    private static final RowMapper<UserDO> USER_DO_ROW_MAPPER = (rs, rowNum) -> UserDO.builder()
             .id(rs.getLong("id"))
             .name(rs.getString("name"))
             .email(rs.getString("email"))
             .phone(rs.getString("phone"))
-            // .wechat(getStringOrNull(rs, "wechat")) // wechat 字段未在数据库中,暂时注释掉
+            .wechat(getStringOrNull(rs, "wechat"))
             .address(getStringOrNull(rs, "address"))
             .createdTime(rs.getTimestamp("created_time").toLocalDateTime())
             .updatedTime(rs.getTimestamp("updated_time").toLocalDateTime())
             .build();
 
-    /** 列不存在时返回 null，避免 SQLException: Column 'xxx' not found */
+    /** 列不存在或为 null 时返回 null，避免 SQLException: Column 'xxx' not found */
     private static String getStringOrNull(ResultSet rs, String column) throws SQLException {
         try {
             rs.findColumn(column);
@@ -65,27 +64,28 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Transactional(transactionManager = "userTransactionManager")
     public User save(User user) {
-        // wechat 字段未在数据库中,暂时注释掉
+        UserDO userDO = UserConverter.toDO(user);
         String sql = "INSERT INTO users (name, email, phone, address, created_time, updated_time) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdTime = userDO.getCreatedTime() != null ? userDO.getCreatedTime() : now;
+        LocalDateTime updatedTime = userDO.getUpdatedTime() != null ? userDO.getUpdatedTime() : now;
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPhone());
-            // ps.setString(4, user.getWechat()); // wechat 字段未在数据库中,暂时注释掉
-            ps.setString(4, user.getAddress());
-            ps.setTimestamp(5, Timestamp.valueOf(user.getCreatedTime() != null ? user.getCreatedTime() : java.time.LocalDateTime.now()));
-            ps.setTimestamp(6, Timestamp.valueOf(user.getUpdatedTime() != null ? user.getUpdatedTime() : java.time.LocalDateTime.now()));
+            ps.setString(1, userDO.getName());
+            ps.setString(2, userDO.getEmail());
+            ps.setString(3, userDO.getPhone());
+            ps.setString(4, userDO.getAddress());
+            ps.setTimestamp(5, Timestamp.valueOf(createdTime));
+            ps.setTimestamp(6, Timestamp.valueOf(updatedTime));
             return ps;
         }, keyHolder);
 
-        user.setId(keyHolder.getKey().longValue());
+        user.markPersisted(keyHolder.getKey().longValue());
         log.info("User saved with id: {}", user.getId());
         return user;
     }
@@ -94,8 +94,8 @@ public class UserRepositoryImpl implements UserRepository {
     public Optional<User> findById(Long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try {
-            User user = jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, id);
-            return Optional.ofNullable(user);
+            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, id);
+            return Optional.ofNullable(UserConverter.toModel(userDO));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -105,8 +105,8 @@ public class UserRepositoryImpl implements UserRepository {
     public Optional<User> findByName(String name) {
         String sql = "SELECT * FROM users WHERE name = ?";
         try {
-            User user = jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, name);
-            return Optional.ofNullable(user);
+            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, name);
+            return Optional.ofNullable(UserConverter.toModel(userDO));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -116,8 +116,8 @@ public class UserRepositoryImpl implements UserRepository {
     public Optional<User> findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try {
-            User user = jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, email);
-            return Optional.ofNullable(user);
+            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, email);
+            return Optional.ofNullable(UserConverter.toModel(userDO));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -126,65 +126,64 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> findAll() {
         String sql = "SELECT * FROM users ORDER BY created_time DESC";
-        return jdbcTemplate.query(sql, USER_ROW_MAPPER);
+        return UserConverter.toModelList(jdbcTemplate.query(sql, USER_DO_ROW_MAPPER));
     }
 
     @Override
-    public Page<User> findAll(Pageable pageable) {
-        // 查询总数
+    public PageResult<User> findAll(PageRequest pageRequest) {
         String countSql = "SELECT COUNT(*) FROM users";
         Integer total = jdbcTemplate.queryForObject(countSql, Integer.class);
         long totalElements = total != null ? total : 0;
 
-        // 构建 ORDER BY 子句
-        String orderBy = buildOrderByClause(pageable.getSort());
-
-        // 构建分页查询（page 从 1 开始）
-        long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
-        int pageSize = pageable.getPageSize();
+        String orderBy = buildOrderByClause(pageRequest.getSorts());
         String sql = "SELECT * FROM users" + orderBy + " LIMIT ? OFFSET ?";
 
-        List<User> content = jdbcTemplate.query(sql, USER_ROW_MAPPER, pageSize, offset);
+        List<UserDO> records = jdbcTemplate.query(
+                sql, USER_DO_ROW_MAPPER, pageRequest.getPageSize(), pageRequest.getOffset());
 
-        return new PageImpl<>(content, pageable, totalElements);
+        return new PageResult<>(
+                UserConverter.toModelList(records),
+                totalElements,
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize()
+        );
     }
 
     /**
-     * 根据 Sort 构建 ORDER BY 子句
+     * 根据领域 SortOrder 列表构建 ORDER BY 子句；为空则按 created_time 倒序。
      */
-    private String buildOrderByClause(Sort sort) {
-        if (sort.isEmpty()) {
+    private String buildOrderByClause(List<SortOrder> sorts) {
+        if (sorts == null || sorts.isEmpty()) {
             return " ORDER BY created_time DESC";
         }
 
         StringBuilder sb = new StringBuilder(" ORDER BY ");
-        sort.forEach(order -> {
-            if (sb.length() > 10) {
+        for (int i = 0; i < sorts.size(); i++) {
+            if (i > 0) {
                 sb.append(", ");
             }
-            sb.append(order.getProperty()).append(" ").append(order.getDirection().name());
-        });
+            SortOrder order = sorts.get(i);
+            sb.append(order.getProperty()).append(' ').append(order.getDirection().name());
+        }
         return sb.toString();
     }
 
     @Override
-    @Transactional(transactionManager = "userTransactionManager")
     public User update(User user) {
-        // wechat 字段未在数据库中,暂时注释掉
+        UserDO userDO = UserConverter.toDO(user);
         String sql = "UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_time = ? " +
                 "WHERE id = ?";
 
         int updated = jdbcTemplate.update(sql,
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                // user.getWechat(), // wechat 字段未在数据库中,暂时注释掉
-                user.getAddress(),
-                Timestamp.valueOf(java.time.LocalDateTime.now()),
-                user.getId());
+                userDO.getName(),
+                userDO.getEmail(),
+                userDO.getPhone(),
+                userDO.getAddress(),
+                Timestamp.valueOf(LocalDateTime.now()),
+                userDO.getId());
 
         if (updated == 0) {
-            throw new IllegalArgumentException("User not found with id: " + user.getId());
+            throw new IllegalArgumentException("User not found with id: " + userDO.getId());
         }
 
         log.info("User updated with id: {}", user.getId());
@@ -192,7 +191,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Transactional(transactionManager = "userTransactionManager")
     public void deleteById(Long id) {
         String sql = "DELETE FROM users WHERE id = ?";
         int deleted = jdbcTemplate.update(sql, id);

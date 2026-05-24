@@ -1,12 +1,12 @@
 package com.github.microwind.springboot4ddd.infrastructure.repository.order;
 
 import com.github.microwind.springboot4ddd.domain.model.order.Order;
+import com.github.microwind.springboot4ddd.domain.page.PageRequest;
+import com.github.microwind.springboot4ddd.domain.page.PageResult;
 import com.github.microwind.springboot4ddd.domain.repository.order.OrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -28,25 +28,15 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     private final OrderRepository orderRepositoryDelegate;
     private static final String MYBATIS_PLUS = "mybatis-plus";
-    private static final String JDBC = "jdbc";
 
-    /**
-     * 构造函数注入，根据配置选择具体实现
-     *
-     * @param orderJdbcRepositoryImpl JDBC实现
-     * @param orderMybatisPlusRepositoryImpl MyBatis Plus实现
-     * @param implementationType 配置的实现类型，详见application.yaml
-     */
     public OrderRepositoryImpl(
             @Qualifier("orderJdbcRepositoryImpl") OrderRepository orderJdbcRepositoryImpl,
             @Qualifier("orderMybatisPlusRepositoryImpl") OrderRepository orderMybatisPlusRepositoryImpl,
             @Value("${order.repository.implementation:jdbc}") String implementationType) {
 
-        // 根据配置选择委托对象
         if (MYBATIS_PLUS.equalsIgnoreCase(implementationType)) {
             this.orderRepositoryDelegate = orderMybatisPlusRepositoryImpl;
         } else {
-            // 默认使用 JDBC
             this.orderRepositoryDelegate = orderJdbcRepositoryImpl;
         }
     }
@@ -72,8 +62,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Page<Order> findByUserId(Long userId, Pageable pageable) {
-        return orderRepositoryDelegate.findByUserId(userId, pageable);
+    public PageResult<Order> findByUserId(Long userId, PageRequest pageRequest) {
+        return orderRepositoryDelegate.findByUserId(userId, pageRequest);
     }
 
     @Override
@@ -82,8 +72,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Page<Order> findAllOrders(Pageable pageable) {
-        return orderRepositoryDelegate.findAllOrders(pageable);
+    public PageResult<Order> findAllOrders(PageRequest pageRequest) {
+        return orderRepositoryDelegate.findAllOrders(pageRequest);
     }
 
     @Override
@@ -92,7 +82,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> findByStatusAndCreatedAtBefore(String status, LocalDateTime createdAtBefore) {
-        return orderRepositoryDelegate.findByStatusAndCreatedAtBefore(status, createdAtBefore);
+    public List<Order> findExpiredPendingOrders(LocalDateTime createdBefore) {
+        return orderRepositoryDelegate.findExpiredPendingOrders(createdBefore);
     }
 }
