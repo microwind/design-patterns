@@ -5,23 +5,22 @@ import (
 	"time"
 )
 
-// OrderDTO 订单数据传输对象
+// OrderDTO 订单数据传输对象,application 与 interfaces 层共享的输出契约。
 type OrderDTO struct {
-	OrderID     int64          `json:"order_id"`
-	OrderNo     string         `json:"order_no"`
-	UserID      int64          `json:"user_id"`
-	TotalAmount float64        `json:"total_amount"`
-	Status      string         `json:"status"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	OrderID     int64     `json:"order_id"`
+	OrderNo     string    `json:"order_no"`
+	UserID      int64     `json:"user_id"`
+	TotalAmount float64   `json:"total_amount"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-// ToDTO 将订单实体转换为DTO
+// ToDTO 将订单实体转换为 DTO。
 func ToDTO(o *order.Order) *OrderDTO {
 	if o == nil {
 		return nil
 	}
-
 	return &OrderDTO{
 		OrderID:     o.OrderID,
 		OrderNo:     o.OrderNo,
@@ -33,28 +32,11 @@ func ToDTO(o *order.Order) *OrderDTO {
 	}
 }
 
-// ToDTOs 批量转换订单实体为DTO
+// ToDTOs 批量转换。
 func ToDTOs(orders []*order.Order) []*OrderDTO {
 	dtos := make([]*OrderDTO, 0, len(orders))
 	for _, o := range orders {
 		dtos = append(dtos, ToDTO(o))
 	}
 	return dtos
-}
-
-// ToEntity 将DTO转换为订单实体
-func ToEntity(dto *OrderDTO) *order.Order {
-	if dto == nil {
-		return nil
-	}
-
-	return &order.Order{
-		OrderID:     dto.OrderID,
-		OrderNo:     dto.OrderNo,
-		UserID:      dto.UserID,
-		TotalAmount: dto.TotalAmount,
-		Status:      order.OrderStatus(dto.Status),
-		CreatedAt:   dto.CreatedAt,
-		UpdatedAt:   dto.UpdatedAt,
-	}
 }

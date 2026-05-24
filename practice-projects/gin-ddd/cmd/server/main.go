@@ -11,6 +11,7 @@ import (
 
 	"gin-ddd/internal/application/service/order"
 	"gin-ddd/internal/application/service/user"
+	userClient "gin-ddd/internal/domain/client/user"
 	"gin-ddd/internal/domain/event"
 	"gin-ddd/internal/domain/notification"
 	"gin-ddd/internal/infrastructure/config"
@@ -21,156 +22,138 @@ import (
 	orderHandler "gin-ddd/internal/interfaces/handler/order"
 	userHandler "gin-ddd/internal/interfaces/handler/user"
 	"gin-ddd/internal/interfaces/router"
+
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+)
+
+// 默认 MQ topic,配置中未提供时使用。
+const (
+	defaultOrderTopic = "order-event-topic"
+	defaultUserTopic  = "user-event-topic"
 )
 
 func main() {
-	// 初始化日志到控制台
 	utils.InitLogger()
-
-	// 注册自定义验证器
 	registerValidators()
+
 	utils.GetLogger().Info("========================================")
 	utils.GetLogger().Info("应用程序启动")
 	utils.GetLogger().Info("========================================")
 
-	// 加载配置
-	utils.GetLogger().Info("开始加载配置文件...")
 	cfg, err := config.LoadConfig("config/config.yaml")
 	if err != nil {
-		utils.GetLogger().Error("加载配置文件失败: %v", err)
 		log.Fatalf("加载配置文件失败: %v", err)
 	}
-	utils.GetLogger().Info("配置文件加载成功，服务器模式: %s", cfg.Server.Mode)
+	utils.GetLogger().Info("配置加载成功,模式: %s", cfg.Server.Mode)
 
-	// 初始化数据库
-	utils.GetLogger().Info("开始初始化用户数据库连接...")
-	userDBConfig := &config.DatabaseConfig{
-		Driver:          cfg.Database.User.Driver,
-		Host:            cfg.Database.User.Host,
-		Port:            cfg.Database.User.Port,
-		UserName:        cfg.Database.User.UserName,
-		Password:        cfg.Database.User.Password,
-		Database:        cfg.Database.User.Database,
-		MaxOpenConns:    cfg.Database.User.MaxOpenConns,
-		MaxIdleConns:    cfg.Database.User.MaxIdleConns,
-		ConnMaxLifetime: time.Duration(cfg.Database.User.ConnMaxLifetime) * time.Second,
-	}
-
-	userDB, err := config.InitDatabase(userDBConfig)
-	if err != nil {
-		log.Fatalf("用户数据库初始化失败: %v", err)
-	}
+	userDB := mustInitDB(cfg.Database.User, "用户")
 	defer userDB.Close()
-	utils.GetLogger().Info("用户数据库连接成功: %s://%s:%d/%s", userDBConfig.Driver, userDBConfig.Host, userDBConfig.Port, userDBConfig.Database)
 
-	utils.GetLogger().Info("开始初始化订单数据库连接...")
-	orderDBConfig := &config.DatabaseConfig{
-		Driver:          cfg.Database.Order.Driver,
-		Host:            cfg.Database.Order.Host,
-		Port:            cfg.Database.Order.Port,
-		UserName:        cfg.Database.Order.UserName,
-		Password:        cfg.Database.Order.Password,
-		Database:        cfg.Database.Order.Database,
-		MaxOpenConns:    cfg.Database.Order.MaxOpenConns,
-		MaxIdleConns:    cfg.Database.Order.MaxIdleConns,
-		ConnMaxLifetime: time.Duration(cfg.Database.Order.ConnMaxLifetime) * time.Second,
-	}
-
-	orderDB, err := config.InitDatabase(orderDBConfig)
-	if err != nil {
-		log.Fatalf("订单数据库初始化失败: %v", err)
-	}
+	orderDB := mustInitDB(cfg.Database.Order, "订单")
 	defer orderDB.Close()
-	utils.GetLogger().Info("订单数据库连接成功: %s://%s:%d/%s", orderDBConfig.Driver, orderDBConfig.Host, orderDBConfig.Port, orderDBConfig.Database)
 
-	// 初始化仓储
-	utils.GetLogger().Info("初始化数据仓储...")
+	// 仓储
 	userRepo := userPersistence.NewUserRepository(userDB)
 	orderRepo := orderPersistence.NewOrderRepository(orderDB)
-	utils.GetLogger().Info("数据仓储初始化完成")
 
-	// 初始化邮件服务
+	// 领域服务 / 防腐层端口的基础设施实现
+	uniquenessChecker := userPersistence.NewUniquenessChecker(userRepo)
+	userInfoQueryClient := userPersistence.NewUserInfoQueryClient(userRepo)
+
+	// 邮件
 	var mailService notification.MailService
 	if cfg.Mail.Enabled {
-		utils.GetLogger().Info("初始化邮件服务...")
 		mailService = mail.NewSMTPMailService(
-			cfg.Mail.Host,
-			cfg.Mail.Port,
-			cfg.Mail.Username,
-			cfg.Mail.Password,
-			cfg.Mail.FromEmail,
-			cfg.Mail.FromName,
+			cfg.Mail.Host, cfg.Mail.Port,
+			cfg.Mail.Username, cfg.Mail.Password,
+			cfg.Mail.FromEmail, cfg.Mail.FromName,
 		)
 		utils.GetLogger().Info("邮件服务初始化成功")
 	} else {
 		utils.GetLogger().Info("邮件服务未启用")
 	}
 
-	// 初始化事件发布器（优先使用 RocketMQ，备选内存发布器）
-	utils.GetLogger().Info("RocketMQ 启用状态: %v", cfg.RocketMQ.Enabled)
-	var eventPublisher event.EventPublisher
+	// 事件发布器
+	eventPublisher := initEventPublisher(cfg, mailService, userInfoQueryClient)
 
-	if cfg.RocketMQ.Enabled {
-		utils.GetLogger().Info("开始初始化 RocketMQ 生产者...")
-		producer, err := mq.NewRocketMQProducer(
-			cfg.RocketMQ.NameServer,
-			cfg.RocketMQ.GroupName,
-			cfg.RocketMQ.InstanceName,
-			cfg.RocketMQ.RetryTimes,
-		)
-		if err != nil {
-			utils.GetLogger().Error("初始化 RocketMQ 生产者失败: %v，使用内存事件发布器作为备选方案", err)
-			eventPublisher = mq.NewMemoryEventPublisher()
-		} else {
-			eventPublisher = producer
-			defer producer.Close()
-			utils.GetLogger().Info("RocketMQ 生产者初始化成功")
+	// 应用服务
+	orderTopic := topicOr(cfg.RocketMQ.Topics, "order_event", defaultOrderTopic)
+	userTopic := topicOr(cfg.RocketMQ.Topics, "user_event", defaultUserTopic)
 
-			// 启动消费者监听事件
-			utils.GetLogger().Info("启动 RocketMQ 消费者...")
-			go startEventConsumer(cfg, mailService)
-		}
-	} else {
-		utils.GetLogger().Info("RocketMQ 未启用，使用内存事件发布器")
-		eventPublisher = mq.NewMemoryEventPublisher()
-	}
+	userService := user.NewUserService(userRepo, uniquenessChecker, eventPublisher, userTopic)
+	orderService := order.NewOrderService(orderRepo, eventPublisher, orderTopic)
 
-	// 确保 eventPublisher 不为 nil
-	if eventPublisher == nil {
-		panic("事件发布器初始化失败")
-	}
-
-	// 初始化应用服务
-	utils.GetLogger().Info("初始化应用服务...")
-	userService := user.NewUserService(userRepo)
-	orderService := order.NewOrderServiceWithUserRepo(orderRepo, userRepo, eventPublisher)
-	utils.GetLogger().Info("应用服务初始化完成")
-
-	// 初始化处理器
-	utils.GetLogger().Info("初始化请求处理器...")
-	userHandlerInstance := userHandler.NewUserHandler(userService)
-	orderHandlerInstance := orderHandler.NewOrderHandler(orderService)
-	utils.GetLogger().Info("请求处理器初始化完成")
-
-	// 配置路由
-	utils.GetLogger().Info("配置路由...")
-	r := router.NewRouter(userHandlerInstance, orderHandlerInstance)
+	// HTTP 处理器
+	r := router.NewRouter(
+		userHandler.NewUserHandler(userService),
+		orderHandler.NewOrderHandler(orderService),
+	)
 	engine := r.Setup(cfg.Server.Mode)
 
-	// 启动服务器
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	utils.GetLogger().Info("服务器启动成功，监听地址: %s", addr)
+	utils.GetLogger().Info("服务器启动,监听: %s", addr)
 	if err := engine.Run(addr); err != nil {
-		utils.GetLogger().Error("服务器启动失败: %v", err)
 		log.Fatalf("服务器启动失败: %v", err)
 	}
 }
 
-// startEventConsumer 启动事件消费者
-func startEventConsumer(cfg *config.AppConfig, mailService notification.MailService) {
-	utils.GetLogger().Info("创建 RocketMQ 消费者...")
+// mustInitDB 初始化数据库,失败则致命退出。
+func mustInitDB(info config.DatabaseInfo, label string) *sqlx.DB {
+	dbCfg := &config.DatabaseConfig{
+		Driver:          info.Driver,
+		Host:            info.Host,
+		Port:            info.Port,
+		UserName:        info.UserName,
+		Password:        info.Password,
+		Database:        info.Database,
+		MaxOpenConns:    info.MaxOpenConns,
+		MaxIdleConns:    info.MaxIdleConns,
+		ConnMaxLifetime: time.Duration(info.ConnMaxLifetime) * time.Second,
+	}
+	db, err := config.InitDatabase(dbCfg)
+	if err != nil {
+		log.Fatalf("%s数据库初始化失败: %v", label, err)
+	}
+	utils.GetLogger().Info("%s数据库连接成功: %s://%s:%d/%s", label, info.Driver, info.Host, info.Port, info.Database)
+	return db
+}
+
+// initEventPublisher 优先 RocketMQ,失败降级内存发布器;同时启动消费者监听订单事件。
+func initEventPublisher(cfg *config.AppConfig, mailService notification.MailService, userInfoQueryClient userClient.UserInfoQueryClient) event.EventPublisher {
+	if !cfg.RocketMQ.Enabled {
+		utils.GetLogger().Info("RocketMQ 未启用,使用内存事件发布器")
+		return mq.NewMemoryEventPublisher()
+	}
+
+	producer, err := mq.NewRocketMQProducer(
+		cfg.RocketMQ.NameServer, cfg.RocketMQ.GroupName,
+		cfg.RocketMQ.InstanceName, cfg.RocketMQ.RetryTimes,
+	)
+	if err != nil {
+		utils.GetLogger().Error("RocketMQ 生产者初始化失败: %v,降级为内存发布器", err)
+		return mq.NewMemoryEventPublisher()
+	}
+
+	utils.GetLogger().Info("RocketMQ 生产者初始化成功")
+	go startEventConsumer(cfg, mailService, userInfoQueryClient)
+	return producer
+}
+
+// topicOr 从 topics 配置中取 key,缺失时返回 fallback。
+func topicOr(topics map[string]string, key, fallback string) string {
+	if v, ok := topics[key]; ok && v != "" {
+		return v
+	}
+	return fallback
+}
+
+// startEventConsumer 启动 RocketMQ 消费者,订阅订单事件。
+//
+// 跨上下文的用户信息(发邮件需要的用户名/邮箱)通过 userInfoQueryClient
+// 在消费端按需查询,不再耦合事件本身字段——事件只承载订单聚合根状态。
+func startEventConsumer(cfg *config.AppConfig, mailService notification.MailService, userInfoQueryClient userClient.UserInfoQueryClient) {
 	consumer, err := mq.NewRocketMQConsumer(
 		cfg.RocketMQ.NameServer,
 		cfg.RocketMQ.GroupName+"-consumer",
@@ -181,85 +164,83 @@ func startEventConsumer(cfg *config.AppConfig, mailService notification.MailServ
 		return
 	}
 	defer consumer.Close()
-	utils.GetLogger().Info("RocketMQ 消费者创建成功")
 
-	// 订阅订单事件
-	orderTopic := cfg.RocketMQ.Topics["order_event"]
-	utils.GetLogger().Info("订阅订单事件，Topic: %s", orderTopic)
-	// 创建一个包装函数，将 mailService 传递给事件处理器
-	subscribeFunc := func(ctx context.Context, evt event.DomainEvent) error {
-		return handleOrderEvent(ctx, evt, mailService)
+	orderTopic := topicOr(cfg.RocketMQ.Topics, "order_event", defaultOrderTopic)
+	utils.GetLogger().Info("订阅订单事件,Topic: %s", orderTopic)
+
+	subscribe := func(ctx context.Context, evt event.DomainEvent) error {
+		return handleOrderEvent(ctx, evt, mailService, userInfoQueryClient)
 	}
-	err = consumer.Subscribe(orderTopic, subscribeFunc)
-	if err != nil {
+	if err := consumer.Subscribe(orderTopic, subscribe); err != nil {
 		utils.GetLogger().Error("订阅订单事件失败: %v", err)
 		return
 	}
-	utils.GetLogger().Info("订单事件订阅成功")
-
-	// 启动消费者
-	utils.GetLogger().Info("启动消费者监听...")
 	if err := consumer.Start(); err != nil {
 		utils.GetLogger().Error("启动消费者失败: %v", err)
 		return
 	}
 
-	// 保持运行
-	utils.GetLogger().Info("消费者已启动，等待事件...")
+	utils.GetLogger().Info("消费者已启动,等待事件...")
 	select {}
 }
 
-// handleOrderEvent 处理订单事件
-func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService notification.MailService) error {
-	utils.GetLogger().Info("处理订单事件: Type=%s, Data=%+v", evt.EventType(), evt.EventData())
+// handleOrderEvent 订单事件处理。
+//
+// 邮件需要的用户名/邮箱通过 UserInfoQueryClient 在此处查询,
+// 把"跨上下文数据补齐"封装在消费端,而非污染事件本身。
+func handleOrderEvent(ctx context.Context, evt event.DomainEvent, mailService notification.MailService, userInfoQueryClient userClient.UserInfoQueryClient) error {
+	utils.GetLogger().Info("处理订单事件: Type=%s", evt.EventType())
 
-	// 根据事件类型执行不同的业务逻辑
-	switch evt.EventType() {
-	case "order.created":
-		utils.GetLogger().Info("接收到订单创建事件")
-		if mailService != nil {
-			// 从事件数据中提取订单信息
-			if orderEvent, ok := evt.(*event.OrderEvent); ok {
-				utils.GetLogger().Info("开始发送订单确认邮件")
-				utils.GetLogger().Info("邮件收件人: email=%s, name=%s", orderEvent.UserEmail, orderEvent.UserName)
-				utils.GetLogger().Info("订单信息: orderId=%d, orderNo=%s, amount=%.2f", orderEvent.OrderID, orderEvent.OrderNo, orderEvent.TotalAmount)
-
-				orderData := map[string]interface{}{
-					"order_id":     orderEvent.OrderID,
-					"order_no":     orderEvent.OrderNo,
-					"total_amount": orderEvent.TotalAmount,
-					"status":       orderEvent.Status,
-				}
-
-				utils.GetLogger().Debug("调用MailService.SendOrderConfirmationMail()")
-				if err := mailService.SendOrderConfirmationMail(ctx, orderEvent.UserEmail, orderEvent.UserName, orderData); err != nil {
-					utils.GetLogger().Error("发送订单确认邮件失败: %v (不影响业务流程)", err)
-				} else {
-					utils.GetLogger().Info("订单确认邮件发送成功")
-				}
-			}
-		} else {
-			utils.GetLogger().Info("邮件服务未启用，跳过邮件发送")
-		}
-	case "order.paid":
-		utils.GetLogger().Info("订单支付事件：可以触发发货流程、更新营销数据等")
-	case "order.cancelled":
-		utils.GetLogger().Info("订单取消事件：可以触发库存回滚、退款流程等")
-	default:
-		utils.GetLogger().Error("未知的订单事件类型: %s", evt.EventType())
+	orderEvent, ok := evt.(*event.OrderEvent)
+	if !ok {
+		utils.GetLogger().Warn("非订单事件类型,跳过: %s", evt.EventType())
+		return nil
 	}
 
+	switch evt.EventType() {
+	case event.OrderCreatedEvent:
+		if mailService == nil {
+			utils.GetLogger().Info("邮件服务未启用,跳过订单确认邮件")
+			return nil
+		}
+
+		brief, err := userInfoQueryClient.FindBriefByID(ctx, orderEvent.UserID)
+		if err != nil {
+			utils.GetLogger().Error("查询用户简介失败: %v, userId=%d", err, orderEvent.UserID)
+			return nil
+		}
+		if brief == nil {
+			utils.GetLogger().Warn("订单关联用户不存在,跳过邮件: userId=%d", orderEvent.UserID)
+			return nil
+		}
+
+		orderData := map[string]interface{}{
+			"order_id":     orderEvent.OrderID,
+			"order_no":     orderEvent.OrderNo,
+			"total_amount": orderEvent.TotalAmount,
+			"status":       orderEvent.Status,
+		}
+		if err := mailService.SendOrderConfirmationMail(ctx, brief.Email, brief.Name, orderData); err != nil {
+			utils.GetLogger().Error("发送订单确认邮件失败: %v (不影响业务流程)", err)
+		} else {
+			utils.GetLogger().Info("订单确认邮件发送成功: orderNo=%s, email=%s", orderEvent.OrderNo, brief.Email)
+		}
+	case event.OrderPaidEvent:
+		utils.GetLogger().Info("订单支付事件: 可触发发货流程/营销数据更新")
+	case event.OrderCancelledEvent:
+		utils.GetLogger().Info("订单取消事件: 可触发库存回滚/退款流程")
+	default:
+		utils.GetLogger().Debug("订单事件未配置处理逻辑: %s", evt.EventType())
+	}
 	return nil
 }
 
-// registerValidators 注册自定义验证器
+// registerValidators 注册自定义验证器。
 func registerValidators() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
-			phone := fl.Field().String()
-			// 手机号验证规则：11位数字，以1开头
 			phoneRegex := regexp.MustCompile(`^1[3-9]\d{9}$`)
-			return phoneRegex.MatchString(phone)
+			return phoneRegex.MatchString(fl.Field().String())
 		})
 	}
 }

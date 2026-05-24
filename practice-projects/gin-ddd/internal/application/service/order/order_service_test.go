@@ -99,7 +99,7 @@ func (m *MockEventPublisher) Close() error {
 func TestCreateOrderPublishesEvent(t *testing.T) {
 	mockRepo := &MockOrderRepository{orders: make(map[int64]*order.Order)}
 	mockPublisher := &MockEventPublisher{}
-	service := NewOrderService(mockRepo, mockPublisher)
+	service := NewOrderService(mockRepo, mockPublisher, "test-topic")
 
 	ctx := context.Background()
 	dto, err := service.CreateOrder(ctx, 1, 100.00)
@@ -129,7 +129,7 @@ func TestCreateOrderPublishesEvent(t *testing.T) {
 func TestCreateOrderEventContainsOrderInfo(t *testing.T) {
 	mockRepo := &MockOrderRepository{orders: make(map[int64]*order.Order)}
 	mockPublisher := &MockEventPublisher{}
-	service := NewOrderService(mockRepo, mockPublisher)
+	service := NewOrderService(mockRepo, mockPublisher, "test-topic")
 
 	ctx := context.Background()
 	userID := int64(123)

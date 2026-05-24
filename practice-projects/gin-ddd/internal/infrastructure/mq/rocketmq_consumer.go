@@ -70,7 +70,10 @@ func (c *RocketMQConsumer) Subscribe(topic string, handler event.EventHandler) e
 				continue
 			}
 
-			// 根据 Tag 解析具体事件
+			// 根据 Tag 解析具体事件。
+			// 注意:领域事件遵循"创建后不可修改"的契约,但 wire 上的事件可能
+			// 因生产端版本差异而缺失 type/timestamp。consumer 在边界处用 tag/now
+			// 兜底补齐,新建的事件副本仅在本 goroutine 内可见,不破坏生产端契约。
 			var domainEvent event.DomainEvent
 			tag := msg.GetTags()
 			switch {
@@ -101,7 +104,7 @@ func (c *RocketMQConsumer) Subscribe(topic string, handler event.EventHandler) e
 				}
 				domainEvent = &userEvent
 			default:
-				// 无法识别类型，降级为通用事件
+				// 未识别类型时降级为通用事件,仅用于日志/调试。
 				var eventData map[string]interface{}
 				if err := json.Unmarshal(msg.Body, &eventData); err != nil {
 					log.Printf("解析消息失败: %v", err)

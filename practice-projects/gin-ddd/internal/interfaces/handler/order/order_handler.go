@@ -42,7 +42,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	orderDTO, err := h.orderService.CreateOrder(c.Request.Context(), req.UserID, req.TotalAmount)
 	if err != nil {
 		utils.GetLogger().Error("CreateOrder failed: %v", err)
-		common.Error(c, 2001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 	orderDTO, err := h.orderService.GetOrderByID(c.Request.Context(), id)
 	if err != nil {
 		utils.GetLogger().Error("GetOrder failed: %v", err)
-		common.Error(c, 2001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *OrderHandler) GetAllOrders(c *gin.Context) {
 	orders, err := h.orderService.GetAllOrders(c.Request.Context())
 	if err != nil {
 		utils.GetLogger().Error("GetAllOrders failed: %v", err)
-		common.InternalServerError(c, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -115,7 +115,7 @@ func (h *OrderHandler) GetUserOrders(c *gin.Context) {
 	orders, err := h.orderService.GetUserOrders(c.Request.Context(), userID)
 	if err != nil {
 		utils.GetLogger().Error("GetUserOrders failed: %v", err)
-		common.InternalServerError(c, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (h *OrderHandler) PayOrder(c *gin.Context) {
 
 	if err := h.orderService.PayOrder(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("PayOrder failed: %v", err)
-		common.Error(c, 2002, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (h *OrderHandler) ShipOrder(c *gin.Context) {
 
 	if err := h.orderService.ShipOrder(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("ShipOrder failed: %v", err)
-		common.Error(c, 2002, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -193,7 +193,7 @@ func (h *OrderHandler) DeliverOrder(c *gin.Context) {
 
 	if err := h.orderService.DeliverOrder(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("DeliverOrder failed: %v", err)
-		common.Error(c, 2002, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -219,7 +219,7 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 
 	if err := h.orderService.CancelOrder(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("CancelOrder failed: %v", err)
-		common.Error(c, 2003, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -245,7 +245,7 @@ func (h *OrderHandler) RefundOrder(c *gin.Context) {
 
 	if err := h.orderService.RefundOrder(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("RefundOrder failed: %v", err)
-		common.Error(c, 2002, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 

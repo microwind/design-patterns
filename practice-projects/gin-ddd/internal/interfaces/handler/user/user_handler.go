@@ -42,7 +42,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	userDTO, err := h.userService.CreateUser(c.Request.Context(), req.Name, req.Email, req.Phone, req.Address)
 	if err != nil {
 		utils.GetLogger().Error("创建用户失败: %v, 请求信息: Name=%s, Email=%s", err, req.Name, req.Email)
-		common.Error(c, 1001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	userDTO, err := h.userService.GetUserByID(c.Request.Context(), id)
 	if err != nil {
 		utils.GetLogger().Error("查询用户失败: %v, UserID=%d", err, id)
-		common.Error(c, 1001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	users, err := h.userService.GetAllUsers(c.Request.Context())
 	if err != nil {
 		utils.GetLogger().Error("查询所有用户失败: %v", err)
-		common.InternalServerError(c, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *UserHandler) UpdateEmail(c *gin.Context) {
 	utils.GetLogger().Info("开始更新用户邮箱: UserID=%d, NewEmail=%s", id, req.Email)
 	if err := h.userService.UpdateEmail(c.Request.Context(), id, req.Email); err != nil {
 		utils.GetLogger().Error("更新用户邮箱失败: %v, UserID=%d, NewEmail=%s", err, id, req.Email)
-		common.Error(c, 1001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (h *UserHandler) UpdatePhone(c *gin.Context) {
 	utils.GetLogger().Info("开始更新用户手机号: UserID=%d, NewPhone=%s", id, req.NewPhone)
 	if err := h.userService.UpdatePhone(c.Request.Context(), id, req.NewPhone); err != nil {
 		utils.GetLogger().Error("更新用户手机号失败: %v, UserID=%d, NewPhone=%s", err, id, req.NewPhone)
-		common.Error(c, 1001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 
@@ -184,7 +184,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	utils.GetLogger().Info("开始删除用户: UserID=%d", id)
 	if err := h.userService.DeleteUser(c.Request.Context(), id); err != nil {
 		utils.GetLogger().Error("删除用户失败: %v, UserID=%d", err, id)
-		common.Error(c, 1001, err.Error())
+		common.RespondError(c, err)
 		return
 	}
 

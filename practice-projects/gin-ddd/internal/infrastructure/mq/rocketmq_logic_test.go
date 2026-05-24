@@ -30,9 +30,8 @@ func TestPublishEventDataSerialization(t *testing.T) {
 		1001,
 		"ORDER-20240211001",
 		100,
-		"user@example.com",
-		"用户1",
 		99.99,
+		"PENDING",
 	)
 
 	// 获取事件数据
@@ -89,7 +88,7 @@ func TestEventPublishingLogic(t *testing.T) {
 		{
 			name: "订单创建事件",
 			event: event.NewOrderCreatedEvent(
-				1001, "ORDER-001", 100, "user@example.com", "用户", 99.99,
+				1001, "ORDER-001", 100, 99.99, "PENDING",
 			),
 			topic:     "order-event-topic",
 			expectTag: event.OrderCreatedEvent,
@@ -97,7 +96,7 @@ func TestEventPublishingLogic(t *testing.T) {
 		{
 			name: "订单支付事件",
 			event: event.NewOrderPaidEvent(
-				1001, "ORDER-001", 100, "user@example.com", "用户", 99.99,
+				1001, "ORDER-001", 100, 99.99, "PAID",
 			),
 			topic:     "order-event-topic",
 			expectTag: event.OrderPaidEvent,
@@ -105,7 +104,7 @@ func TestEventPublishingLogic(t *testing.T) {
 		{
 			name: "订单取消事件",
 			event: event.NewOrderCancelledEvent(
-				1001, "ORDER-001", 100, "user@example.com", "用户",
+				1001, "ORDER-001", 100, 99.99, "CANCELLED",
 			),
 			topic:     "order-event-topic",
 			expectTag: event.OrderCancelledEvent,
@@ -139,7 +138,7 @@ func TestEventPublishingLogic(t *testing.T) {
 // TestEventInterfaceImplementation 测试事件是否正确实现接口
 func TestEventInterfaceImplementation(t *testing.T) {
 	evt := event.NewOrderCreatedEvent(
-		1001, "ORDER-001", 100, "user@example.com", "用户", 99.99,
+		1001, "ORDER-001", 100, 99.99, "PENDING",
 	)
 
 	// 验证是否实现了 DomainEvent 接口
@@ -170,7 +169,7 @@ func TestEventInterfaceImplementation(t *testing.T) {
 // TestMessageFormat 测试消息格式是否符合 RocketMQ 要求
 func TestMessageFormat(t *testing.T) {
 	orderEvent := event.NewOrderCreatedEvent(
-		2001, "ORDER-002", 200, "user@example.com", "用户", 199.99,
+		2001, "ORDER-002", 200, 199.99, "PENDING",
 	)
 
 	// 模拟生产者创建消息的过程
@@ -252,10 +251,10 @@ func TestContextHandling(t *testing.T) {
 	}
 }
 
-// BenchmarkEventSerialization 基准测试：事件序列化性能
+// BenchmarkEventSerialization 基准测试:事件序列化性能
 func BenchmarkEventSerialization(b *testing.B) {
 	orderEvent := event.NewOrderCreatedEvent(
-		1001, "ORDER-001", 100, "user@example.com", "用户", 99.99,
+		1001, "ORDER-001", 100, 99.99, "PENDING",
 	)
 
 	b.ResetTimer()
@@ -264,12 +263,12 @@ func BenchmarkEventSerialization(b *testing.B) {
 	}
 }
 
-// BenchmarkEventCreation 基准测试：事件创建性能
+// BenchmarkEventCreation 基准测试:事件创建性能
 func BenchmarkEventCreation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		event.NewOrderCreatedEvent(
-			int64(1000+i), "ORDER-001", 100, "user@example.com", "用户", 99.99,
+			int64(1000+i), "ORDER-001", 100, 99.99, "PENDING",
 		)
 	}
 }

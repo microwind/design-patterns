@@ -1,174 +1,146 @@
+// Package user 用户应用服务。
 package user
 
 import (
 	"context"
-	"errors"
-	"gin-ddd/internal/application/dto/user"
+
+	userDTO "gin-ddd/internal/application/dto/user"
+	domainErrors "gin-ddd/internal/domain/errors"
+	"gin-ddd/internal/domain/event"
 	userModel "gin-ddd/internal/domain/model/user"
 	userDomain "gin-ddd/internal/domain/repository/user"
+	userService "gin-ddd/internal/domain/service/user"
 	"gin-ddd/pkg/utils"
 )
 
-// UserService 用户应用服务
+// UserService 用户应用服务。
 type UserService struct {
-	userRepo userDomain.UserRepository
+	userRepo       userDomain.UserRepository
+	checker        userService.UserUniquenessChecker
+	eventPublisher event.EventPublisher
+	userTopic      string
 }
 
-// NewUserService 创建用户应用服务
-func NewUserService(userRepo userDomain.UserRepository) *UserService {
+// NewUserService 构造用户应用服务。
+func NewUserService(
+	userRepo userDomain.UserRepository,
+	checker userService.UserUniquenessChecker,
+	eventPublisher event.EventPublisher,
+	userTopic string,
+) *UserService {
 	return &UserService{
-		userRepo: userRepo,
+		userRepo:       userRepo,
+		checker:        checker,
+		eventPublisher: eventPublisher,
+		userTopic:      userTopic,
 	}
 }
 
-// CreateUser 创建用户
-func (s *UserService) CreateUser(ctx context.Context, name, email, phone, address string) (*user.UserDTO, error) {
+// CreateUser 创建用户。唯一性校验下沉到聚合根 user.Register。
+func (s *UserService) CreateUser(ctx context.Context, name, email, phone, address string) (*userDTO.UserDTO, error) {
 	utils.GetLogger().Info("UserService.CreateUser 开始: name=%s, email=%s", name, email)
 
-	// 检查用户名是否已存在
-	existingUser, _ := s.userRepo.FindByName(ctx, name)
-	if existingUser != nil {
-		utils.GetLogger().Warn("用户创建失败: 用户名已存在, name=%s", name)
-		return nil, errors.New("用户名已存在")
-	}
-
-	// 检查邮箱是否已存在
-	existingUser, _ = s.userRepo.FindByEmail(ctx, email)
-	if existingUser != nil {
-		utils.GetLogger().Warn("用户创建失败: 邮箱已被使用, email=%s", email)
-		return nil, errors.New("邮箱已被使用")
-	}
-
-	// 创建用户实体
-	newUser, err := userModel.NewUser(name, email, phone, address)
+	newUser, err := userModel.Register(ctx, s.checker, name, email, phone, address)
 	if err != nil {
-		utils.GetLogger().Error("用户实体创建失败: %v, name=%s, email=%s", err, name, email)
+		utils.GetLogger().Warn("用户注册失败: %v, name=%s, email=%s", err, name, email)
 		return nil, err
 	}
 
-	// 持久化用户
 	if err := s.userRepo.Create(ctx, newUser); err != nil {
 		utils.GetLogger().Error("用户持久化失败: %v, name=%s, email=%s", err, name, email)
 		return nil, err
 	}
 
+	s.publishEvents(ctx, newUser.PullEvents())
 	utils.GetLogger().Info("用户创建成功: id=%d, name=%s, email=%s", newUser.ID, name, email)
-	return user.ToDTO(newUser), nil
+	return userDTO.ToDTO(newUser), nil
 }
 
-// GetUserByID 根据ID获取用户
-func (s *UserService) GetUserByID(ctx context.Context, id int64) (*user.UserDTO, error) {
-	utils.GetLogger().Debug("UserService.GetUserByID: id=%d", id)
+// GetUserByID 根据 ID 获取用户。
+func (s *UserService) GetUserByID(ctx context.Context, id int64) (*userDTO.UserDTO, error) {
 	u, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
-		utils.GetLogger().Error("查询用户失败: %v, id=%d", err, id)
 		return nil, err
 	}
 	if u == nil {
-		utils.GetLogger().Warn("用户不存在: id=%d", id)
-		return nil, errors.New("用户不存在")
+		return nil, domainErrors.NewNotFound("用户", "id", id)
 	}
-	utils.GetLogger().Debug("用户查询成功: id=%d, name=%s", u.ID, u.Name)
-	return user.ToDTO(u), nil
+	return userDTO.ToDTO(u), nil
 }
 
-// GetUserByName 根据用户名获取用户
-func (s *UserService) GetUserByName(ctx context.Context, name string) (*user.UserDTO, error) {
-	utils.GetLogger().Debug("UserService.GetUserByName: name=%s", name)
+// GetUserByName 根据用户名获取用户。
+func (s *UserService) GetUserByName(ctx context.Context, name string) (*userDTO.UserDTO, error) {
 	u, err := s.userRepo.FindByName(ctx, name)
 	if err != nil {
-		utils.GetLogger().Error("查询用户失败: %v, name=%s", err, name)
 		return nil, err
 	}
 	if u == nil {
-		utils.GetLogger().Warn("用户不存在: name=%s", name)
-		return nil, errors.New("用户不存在")
+		return nil, domainErrors.NewNotFound("用户", "name", name)
 	}
-	utils.GetLogger().Debug("用户查询成功: id=%d, name=%s", u.ID, name)
-	return user.ToDTO(u), nil
+	return userDTO.ToDTO(u), nil
 }
 
-// GetAllUsers 获取所有用户
-func (s *UserService) GetAllUsers(ctx context.Context) ([]*user.UserDTO, error) {
-	utils.GetLogger().Debug("UserService.GetAllUsers")
+// GetAllUsers 获取所有用户。
+func (s *UserService) GetAllUsers(ctx context.Context) ([]*userDTO.UserDTO, error) {
 	users, err := s.userRepo.FindAll(ctx)
 	if err != nil {
-		utils.GetLogger().Error("查询所有用户失败: %v", err)
 		return nil, err
 	}
-	utils.GetLogger().Info("查询所有用户成功: 共%d条记录", len(users))
-	return user.ToDTOs(users), nil
+	return userDTO.ToDTOs(users), nil
 }
 
-// UpdateEmail 更新用户邮箱
+// UpdateEmail 更新用户邮箱。唯一性校验由 user.UpdateEmail 通过领域服务完成。
 func (s *UserService) UpdateEmail(ctx context.Context, id int64, email string) error {
-	utils.GetLogger().Info("UserService.UpdateEmail 开始: id=%d, newEmail=%s", id, email)
 	u, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
-		utils.GetLogger().Error("查询用户失败: %v, id=%d", err, id)
 		return err
 	}
 	if u == nil {
-		utils.GetLogger().Warn("用户不存在: id=%d", id)
-		return errors.New("用户不存在")
+		return domainErrors.NewNotFound("用户", "id", id)
 	}
-
-	// 检查邮箱是否已被其他用户使用
-	existingUser, _ := s.userRepo.FindByEmail(ctx, email)
-	if existingUser != nil && existingUser.ID != id {
-		utils.GetLogger().Warn("邮箱已被使用: email=%s", email)
-		return errors.New("邮箱已被使用")
-	}
-
-	if err := u.UpdateEmail(email); err != nil {
-		utils.GetLogger().Error("邮箱更新失败: %v, id=%d, newEmail=%s", err, id, email)
+	if err := u.UpdateEmail(ctx, s.checker, email); err != nil {
 		return err
 	}
-
 	if err := s.userRepo.Update(ctx, u); err != nil {
-		utils.GetLogger().Error("用户持久化失败: %v, id=%d", err, id)
 		return err
 	}
-
-	utils.GetLogger().Info("用户邮箱更新成功: id=%d, newEmail=%s", id, email)
+	s.publishEvents(ctx, u.PullEvents())
 	return nil
 }
 
-// UpdatePhone 更新用户手机
+// UpdatePhone 更新用户手机号。
 func (s *UserService) UpdatePhone(ctx context.Context, id int64, newPhone string) error {
-	utils.GetLogger().Info("UserService.UpdatePhone 开始: id=%d, newPhone=%s", id, newPhone)
 	u, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
-		utils.GetLogger().Error("查询用户失败: %v, id=%d", err, id)
 		return err
 	}
 	if u == nil {
-		utils.GetLogger().Warn("用户不存在: id=%d", id)
-		return errors.New("用户不存在")
+		return domainErrors.NewNotFound("用户", "id", id)
 	}
-
 	if err := u.UpdatePhone(newPhone); err != nil {
-		utils.GetLogger().Error("手机号更新失败: %v, id=%d, newPhone=%s", err, id, newPhone)
 		return err
 	}
-
 	if err := s.userRepo.Update(ctx, u); err != nil {
-		utils.GetLogger().Error("用户持久化失败: %v, id=%d", err, id)
 		return err
 	}
-
-	utils.GetLogger().Info("用户手机号更新成功: id=%d", id)
+	s.publishEvents(ctx, u.PullEvents())
 	return nil
 }
 
-// DeleteUser 删除用户
+// DeleteUser 删除用户。
 func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
-	utils.GetLogger().Info("UserService.DeleteUser 开始: id=%d", id)
-	err := s.userRepo.Delete(ctx, id)
-	if err != nil {
+	if err := s.userRepo.Delete(ctx, id); err != nil {
 		utils.GetLogger().Error("用户删除失败: %v, id=%d", err, id)
 		return err
 	}
 	utils.GetLogger().Info("用户删除成功: id=%d", id)
 	return nil
+}
+
+func (s *UserService) publishEvents(ctx context.Context, events []event.DomainEvent) {
+	for _, e := range events {
+		if err := s.eventPublisher.Publish(ctx, s.userTopic, e); err != nil {
+			utils.GetLogger().Error("[UserService] 发布领域事件失败: type=%s, err=%v", e.EventType(), err)
+		}
+	}
 }

@@ -1,6 +1,14 @@
 package com.microwind.javaweborder.interfaces.routes;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.microwind.javaweborder.application.services.OrderService;
+import com.microwind.javaweborder.domain.event.DomainEventPublisher;
+import com.microwind.javaweborder.domain.order.OrderFactory;
+import com.microwind.javaweborder.domain.repository.OrderRepository;
+import com.microwind.javaweborder.domain.service.OrderPricingService;
+import com.microwind.javaweborder.infrastructure.event.MessageQueueDomainEventPublisher;
+import com.microwind.javaweborder.infrastructure.message.MessageQueueService;
+import com.microwind.javaweborder.infrastructure.repository.OrderRepositoryImpl;
 import com.microwind.javaweborder.interfaces.controllers.OrderController;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,8 +58,14 @@ public class OrderRoutesTest {
 
   @Test
   public void testOrderRoutes() throws IOException {
-    // 初始化依赖
-    OrderController orderController = new OrderController();
+    // 初始化依赖（组合根示范：演示从基础设施到接口层逐层装配）
+    MessageQueueService messageQueueService = new MessageQueueService();
+    DomainEventPublisher eventPublisher = new MessageQueueDomainEventPublisher(messageQueueService);
+    OrderRepository orderRepository = new OrderRepositoryImpl();
+    OrderFactory orderFactory = new OrderFactory();
+    OrderPricingService pricingService = new OrderPricingService();
+    OrderService orderService = new OrderService(orderRepository, orderFactory, pricingService, eventPublisher);
+    OrderController orderController = new OrderController(orderService);
     // 初始化路由
     OrderRoutes.setupOrderRoutes(new Router(), orderController);
 

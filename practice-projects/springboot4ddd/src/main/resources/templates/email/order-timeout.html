@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <title>订单超时提醒</title>
+</head>
+<body>
+<h2>订单超时提醒</h2>
+<p>以下订单创建超过 {{timeoutHours}} 小时仍未支付：</p>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+    <tr style="background-color: #f2f2f2;">
+        <th>订单ID</th>
+        <th>订单号</th>
+        <th>用户ID</th>
+        <th>订单金额</th>
+        <th>创建时间</th>
+        <th>超时时长</th>
+    </tr>
+    {{rows}}
+</table>
+<p style="margin-top: 20px;">扫描时间: {{scanTime}}</p>
+<p>超时阈值: 创建时间早于 {{thresholdTime}}</p>
+</body>
+</html>

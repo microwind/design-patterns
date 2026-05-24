@@ -1,26 +1,21 @@
-// 领域层(Domain)：订单数据仓库接口
+// 领域层(Domain) - 订单仓储接口
+//
+// OrderRepository 是订单聚合的仓储接口，定义在领域层。
+// 其实现 OrderRepositoryImpl 位于基础设施层（依赖倒置原则）。
+//
+// 仓储以"聚合根 Order"为单位，不暴露 OrderItem 等子实体的查询。
 package com.microwind.javaweborder.domain.repository;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.microwind.javaweborder.domain.order.CustomerName;
 import com.microwind.javaweborder.domain.order.Order;
+import com.microwind.javaweborder.domain.order.OrderId;
 
-// OrderRepository 订单仓储接口，继承通用 Repository<Order>
-public interface OrderRepository extends Repository<Order> {
-    
-    // 保存订单
-    void save(Order order);
+import java.util.List;
 
-    // 根据ID查找订单
-    Optional<Order> findById(long id);
+public interface OrderRepository extends Repository<Order, OrderId> {
 
-    // 查找所有订单
-    List<Order> findAll();
-
-    // 删除订单
-    void delete(long id);
-
-    // 根据客户名称查找订单
-    List<Order> findByCustomerName(String customerName);
+    // 业务查询：根据客户名称查询订单
+    //
+    // 仓储里"领域语义"的查询应当用业务术语表达，而不是泛泛的 findBy 字段。
+    List<Order> findByCustomerName(CustomerName customerName);
 }

@@ -1,118 +1,114 @@
+// 应用层(Application) - 订单应用服务
+//
+// 应用服务（Application Service）是 DDD 的"用例编排者"：
+// - 负责处理一次完整的用例（创建订单、取消订单等）
+// - 协调仓储、工厂、领域服务、领域对象、事件发布器
+// - 处理事务边界（在真实工程中由 @Transactional 等手段控制）
+// - 不应承载业务规则（业务规则在领域层）
+//
+// 与"重构前"的差异：
+// - 原先 generateOrderId 是应用服务的静态方法 → 现已下沉到领域层 OrderFactory
+// - 原先直接 new Order(...) 装配状态 → 现走 OrderFactory.create()
+// - 原先取消订单时由 Service 自己组装并发消息 → 现由 Order 记录事件、Service 统一发布
+// - 原先用 double + String 直接传递 → 现包装为 Money、CustomerName 值对象
 package com.microwind.javaweborder.application.services;
 
+import com.microwind.javaweborder.application.command.CreateOrderCommand;
+import com.microwind.javaweborder.application.command.UpdateOrderCommand;
 import com.microwind.javaweborder.application.dto.OrderDTO;
+import com.microwind.javaweborder.domain.event.DomainEventPublisher;
+import com.microwind.javaweborder.domain.event.OrderDeletedEvent;
+import com.microwind.javaweborder.domain.exception.OrderNotFoundException;
+import com.microwind.javaweborder.domain.order.CustomerName;
+import com.microwind.javaweborder.domain.order.Money;
 import com.microwind.javaweborder.domain.order.Order;
+import com.microwind.javaweborder.domain.order.OrderFactory;
+import com.microwind.javaweborder.domain.order.OrderId;
 import com.microwind.javaweborder.domain.repository.OrderRepository;
-import com.microwind.javaweborder.infrastructure.message.MessageQueueService;
+import com.microwind.javaweborder.domain.service.OrderPricingService;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class OrderService {
 
-    private final OrderRepository orderRepository; // 订单仓储接口
-    private final MessageQueueService messageQueueService; // 消息队列服务
+    private final OrderRepository orderRepository;        // 聚合根仓储
+    private final OrderFactory orderFactory;              // 聚合工厂
+    private final OrderPricingService pricingService;     // 领域服务（折扣策略）
+    private final DomainEventPublisher eventPublisher;    // 事件发布器
 
-    // 构造函数，初始化 OrderRepository 和 MessageQueueService
-    public OrderService(OrderRepository orderRepository, MessageQueueService messageQueueService) {
+    // 构造器注入：所有依赖通过构造器声明，便于测试与替换
+    //
+    // 注意：应用服务里"new 出依赖"是个反模式（会让单元测试无从下手）。
+    // 由更外层（Application 入口）来组装依赖图。
+    public OrderService(OrderRepository orderRepository,
+                        OrderFactory orderFactory,
+                        OrderPricingService pricingService,
+                        DomainEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
-        this.messageQueueService = messageQueueService;
+        this.orderFactory = orderFactory;
+        this.pricingService = pricingService;
+        this.eventPublisher = eventPublisher;
     }
 
-    // 生成时间戳 + 随机数的唯一订单号 (long)
-    public static long generateOrderId() {
-        long timestamp = System.currentTimeMillis();  // 毫秒时间戳
-        int random = ThreadLocalRandom.current().nextInt(1000); // 0-999 的随机数
-        return timestamp * 1000 + random;
+    // 创建订单：典型的"应用服务用例编排"流程
+    // 1) 把命令对象解构为值对象（输入边界）
+    // 2) 调领域服务计算业务规则（折扣）
+    // 3) 用工厂创建聚合根
+    // 4) 通过仓储持久化
+    // 5) 发布聚合根累积的事件
+    // 6) 转 DTO 返回（输出边界）
+    public OrderDTO createOrder(CreateOrderCommand command) {
+        CustomerName customer = CustomerName.of(command.getCustomerName());
+        Money originalAmount = Money.of(command.getAmount());
+        Money finalAmount = pricingService.applyDiscount(customer, originalAmount);
+
+        Order order = orderFactory.create(customer, finalAmount);
+        orderRepository.save(order);
+        eventPublisher.publishAll(order.pullDomainEvents());
+
+        return OrderDTO.fromDomain(order);
     }
 
-    // 创建订单并保存到仓储中
-    public OrderDTO createOrder(String customerName, double amount) throws Exception {
-        // 自动生成订单 ID
-        Order newOrder = new Order(generateOrderId(), customerName, amount);
-
-        // 保存订单
-        orderRepository.save(newOrder);
-
-        // 发送消息
-        String message = String.format("Order created: ID=%d, Customer=%s, Amount=%.2f",
-                newOrder.getId(), newOrder.getCustomerName(), newOrder.getAmount());
-        messageQueueService.sendMessage(message);
-
-        // 返回订单 DTO
-        return new OrderDTO(newOrder.getId(), newOrder.getCustomerName(), newOrder.getAmount());
-    }
-
-    // 取消订单
-    public void cancelOrder(long id) throws Exception {
-        // 获取订单
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new Exception("订单取消失败：订单未找到"));
-
-        // 执行领域逻辑：取消订单
+    public void cancelOrder(long id) {
+        Order order = loadOrder(id);
         order.cancel();
-
-        // 保存订单
         orderRepository.save(order);
-
-        // 发送消息
-        String message = String.format("Order canceled: ID=%d", id);
-        messageQueueService.sendMessage(message);
+        eventPublisher.publishAll(order.pullDomainEvents());
     }
 
-    // 查询订单
-    public OrderDTO getOrder(long id) throws Exception {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new Exception("订单未找到"));
-        // 返回订单 DTO
-        return new OrderDTO(order.getId(), order.getCustomerName(), order.getAmount());
+    public OrderDTO getOrder(long id) {
+        Order order = loadOrder(id);
+        return OrderDTO.fromDomain(order);
     }
 
-    // 更新订单的客户信息和金额
-    public OrderDTO updateOrder(long id, String customerName, double amount) throws Exception {
-        // 获取订单
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new Exception("订单未找到"));
-
-        // 更新订单的客户信息和金额
-        order.updateCustomerInfo(customerName);
-        order.updateAmount(amount);
-
-        // 保存更新后的订单
+    public OrderDTO updateOrder(UpdateOrderCommand command) {
+        Order order = loadOrder(command.getOrderId());
+        order.update(
+                CustomerName.of(command.getCustomerName()),
+                Money.of(command.getAmount())
+        );
         orderRepository.save(order);
-        System.out.println(id + " " + customerName + " " + amount + " " + order.getCustomerName() + " " + order.getAmount());
-        // 发送消息
-        String message = String.format("Order updated: ID=%d, Customer=%s, Amount=%.2f",
-                order.getId(), order.getCustomerName(), order.getAmount());
-        messageQueueService.sendMessage(message);
-
-        // 返回更新后的订单 DTO
-        return new OrderDTO(order.getId(), order.getCustomerName(), order.getAmount());
+        eventPublisher.publishAll(order.pullDomainEvents());
+        return OrderDTO.fromDomain(order);
     }
 
-    // 删除订单
-    public void deleteOrder(long id) throws Exception {
-        // 获取订单
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new Exception("订单未找到"));
-
-        // 从仓储中删除订单
+    public void deleteOrder(long id) {
+        Order order = loadOrder(id);
         orderRepository.delete(order.getId());
-
-        // 发送消息
-        String message = String.format("Order deleted: ID=%d", id);
-        messageQueueService.sendMessage(message);
+        eventPublisher.publish(new OrderDeletedEvent(order.getId()));
     }
 
-    // 列出全部订单[此处应该分页]
-    public List<OrderDTO> listOrder() throws Exception {
-        List<Order> orders = orderRepository.findAll();
-        List<OrderDTO> orderDTOs;
-        orderDTOs = orders.stream()
-                .map(order -> new OrderDTO(order.getId(), order.getCustomerName(), order.getAmount()))
+    // 演示用，真实场景应分页
+    public List<OrderDTO> listOrder() {
+        return orderRepository.findAll().stream()
+                .map(OrderDTO::fromDomain)
                 .collect(Collectors.toList());
-        // 返回订单列表
-        return orderDTOs;
+    }
+
+    // 把 long 包装为 OrderId 并加载聚合根；集中 orElseThrow 避免散落
+    private Order loadOrder(long id) {
+        return orderRepository.findById(OrderId.of(id))
+                .orElseThrow(() -> new OrderNotFoundException(id));
     }
 }

@@ -27,12 +27,11 @@ func TestRocketMQProducerSendSuccess(t *testing.T) {
 
 	// 创建测试事件 - 订单创建事件
 	testEvent := event.NewOrderCreatedEvent(
-		1001,               // OrderID
+		1001,                // OrderID
 		"ORDER-20240211001", // OrderNo
-		100,                // UserID
-		"user@example.com", // UserEmail
-		"用户",             // UserName
-		99.99,              // TotalAmount
+		100,                 // UserID
+		99.99,               // TotalAmount
+		"PENDING",           // Status
 	)
 
 	// 发送事件
@@ -76,21 +75,21 @@ func TestRocketMQProducerSendMultipleEvents(t *testing.T) {
 		{
 			name: "订单创建事件",
 			event: event.NewOrderCreatedEvent(
-				2001, "ORDER-20240211002", 200, "user@example.com", "用户", 199.99,
+				2001, "ORDER-20240211002", 200, 199.99, "PENDING",
 			),
 			topic: "order-event-topic",
 		},
 		{
 			name: "订单支付事件",
 			event: event.NewOrderPaidEvent(
-				2001, "ORDER-20240211002", 200, "user@example.com", "用户", 199.99,
+				2001, "ORDER-20240211002", 200, 199.99, "PAID",
 			),
 			topic: "order-event-topic",
 		},
 		{
 			name: "订单取消事件",
 			event: event.NewOrderCancelledEvent(
-				2001, "ORDER-20240211002", 200, "user@example.com", "用户",
+				2001, "ORDER-20240211002", 200, 199.99, "CANCELLED",
 			),
 			topic: "order-event-topic",
 		},
@@ -125,9 +124,8 @@ func TestRocketMQProducerEventSerialization(t *testing.T) {
 		9999,
 		"ORDER-TEST-SERIALIZATION",
 		777,
-		"user@example.com",
-		"用户",
 		12345.67,
+		"PENDING",
 	)
 
 	// 验证事件数据能正确获取
@@ -167,7 +165,7 @@ func TestRocketMQProducerTimeout(t *testing.T) {
 	defer producer.Close()
 
 	testEvent := event.NewOrderCreatedEvent(
-		5001, "ORDER-20240211005", 500, "user@example.com", "用户", 500.00,
+		5001, "ORDER-20240211005", 500, 500.00, "PENDING",
 	)
 
 	// 使用很短的超时时间

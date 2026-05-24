@@ -1,57 +1,85 @@
-// 入口页面
+// 应用入口
+//
+// Application 同时承担两个职责：
+// 1. ServletContextListener：作为 Servlet 容器生命周期的钩子
+// 2. 组合根（Composition Root）：在这里把领域、应用、基础设施、接口
+//    四层的依赖一次性装配起来，再注入到接口层
+//
+// 把依赖装配集中在"组合根"是手工依赖注入的最佳实践：
+// - 各层不互相 new 出对方实例，便于替换实现（如换数据库、换消息中间件）
+// - 测试时可以注入 Mock，无需改业务代码
+// - 真实工程里这个角色由 Spring / Guice 等 IoC 容器自动接管
 package com.microwind.javaweborder;
 
+import com.microwind.javaweborder.application.services.OrderService;
 import com.microwind.javaweborder.config.ServerConfig;
+import com.microwind.javaweborder.domain.event.DomainEventPublisher;
+import com.microwind.javaweborder.domain.order.OrderFactory;
+import com.microwind.javaweborder.domain.repository.OrderRepository;
+import com.microwind.javaweborder.domain.service.OrderPricingService;
 import com.microwind.javaweborder.infrastructure.configuration.LoggingConfig;
+import com.microwind.javaweborder.infrastructure.event.MessageQueueDomainEventPublisher;
 import com.microwind.javaweborder.infrastructure.message.MessageQueueService;
+import com.microwind.javaweborder.infrastructure.repository.OrderRepositoryImpl;
 import com.microwind.javaweborder.interfaces.controllers.OrderController;
 import com.microwind.javaweborder.interfaces.routes.OrderRoutes;
 import com.microwind.javaweborder.interfaces.routes.Router;
 
-import javax.servlet.*;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 @WebListener
 public class Application implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            // 加载应用配置
+            // 1. 加载配置
             ServerConfig config = new ServerConfig();
-            int port = config.getPort(); // 从配置中获取端口
+            int port = config.getPort();
 
-            // 初始化日志配置
+            // 2. 初始化日志
             LoggingConfig loggingConfig = new LoggingConfig();
-            loggingConfig.setLevel("INFO"); // 设置日志级别
-            loggingConfig.setFile(config.getLogging().getFile()); // 设置日志文件路径
+            loggingConfig.setLevel("INFO");
+            loggingConfig.setFile(config.getLogging().getFile());
             loggingConfig.init();
 
-            // 初始化消息队列服务，模拟消息服务
+            // 3. 装配基础设施层
             MessageQueueService messageQueueService = new MessageQueueService();
-            messageQueueService.receiveMessages(); // 启动消息接收线程
+            messageQueueService.receiveMessages();
+            DomainEventPublisher eventPublisher =
+                    new MessageQueueDomainEventPublisher(messageQueueService);
+            OrderRepository orderRepository = new OrderRepositoryImpl();
 
-            // 创建 HTTP 控制器
-            OrderController orderController = new OrderController();
+            // 4. 装配领域层组件（工厂 / 领域服务）
+            OrderFactory orderFactory = new OrderFactory();
+            OrderPricingService pricingService = new OrderPricingService();
 
-            // 创建路由管理器
+            // 5. 装配应用服务
+            OrderService orderService = new OrderService(
+                    orderRepository,
+                    orderFactory,
+                    pricingService,
+                    eventPublisher
+            );
+
+            // 6. 装配接口层
+            OrderController orderController = new OrderController(orderService);
             Router router = new Router();
-
-            // 设置订单路由
             OrderRoutes.setupOrderRoutes(router, orderController);
 
-            // 获取 ServletContext 对象
+            // 7. 注册到 Servlet 容器
             ServletContext context = sce.getServletContext();
-
-            // 注册路由 Servlet
             context.addServlet("OrderRouter", router).addMapping("/api/*");
+
             // 测试路由
-            router.get("/api/hello", (req, resp) -> {
-                resp.getWriter().write("Hello world!");
-            });
+            router.get("/api/hello", (req, resp) -> resp.getWriter().write("Hello world!"));
 
             // 注册首页 Servlet
             context.addServlet("HomeServlet", new HttpServlet() {
@@ -75,14 +103,10 @@ public class Application implements ServletContextListener {
                 }
             }).addMapping("/");
 
-            // 设置默认欢迎页面
             context.setAttribute("welcomeMessage", "<h1>Welcome to DDD example.</h1>");
 
-            // 若无注解则需要手动注册 LoggingMiddleware 过滤器， 匹配所有请求。
-            // FilterRegistration.Dynamic loggingFilter = context.addFilter("LoggingMiddleware", LoggingMiddleware.class);
-            // loggingFilter.addMappingForUrlPatterns(null, false, "/*");
-
-            System.out.println("Application context initialized. Java Servlet is running on port " + port + " in " + config.getEnv() + ".");
+            System.out.println("Application context initialized. Java Servlet is running on port "
+                    + port + " in " + config.getEnv() + ".");
         } catch (Exception e) {
             System.err.println("Application initialization failed." + e.getMessage());
         }
