@@ -1,4 +1,3 @@
-// 领域层(Domain) - 领域事件：订单已更新
 package com.microwind.javaweborder.domain.event;
 
 import com.microwind.javaweborder.domain.order.CustomerName;
@@ -7,6 +6,9 @@ import com.microwind.javaweborder.domain.order.OrderId;
 
 import java.time.LocalDateTime;
 
+/**
+ * 领域事件：订单已更新。
+ */
 public final class OrderUpdatedEvent implements DomainEvent {
 
     private final OrderId orderId;

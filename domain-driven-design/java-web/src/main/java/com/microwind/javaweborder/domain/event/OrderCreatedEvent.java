@@ -1,7 +1,3 @@
-// 领域层(Domain) - 领域事件：订单已创建
-//
-// 该事件表达"订单已被成功创建"这一既成事实。
-// 由 Order 聚合根在创建时记录，由 OrderService 在事务结束后统一发布。
 package com.microwind.javaweborder.domain.event;
 
 import com.microwind.javaweborder.domain.order.CustomerName;
@@ -10,6 +6,12 @@ import com.microwind.javaweborder.domain.order.OrderId;
 
 import java.time.LocalDateTime;
 
+/**
+ * 领域事件：订单已创建。
+ *
+ * <p>由 {@link com.microwind.javaweborder.domain.order.Order} 聚合根在创建时累积，
+ * 由 {@link com.microwind.javaweborder.application.services.OrderService} 在事务提交后发布。
+ */
 public final class OrderCreatedEvent implements DomainEvent {
 
     private final OrderId orderId;

@@ -1,11 +1,3 @@
-// 基础设施层(Infrastructure) - 订单仓储内存实现
-//
-// 教学示例：用 ConcurrentHashMap 模拟一个数据库。
-// 真实项目应替换为 JPA / MyBatis / JDBC 等持久化实现。
-//
-// 一个原则要点：仓储里的方法语义是"集合化"的：
-// - findById 未命中应返回 Optional.empty()，而非抛异常
-// - 抛不抛异常应由应用层（用例编排者）来决定
 package com.microwind.javaweborder.infrastructure.repository;
 
 import com.microwind.javaweborder.domain.order.CustomerName;
@@ -19,9 +11,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 订单仓储内存实现。
+ *
+ * <p>DDD 实践：领域层定义 {@link OrderRepository} 抽象，本类位于
+ * <b>基础设施层</b>，提供具体的存储实现。这就是依赖倒置原则的落地：
+ * 领域代码不直接依赖任何存储技术。
+ *
+ * <p>教学示例：用 {@link ConcurrentHashMap} 模拟一个数据库。
+ * 真实项目应替换为 JPA / MyBatis / JDBC 等持久化实现。
+ *
+ * <h3>仓储语义要点</h3>
+ * <ul>
+ *   <li>{@code findById} 未命中返回 {@link Optional#empty()}，不抛异常</li>
+ *   <li>抛不抛异常由应用层决定（领域层异常如 OrderNotFoundException）</li>
+ * </ul>
+ */
 public class OrderRepositoryImpl implements OrderRepository {
 
-    // 此处用 Map 示意，实际会存储到数据库中
+    /** 内存存储，线程安全 Map 模拟数据库。 */
     private final static Map<Long, Order> orders = new ConcurrentHashMap<>();
 
     @Override
@@ -31,8 +39,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Optional<Order> findById(OrderId id) {
-        Order order = orders.get(id.value());
-        return Optional.ofNullable(order);
+        return Optional.ofNullable(orders.get(id.value()));
     }
 
     @Override

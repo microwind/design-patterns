@@ -7,7 +7,9 @@
 - 依赖倒置原则：仓储、事件发布器接口位于领域层，实现位于基础设施层
 - 组合根模式：所有依赖在 `Application` 入口统一装配，分层之间不互相 `new`
 
-通过本工程你可以深入理解`DDD`领域驱动设计的理论与意义。
+**通过本工程你可以深入理解`DDD`领域驱动设计的理论与意义。**
+
+参照：[https://github.com/microwind/ai-skills/tree/main/domain-driven-design](https://github.com/microwind/ai-skills/tree/main/domain-driven-design)
 
 ```bash
 java-web/

@@ -1,14 +1,18 @@
-// 应用层(Application) - 数据传输对象 (DTO)
-//
-// DTO（Data Transfer Object）是接口层与外界交换数据的扁平结构。
-// 把领域对象（Order）和 DTO 严格区分开，有几个好处：
-// - 接口稳定：领域模型演化时，对外契约不必跟着变
-// - 类型安全：值对象（OrderId / Money）只在领域内流通，外部用基本类型
-// - 防止泄漏：聚合根上的业务方法不应该被 JSON 序列化暴露给客户端
 package com.microwind.javaweborder.application.dto;
 
 import com.microwind.javaweborder.domain.order.Order;
 
+/**
+ * 订单数据传输对象（DTO）。
+ *
+ * <p>DTO 是接口层与外界交换数据的扁平结构。把领域对象 {@link Order} 与 DTO
+ * 严格区分开的好处：
+ * <ul>
+ *   <li><b>接口稳定</b>：领域模型演化时，对外契约不必跟着变</li>
+ *   <li><b>类型安全</b>：值对象（OrderId / Money）只在领域内流通，外部用基本类型</li>
+ *   <li><b>防止泄漏</b>：聚合根上的业务方法不应被 JSON 序列化暴露给客户端</li>
+ * </ul>
+ */
 public class OrderDTO {
 
     private long id;
@@ -17,7 +21,7 @@ public class OrderDTO {
     private String status;
 
     public OrderDTO() {
-        // Jackson 反序列化需要
+        // Jackson 反序列化需要无参构造器
     }
 
     public OrderDTO(long id, String customerName, double totalAmount, String status) {
@@ -27,7 +31,14 @@ public class OrderDTO {
         this.status = status;
     }
 
-    // 由领域对象转换成 DTO 的工厂方法：转换逻辑集中在一处，避免散落
+    /**
+     * 由领域对象转换为 DTO。
+     *
+     * <p>把转换逻辑集中在工厂方法里，避免散落各处。
+     *
+     * @param order 领域聚合根
+     * @return 对应的 DTO
+     */
     public static OrderDTO fromDomain(Order order) {
         return new OrderDTO(
                 order.getId().value(),

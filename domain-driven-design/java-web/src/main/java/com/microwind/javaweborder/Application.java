@@ -1,14 +1,3 @@
-// 应用入口
-//
-// Application 同时承担两个职责：
-// 1. ServletContextListener：作为 Servlet 容器生命周期的钩子
-// 2. 组合根（Composition Root）：在这里把领域、应用、基础设施、接口
-//    四层的依赖一次性装配起来，再注入到接口层
-//
-// 把依赖装配集中在"组合根"是手工依赖注入的最佳实践：
-// - 各层不互相 new 出对方实例，便于替换实现（如换数据库、换消息中间件）
-// - 测试时可以注入 Mock，无需改业务代码
-// - 真实工程里这个角色由 Spring / Guice 等 IoC 容器自动接管
 package com.microwind.javaweborder;
 
 import com.microwind.javaweborder.application.services.OrderService;
@@ -34,6 +23,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * 应用入口 & 组合根（Composition Root）。
+ *
+ * <p>本类同时承担两个职责：
+ * <ol>
+ *   <li><b>Servlet 生命周期钩子</b>：作为 {@link ServletContextListener}
+ *       响应容器启动 / 销毁</li>
+ *   <li><b>组合根</b>：把领域、应用、基础设施、接口四层的依赖一次性装配起来，
+ *       再注入到接口层</li>
+ * </ol>
+ *
+ * <h3>为什么需要组合根</h3>
+ * 把依赖装配集中在"组合根"是手工依赖注入的最佳实践：
+ * <ul>
+ *   <li>各层不互相 {@code new} 出对方实例，便于替换实现
+ *       （如换数据库、换消息中间件）</li>
+ *   <li>测试时可以注入 Mock，无需改业务代码</li>
+ *   <li>真实工程里这个角色通常由 Spring / Guice 等 IoC 容器自动接管</li>
+ * </ul>
+ *
+ * <h3>装配顺序（自底向上）</h3>
+ * <pre>
+ *   基础设施层 → 领域服务 → 应用服务 → 接口层 → Servlet 容器
+ * </pre>
+ */
 @WebListener
 public class Application implements ServletContextListener {
 
@@ -50,7 +64,7 @@ public class Application implements ServletContextListener {
             loggingConfig.setFile(config.getLogging().getFile());
             loggingConfig.init();
 
-            // 3. 装配基础设施层
+            // 3. 装配基础设施层（仓储 + 事件发布器）
             MessageQueueService messageQueueService = new MessageQueueService();
             messageQueueService.receiveMessages();
             DomainEventPublisher eventPublisher =
@@ -61,7 +75,7 @@ public class Application implements ServletContextListener {
             OrderFactory orderFactory = new OrderFactory();
             OrderPricingService pricingService = new OrderPricingService();
 
-            // 5. 装配应用服务
+            // 5. 装配应用服务（构造器注入所有依赖）
             OrderService orderService = new OrderService(
                     orderRepository,
                     orderFactory,
@@ -81,7 +95,7 @@ public class Application implements ServletContextListener {
             // 测试路由
             router.get("/api/hello", (req, resp) -> resp.getWriter().write("Hello world!"));
 
-            // 注册首页 Servlet
+            // 首页 Servlet
             context.addServlet("HomeServlet", new HttpServlet() {
                 @Override
                 protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

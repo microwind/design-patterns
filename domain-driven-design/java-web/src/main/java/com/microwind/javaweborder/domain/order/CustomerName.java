@@ -1,13 +1,15 @@
-// 领域层(Domain) - 值对象：客户名称
-//
-// 把字符串字段（客户名、邮箱、电话）独立为值对象，
-// 校验规则集中一处，避免"贫血字符串"散落各处导致校验遗漏。
 package com.microwind.javaweborder.domain.order;
 
 import com.microwind.javaweborder.domain.exception.InvalidOrderInputException;
 
 import java.util.Objects;
 
+/**
+ * 客户名称值对象。
+ *
+ * <p>DDD 战术构件：<b>值对象</b>。把字符串字段（客户名、邮箱、电话等）
+ * 独立为值对象，校验规则集中一处，避免"贫血字符串"散落各处造成校验遗漏。
+ */
 public final class CustomerName {
 
     private static final int MAX_LENGTH = 64;
@@ -24,6 +26,13 @@ public final class CustomerName {
         this.value = value;
     }
 
+    /**
+     * 构造 CustomerName。
+     *
+     * @param value 客户名称字符串
+     * @return CustomerName 实例
+     * @throws InvalidOrderInputException 当为空或超长
+     */
     public static CustomerName of(String value) {
         return new CustomerName(value);
     }

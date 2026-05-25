@@ -1,15 +1,3 @@
-// 接口层(Interfaces) - 订单 HTTP 控制器
-//
-// 接口层职责：
-// - 解析 HTTP 请求（路径参数、查询串、请求体）
-// - 调用应用服务（且只调一次，避免业务逻辑泄漏到此处）
-// - 把结果序列化为响应（按异常类型分支映射 HTTP 状态码）
-//
-// 异常映射规则：
-// - InvalidOrderInputException  → 400 Bad Request（值对象 / 参数校验失败）
-// - OrderNotFoundException      → 404 Not Found（订单不存在）
-// - InvalidOrderStateException  → 409 Conflict（业务状态不允许）
-// - 其它 Exception              → 500 Internal Server Error
 package com.microwind.javaweborder.interfaces.controllers;
 
 import com.microwind.javaweborder.application.command.CreateOrderCommand;
@@ -27,16 +15,41 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * 订单 HTTP 控制器。
+ *
+ * <p>DDD 四层架构中的<b>接口层（Interfaces）</b>。职责：
+ * <ul>
+ *   <li>解析 HTTP 请求（路径参数、查询串、请求体）</li>
+ *   <li>装配 Command 对象，调用应用服务（只调一次，避免业务逻辑泄漏到此处）</li>
+ *   <li>按异常类型分支映射 HTTP 状态码</li>
+ * </ul>
+ *
+ * <h3>领域异常 → HTTP 状态码映射</h3>
+ * <ul>
+ *   <li>{@link InvalidOrderInputException}  → 400 Bad Request</li>
+ *   <li>{@link OrderNotFoundException}      → 404 Not Found</li>
+ *   <li>{@link InvalidOrderStateException}  → 409 Conflict</li>
+ *   <li>其它 {@link Exception}               → 500 Internal Server Error</li>
+ * </ul>
+ */
 public class OrderController {
 
     private final OrderService orderService;
 
-    // 构造器注入：在 Application 装配阶段把已组装好的 OrderService 注进来
+    /**
+     * 构造器注入：在 {@link com.microwind.javaweborder.Application} 装配阶段
+     * 把已组装好的 {@link OrderService} 注入。
+     *
+     * @param orderService 已装配好的应用服务
+     */
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
-    // 创建订单：对应 POST /orders
+    /**
+     * 创建订单：{@code POST /orders}。
+     */
     public void createOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             OrderRequest body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
@@ -53,7 +66,9 @@ public class OrderController {
         }
     }
 
-    // 获取订单：对应 GET /orders/:id
+    /**
+     * 获取订单：{@code GET /orders/:id}。
+     */
     public void getOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             long orderId = parseId(extractId(request));
@@ -68,7 +83,9 @@ public class OrderController {
         }
     }
 
-    // 更新订单：对应 PUT /orders/:id
+    /**
+     * 更新订单：{@code PUT /orders/:id}。
+     */
     public void updateOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             OrderRequest body = BodyParserUtils.parseRequestBody(request, OrderRequest.class);
@@ -91,7 +108,9 @@ public class OrderController {
         }
     }
 
-    // 删除订单：对应 DELETE /orders/:id
+    /**
+     * 删除订单：{@code DELETE /orders/:id}。
+     */
     public void deleteOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             long orderId = parseId(extractId(request));
@@ -106,7 +125,9 @@ public class OrderController {
         }
     }
 
-    // 获取订单列表：对应 GET /orders
+    /**
+     * 获取订单列表：{@code GET /orders}。
+     */
     public void listOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             List<OrderDTO> orders = orderService.listOrder();
@@ -117,9 +138,7 @@ public class OrderController {
     }
 
     // === 内部辅助：参数提取 / 校验 ===
-    //
-    // 这里抛的也是领域异常 InvalidOrderInputException，
-    // 这样接口层的 catch 子句保持精简、统一。
+    // 这些方法抛领域异常 InvalidOrderInputException，让接口层的 catch 子句保持精简、统一。
 
     private String extractId(HttpServletRequest request) {
         Object idObj = request.getAttribute("id");
@@ -150,10 +169,12 @@ public class OrderController {
         }
     }
 
-    // 内部类，用于映射请求体 JSON 对象
+    /**
+     * 请求体 JSON 映射结构（接口层内部使用，不暴露到其他层）。
+     */
     private static class OrderRequest {
         private String customerName;
-        private Object amount; // 可支持数字或字符串
+        private Object amount;
 
         public String getCustomerName() {
             return customerName;

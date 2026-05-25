@@ -1,10 +1,12 @@
-// 领域层(Domain) - 领域事件：订单已删除
 package com.microwind.javaweborder.domain.event;
 
 import com.microwind.javaweborder.domain.order.OrderId;
 
 import java.time.LocalDateTime;
 
+/**
+ * 领域事件：订单已删除。
+ */
 public final class OrderDeletedEvent implements DomainEvent {
 
     private final OrderId orderId;
