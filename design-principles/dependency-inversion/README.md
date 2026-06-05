@@ -20,35 +20,64 @@
 ### 正例 - 依赖倒置
 
 ```mermaid
-graph TD
-    A[Notification<br/>高层业务模块] --> B[Sender<br/>抽象接口]
-    B --> C[MessageSender<br/>消息发送器]
-    B --> D[MailSender<br/>邮件发送器]
-    B --> E[PushSender<br/>推送发送器]
-    F[依赖注入<br/>DI] --> A
+classDiagram
 
-    style A fill:#51cf66,stroke:#2b8a3e,stroke-width:3px,color:#fff
-    style B fill:#20c997,stroke:#0ca678,stroke-width:3px,color:#fff
-    style C fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
-    style D fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
-    style E fill:#15aabf,stroke:#0b7285,stroke-width:2px,color:#fff
-    style F fill:#ffa94d,stroke:#e67700,stroke-width:2px,color:#fff
+    class Notification {
+        <<高层业务模块>>
+    }
+
+    class Sender {
+        <<interface>>
+        +send()
+    }
+
+    class MessageSender
+    class MailSender
+    class PushSender
+
+    class DIContainer {
+        <<依赖注入容器>>
+    }
+
+    Notification --> Sender : 依赖
+
+    Sender <|.. MessageSender : 实现
+    Sender <|.. MailSender : 实现
+    Sender <|.. PushSender : 实现
+
+    DIContainer ..> Notification : 注入
 ```
 
 ### 反例 - 高层依赖低层实现
 
 ```mermaid
-graph TD
-    A[Notification<br/>高层业务模块<br/>违反依赖倒置] --> B[MessageSender<br/>具体实现]
-    A --> C[MailSender<br/>具体实现]
-    A --> D[PushSender<br/>具体实现]
-    E[紧耦合<br/>难以扩展] --> A
+classDiagram
 
-    style A fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
-    style B fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
-    style C fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
-    style D fill:#ff8787,stroke:#c92a2a,stroke-width:2px,color:#fff
-    style E fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+    class Notification {
+        <<高层业务模块>>
+    }
+
+    class MessageSender {
+        <<具体实现>>
+    }
+
+    class MailSender {
+        <<具体实现>>
+    }
+
+    class PushSender {
+        <<具体实现>>
+    }
+
+    class DIContainer {
+        <<依赖注入容器>>
+    }
+
+    Notification --> MessageSender : 依赖
+    Notification --> MailSender : 依赖
+    Notification --> PushSender : 依赖
+
+    DIContainer --> Notification : 注入
 ```
 
 # 代码

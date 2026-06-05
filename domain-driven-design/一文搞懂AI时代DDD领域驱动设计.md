@@ -287,34 +287,59 @@ flowchart TD
 #### 2. AI辅助的DDD实施
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'sectionBkgColor': '#f1f1f1', 'altSectionBkgColor': '#f1f1f1', 'gridColor': '#e9ecef'}}}%%
-flowchart TD
-    A[业务探索] --> B[AI辅助事件风暴]
-    B --> C[AI生成统一语言]
-    C --> D[战略设计]
-    D --> E[AI辅助子域划分]
-    E --> F[AI生成限界上下文]
-    F --> G[战术设计]
-    G --> H[AI生成聚合设计]
-    H --> I[AI生成领域事件]
-    I --> J[代码实现]
-    J --> K[AI生成领域层代码]
-    K --> L[AI生成应用层代码]
-    L --> M[AI生成基础设施层]
-    
-    style A fill:#E11D1D,color:#ffffff
-    style B fill:#CE7005,color:#FFFFFF
-    style C fill:#CE7005,color:#FFFFFF
-    style D fill:#097A93,color:#ffffff
-    style E fill:#CE7005,color:#FFFFFF
-    style F fill:#CE7005,color:#FFFFFF
-    style G fill:#097A93,color:#ffffff
-    style H fill:#CE7005,color:#FFFFFF
-    style I fill:#CE7005,color:#FFFFFF
-    style J fill:#018663,color:#ffffff
-    style K fill:#CE7005,color:#FFFFFF
-    style L fill:#CE7005,color:#FFFFFF
-    style M fill:#CE7005,color:#FFFFFF
+%%{init: {'theme': 'base', 'themeVariables': { 'sectionBkgColor': '#f8f8f8', 'altSectionBkgColor': '#f8f8f8', 'gridColor': '#e5e7eb'}}}%%
+flowchart TB
+
+%% ===================== 第一层 =====================
+subgraph L1[业务探索]
+direction LR
+A[业务探索] --> B[AI辅助事件风暴] --> C[AI生成统一语言]
+end
+
+%% 层间下沉
+L1 --> L2
+
+%% ===================== 第二层 =====================
+subgraph L2[战略设计]
+direction LR
+D[战略设计] --> E[AI辅助子域划分] --> F[AI生成限界上下文]
+end
+
+%% 层间下沉
+L2 --> L3
+
+%% ===================== 第三层 =====================
+subgraph L3[战术设计]
+direction LR
+G[战术设计] --> H[AI生成聚合设计] --> I[AI生成领域事件]
+end
+
+%% 层间下沉
+L3 --> L4
+
+%% ===================== 第四层 =====================
+subgraph L4[代码实现]
+direction LR
+J[代码实现] --> K[AI生成领域层代码] --> L[AI生成应用层代码] --> M[AI生成基础设施层]
+end
+
+%% ===================== 样式 =====================
+style A fill:#E11D1D,color:#fff
+style B fill:#CE7005,color:#fff
+style C fill:#CE7005,color:#fff
+
+style D fill:#097A93,color:#fff
+style E fill:#CE7005,color:#fff
+style F fill:#CE7005,color:#fff
+
+style G fill:#097A93,color:#fff
+style H fill:#CE7005,color:#fff
+style I fill:#CE7005,color:#fff
+
+style J fill:#018663,color:#fff
+style K fill:#CE7005,color:#fff
+style L fill:#CE7005,color:#fff
+style M fill:#CE7005,color:#fff
 ```
 
 **AI辅助DDD的优势**：
@@ -3075,7 +3100,7 @@ module.exports = OrderRepositoryImpl;
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'sectionBkgColor': '#f1f1f1', 'altSectionBkgColor': '#f1f1f1', 'gridColor': '#e9ecef'}}}%%
-flowchart TB
+flowchart LR
     MVC_View[View<br/>MVC视图层]
     MVC_Controller[Controller<br/>MVC控制器层]
     MVC_Model[Model<br/>MVC模型层]
@@ -3277,7 +3302,7 @@ flowchart TD
 **解决方案**：
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'sectionBkgColor': '#f1f1f1', 'altSectionBkgColor': '#f1f1f1', 'gridColor': '#e9ecef'}}}%%
-flowchart TD
+flowchart LR
     A[现有系统] --> B[识别核心域]
     B --> C[建立限界上下文]
     C --> D[重构核心模块]
