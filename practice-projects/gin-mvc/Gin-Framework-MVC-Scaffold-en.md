@@ -32,7 +32,7 @@ Project Directory: `gin-mvc/`
 
 | Technology | Version | Description |
 |------------|---------|-------------|
-| Go | 1.21+ | Language Version |
+| Go | 1.26.4 | Language Version |
 | Gin | 1.9+ | HTTP Framework |
 | RocketMQ | 5.3+ | Event Message Queue |
 | MySQL | 8.0+ | User DB Default |
@@ -155,7 +155,7 @@ gin-mvc/
 
 ### 1. Environment Setup
 
-- Go 1.21+
+- Go 1.26.4+
 - MySQL 8.0+ and PostgreSQL 14+ (or choose one of them)
 - RocketMQ 5.3+ (optional)
 - SMTP mailbox (optional, QQ mailbox recommended)
