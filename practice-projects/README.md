@@ -128,6 +128,24 @@ go run cmd/main.go
 4. `gin-ddd`：对比 MVC 与 DDD，在 Go 中实践复杂业务建模。
 
 ---
+## 只拉取 Github 指定目录
+```shell
+# 步骤1：初始化并启用稀疏检出
+mkdir springboot4ddd && cd springboot4ddd
+git init
+git remote add origin -f https://github.com/microwind/design-patterns.git
+git config core.sparseCheckout true
+
+# 步骤2：指定目录并拉取
+echo "practice-projects/springboot4ddd/" >> .git/info/sparse-checkout
+git pull origin main
+
+# 步骤3：完成
+# 目录 springboot4ddd 下即为所需内容，后续更新执行 
+git pull origin main
+```
+
+---
 
 ## 常见问题
 

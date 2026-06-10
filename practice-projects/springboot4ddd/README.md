@@ -549,6 +549,24 @@ curl "http://localhost:8080/api/orders/page?page=1&size=15&sort=createdTime,desc
 
 [Springboot4DDD-Scaffold.md](./Springboot4DDD-Scaffold.md)
 
+
+### 只拉取 springboot4ddd 目录
+```shell
+# 步骤1：初始化并启用稀疏检出
+mkdir springboot4ddd && cd springboot4ddd
+git init
+git remote add origin -f https://github.com/microwind/design-patterns.git
+git config core.sparseCheckout true
+
+# 步骤2：指定目录并拉取
+echo "practice-projects/springboot4ddd/" >> .git/info/sparse-checkout
+git pull origin main
+
+# 步骤3：完成
+# 目录 springboot4ddd 下即为所需内容，后续更新执行 
+git pull origin main
+```
+
 ## License
 
 MIT License
