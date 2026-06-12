@@ -7,11 +7,10 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<!--
 			Spring Boot 版本说明：
-			- 4.1.0-RC1：Spring Boot 4.1 最新里程碑版本（2026-04-23 发布，GA 预计 2026 年 5 月）
+			- 4.1.0：Spring Boot 4.1 正式版
 			- 4.0.1：Spring Boot 4.0 稳定版（如需稳定版可改回此版本）
-			RC 版本仅发布在 Spring milestone 仓库，需配合下方 <repositories> / <pluginRepositories> 使用
 		-->
-		<version>4.1.0-RC1</version>
+		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github</groupId>
@@ -378,30 +377,6 @@
         </profile>
     </profiles>
 
-    <!-- ========== Spring Milestone 仓库 ==========
-         Spring Boot 4.1 GA 预计于 2026 年 5 月发布。在 GA 发布前，
-         4.1.0-RC1 / 4.1.0-Mx 等里程碑版本仅发布到 Spring milestone 仓库。
-         GA 发布后可移除此 repositories / pluginRepositories 配置。
-    -->
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+
 
 </project>
