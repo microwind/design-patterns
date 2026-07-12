@@ -681,32 +681,23 @@ mindmap
   root((DDD))
     战略设计
       限界上下文
+      子域
       上下文映射
-      领域建模
+      通用语言
     战术设计
-      聚合根
-      实体
-      值对象
-      领域服务
-      仓储
-      领域事件
-    架构模式
+      实体 Entity
+      值对象 Value Object
+      聚合 Aggregate
+      聚合根 Aggregate Root
+      领域服务 Domain Service
+      仓储 Repository
+      领域事件 Domain Event
+    架构实践
       分层架构
       六边形架构
+      洋葱架构
       CQRS
       事件溯源
-  
-  root((DDD))
-    Style #f3e5f5,#9c27b0
-  
-  战略设计
-    Style #e1f5fe,#039be5
-  
-  战术设计
-    Style #fff3e0,#ff9800
-  
-  架构模式
-    Style #e8f5e9,#4caf50
 ```
 
 ### 适用场景
