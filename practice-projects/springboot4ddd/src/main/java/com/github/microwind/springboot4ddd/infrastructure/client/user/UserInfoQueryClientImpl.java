@@ -3,9 +3,7 @@ package com.github.microwind.springboot4ddd.infrastructure.client.user;
 import com.github.microwind.springboot4ddd.domain.client.user.UserBriefInfo;
 import com.github.microwind.springboot4ddd.domain.client.user.UserInfoQueryClient;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -29,10 +27,10 @@ import java.util.Set;
 @Component
 public class UserInfoQueryClientImpl implements UserInfoQueryClient {
 
-    private final NamedParameterJdbcTemplate namedJdbcTemplate;
+    private final JdbcClient jdbcClient;
 
-    public UserInfoQueryClientImpl(@Qualifier("userJdbcTemplate") JdbcTemplate userJdbcTemplate) {
-        this.namedJdbcTemplate = new NamedParameterJdbcTemplate(userJdbcTemplate);
+    public UserInfoQueryClientImpl(@Qualifier("userJdbcClient") JdbcClient jdbcClient) {
+        this.jdbcClient = jdbcClient;
     }
 
     @Override
@@ -41,17 +39,19 @@ public class UserInfoQueryClientImpl implements UserInfoQueryClient {
             return Collections.emptyMap();
         }
         Set<Long> distinct = new LinkedHashSet<>(userIds);
-        MapSqlParameterSource params = new MapSqlParameterSource("ids", distinct);
         Map<Long, UserBriefInfo> result = new HashMap<>(distinct.size());
 
-        namedJdbcTemplate.query(
-                "SELECT id, name, phone FROM users WHERE id IN (:ids)",
-                params,
-                rs -> {
+        // JdbcClient doesn't support IN clause directly with collection, need to use placeholder expansion
+        String placeholders = String.join(",", Collections.nCopies(distinct.size(), "?"));
+        String sql = "SELECT id, name, phone FROM users WHERE id IN (" + placeholders + ")";
+
+        jdbcClient.sql(sql)
+                .params((Object[]) distinct.toArray(new Long[0]))
+                .query(rs -> {
                     long id = rs.getLong("id");
                     result.put(id, new UserBriefInfo(id, rs.getString("name"), rs.getString("phone")));
-                }
-        );
+                });
+
         return result;
     }
 }

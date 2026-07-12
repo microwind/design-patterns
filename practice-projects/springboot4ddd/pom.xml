@@ -32,9 +32,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+		<java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
     </properties>
 	<dependencies>
 		<!-- Spring Boot Web -->
@@ -203,12 +203,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<!--
-					锁定 3.14.1：Spring Boot 4.1.0-RC1 默认引入的 3.15.0 要求 Maven ≥ 3.9.12，
-					若用户系统 Maven 低于该版本（如 3.9.9）会报 "Unresolved plugin" 错误。
-					3.14.1 仅要求 Maven ≥ 3.6.3，兼容性更广，且支持 Java 21。
-					若全员使用 ./mvnw（已绑定 Maven 3.9.12），可移除此 <version> 让父 POM 接管。
-				-->
 				<version>3.14.1</version>
 				<configuration>
 					<annotationProcessorPaths>

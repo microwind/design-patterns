@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,20 +103,20 @@ public class DataSourceConfig {
     }
 
     /**
-     * MySQL JdbcTemplate - 用户数据
+     * MySQL JdbcClient - 用户数据
      */
-    @Bean(name = "userJdbcTemplate")
-    public JdbcTemplate userJdbcTemplate(@Qualifier("userDataSource") DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    @Bean(name = "userJdbcClient")
+    public JdbcClient userJdbcClient(@Qualifier("userDataSource") DataSource dataSource) {
+        return JdbcClient.create(dataSource);
     }
 
     /**
-     * PostgreSQL JdbcTemplate - 订单数据
+     * PostgreSQL JdbcClient - 订单数据
      */
-    @Bean(name = "orderJdbcTemplate")
+    @Bean(name = "orderJdbcClient")
     @Primary
-    public JdbcTemplate orderJdbcTemplate(@Qualifier("orderDataSource") DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    public JdbcClient orderJdbcClient(@Qualifier("orderDataSource") DataSource dataSource) {
+        return JdbcClient.create(dataSource);
     }
 
     /**

@@ -7,17 +7,9 @@ import com.github.microwind.springboot4ddd.domain.page.SortOrder;
 import com.github.microwind.springboot4ddd.domain.repository.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,28 +28,30 @@ import java.util.Optional;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcClient jdbcClient;
 
-    public UserRepositoryImpl(@Qualifier("userJdbcTemplate") JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public UserRepositoryImpl(@Qualifier("userJdbcClient") JdbcClient jdbcClient) {
+        this.jdbcClient = jdbcClient;
     }
 
-    private static final RowMapper<UserDO> USER_DO_ROW_MAPPER = (rs, rowNum) -> UserDO.builder()
-            .id(rs.getLong("id"))
-            .name(rs.getString("name"))
-            .email(rs.getString("email"))
-            .phone(rs.getString("phone"))
-            .wechat(getStringOrNull(rs, "wechat"))
-            .address(getStringOrNull(rs, "address"))
-            .createdTime(rs.getTimestamp("created_time").toLocalDateTime())
-            .updatedTime(rs.getTimestamp("updated_time").toLocalDateTime())
-            .build();
+    private static UserDO mapRowToUserDO(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return UserDO.builder()
+                .id(rs.getLong("id"))
+                .name(rs.getString("name"))
+                .email(rs.getString("email"))
+                .phone(rs.getString("phone"))
+                .wechat(getStringOrNull(rs, "wechat"))
+                .address(getStringOrNull(rs, "address"))
+                .createdTime(rs.getTimestamp("created_time").toLocalDateTime())
+                .updatedTime(rs.getTimestamp("updated_time").toLocalDateTime())
+                .build();
+    }
 
     /** 列不存在或为 null 时返回 null，避免 SQLException: Column 'xxx' not found */
-    private static String getStringOrNull(ResultSet rs, String column) throws SQLException {
+    private static String getStringOrNull(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
         try {
             rs.findColumn(column);
-        } catch (SQLException notFound) {
+        } catch (java.sql.SQLException notFound) {
             return null;
         }
         return rs.getString(column);
@@ -68,24 +62,18 @@ public class UserRepositoryImpl implements UserRepository {
         UserDO userDO = UserConverter.toDO(user);
         String sql = "INSERT INTO users (name, email, phone, address, created_time, updated_time) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime createdTime = userDO.getCreatedTime() != null ? userDO.getCreatedTime() : now;
         LocalDateTime updatedTime = userDO.getUpdatedTime() != null ? userDO.getUpdatedTime() : now;
 
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, userDO.getName());
-            ps.setString(2, userDO.getEmail());
-            ps.setString(3, userDO.getPhone());
-            ps.setString(4, userDO.getAddress());
-            ps.setTimestamp(5, Timestamp.valueOf(createdTime));
-            ps.setTimestamp(6, Timestamp.valueOf(updatedTime));
-            return ps;
-        }, keyHolder);
+        Long generatedId = jdbcClient.sql(sql)
+                .params(userDO.getName(), userDO.getEmail(), userDO.getPhone(), 
+                        userDO.getAddress(), Timestamp.valueOf(createdTime), Timestamp.valueOf(updatedTime))
+                .query(Long.class)
+                .single();
 
-        user.markPersisted(keyHolder.getKey().longValue());
+        user.markPersisted(generatedId);
         log.info("User saved with id: {}", user.getId());
         return user;
     }
@@ -93,56 +81,56 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findById(Long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-        try {
-            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, id);
-            return Optional.ofNullable(UserConverter.toModel(userDO));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return jdbcClient.sql(sql)
+                .param(id)
+                .query((rs, rowNum) -> UserConverter.toModel(UserRepositoryImpl.mapRowToUserDO(rs)))
+                .optional();
     }
 
     @Override
     public Optional<User> findByName(String name) {
         String sql = "SELECT * FROM users WHERE name = ?";
-        try {
-            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, name);
-            return Optional.ofNullable(UserConverter.toModel(userDO));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return jdbcClient.sql(sql)
+                .param(name)
+                .query((rs, rowNum) -> UserConverter.toModel(UserRepositoryImpl.mapRowToUserDO(rs)))
+                .optional();
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
-        try {
-            UserDO userDO = jdbcTemplate.queryForObject(sql, USER_DO_ROW_MAPPER, email);
-            return Optional.ofNullable(UserConverter.toModel(userDO));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return jdbcClient.sql(sql)
+                .param(email)
+                .query((rs, rowNum) -> UserConverter.toModel(UserRepositoryImpl.mapRowToUserDO(rs)))
+                .optional();
     }
 
     @Override
     public List<User> findAll() {
         String sql = "SELECT * FROM users ORDER BY created_time DESC";
-        return UserConverter.toModelList(jdbcTemplate.query(sql, USER_DO_ROW_MAPPER));
+        return jdbcClient.sql(sql)
+                .query((rs, rowNum) -> UserConverter.toModel(UserRepositoryImpl.mapRowToUserDO(rs)))
+                .list();
     }
 
     @Override
     public PageResult<User> findAll(PageRequest pageRequest) {
         String countSql = "SELECT COUNT(*) FROM users";
-        Integer total = jdbcTemplate.queryForObject(countSql, Integer.class);
+        Integer total = jdbcClient.sql(countSql)
+                .query(Integer.class)
+                .single();
         long totalElements = total != null ? total : 0;
 
         String orderBy = buildOrderByClause(pageRequest.getSorts());
         String sql = "SELECT * FROM users" + orderBy + " LIMIT ? OFFSET ?";
 
-        List<UserDO> records = jdbcTemplate.query(
-                sql, USER_DO_ROW_MAPPER, pageRequest.getPageSize(), pageRequest.getOffset());
+        List<User> records = jdbcClient.sql(sql)
+                .params(pageRequest.getPageSize(), pageRequest.getOffset())
+                .query((rs, rowNum) -> UserConverter.toModel(UserRepositoryImpl.mapRowToUserDO(rs)))
+                .list();
 
         return new PageResult<>(
-                UserConverter.toModelList(records),
+                records,
                 totalElements,
                 pageRequest.getPageNumber(),
                 pageRequest.getPageSize()
@@ -174,13 +162,10 @@ public class UserRepositoryImpl implements UserRepository {
         String sql = "UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_time = ? " +
                 "WHERE id = ?";
 
-        int updated = jdbcTemplate.update(sql,
-                userDO.getName(),
-                userDO.getEmail(),
-                userDO.getPhone(),
-                userDO.getAddress(),
-                Timestamp.valueOf(LocalDateTime.now()),
-                userDO.getId());
+        int updated = jdbcClient.sql(sql)
+                .params(userDO.getName(), userDO.getEmail(), userDO.getPhone(), 
+                        userDO.getAddress(), Timestamp.valueOf(LocalDateTime.now()), userDO.getId())
+                .update();
 
         if (updated == 0) {
             throw new IllegalArgumentException("User not found with id: " + userDO.getId());
@@ -193,7 +178,9 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void deleteById(Long id) {
         String sql = "DELETE FROM users WHERE id = ?";
-        int deleted = jdbcTemplate.update(sql, id);
+        int deleted = jdbcClient.sql(sql)
+                .param(id)
+                .update();
         if (deleted == 0) {
             throw new IllegalArgumentException("User not found with id: " + id);
         }
@@ -203,14 +190,20 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByName(String name) {
         String sql = "SELECT COUNT(*) FROM users WHERE name = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, name);
+        Integer count = jdbcClient.sql(sql)
+                .param(name)
+                .query(Integer.class)
+                .single();
         return count != null && count > 0;
     }
 
     @Override
     public boolean existsByEmail(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
+        Integer count = jdbcClient.sql(sql)
+                .param(email)
+                .query(Integer.class)
+                .single();
         return count != null && count > 0;
     }
 }
