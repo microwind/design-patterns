@@ -140,7 +140,7 @@
       <dependency>
           <groupId>cn.hutool</groupId>
           <artifactId>hutool-crypto</artifactId>
-          <version>5.8.40</version>
+          <version>5.8.47</version>
       </dependency>
       <dependency>
           <groupId>commons-codec</groupId>
