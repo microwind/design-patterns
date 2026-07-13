@@ -24,7 +24,7 @@
     <!-- 项目版本 -->
     <project.version>1.0.0</project.version>
     <spring.boot.version>3.4.13</spring.boot.version>
-    <spring-security.version>6.4.13</spring-security.version>
+    <spring-security.version>7.1.0</spring-security.version>
 
     <!-- 环境配置 -->
     <java.version>17</java.version>
