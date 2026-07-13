@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.3</version>
+    <version>3.4.13</version>
     <relativePath/>
   </parent>
 
@@ -23,8 +23,8 @@
   <properties>
     <!-- 项目版本 -->
     <project.version>1.0.0</project.version>
-    <spring.boot.version>3.4.3</spring.boot.version>
-    <spring-security.version>6.4.3</spring-security.version>
+    <spring.boot.version>3.4.13</spring.boot.version>
+    <spring-security.version>6.4.13</spring-security.version>
 
     <!-- 环境配置 -->
     <java.version>17</java.version>
@@ -35,10 +35,10 @@
     <!-- 中间件版本 -->
     <h2.database.version>2.2.224</h2.database.version>
     <mysql.connector.version>9.2.0</mysql.connector.version>
-    <tomcat.version>11.0.5</tomcat.version>
+    <tomcat.version>11.0.11</tomcat.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <jakarta-api.version>6.1.0</jakarta-api.version>
-    <jackson.version>2.16.0</jackson.version>
+    <jackson.version>2.18.6</jackson.version>
     <httpclient.version>5.4.2</httpclient.version>
     <lombok.version>1.18.36</lombok.version>
 
