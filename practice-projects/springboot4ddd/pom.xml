@@ -10,7 +10,7 @@
 			- 4.1.0：Spring Boot 4.1 正式版
 			- 4.0.1：Spring Boot 4.0 稳定版（如需稳定版可改回此版本）
 		-->
-		<version>4.1.0</version>
+		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github</groupId>
